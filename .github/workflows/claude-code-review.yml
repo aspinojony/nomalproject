@@ -1,0 +1,26 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+  actions: read
+
+concurrency:
+  group: claude-${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Claude PR Review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Claude Review
+        uses: anthropic/claude-review@v1
+        with:
+          apiKey: ${{ secrets.ANTHROPIC_API_KEY }}
