@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>题目管理工具 - 计算机考研平台</title>
+    <link rel="stylesheet" href="assets/css/common.css">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 10px;
+        }
+
+        .toolbar {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .toolbar-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0056b3; }
+
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #1e7e34; }
+
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-warning:hover { background: #e0a800; }
+
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-info:hover { background: #117a8b; }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 150px;
+        }
+
+        .filter-group label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .filter-group select, 
+        .filter-group input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .questions-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .question-text {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .difficulty-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .difficulty-简单 { background: #d4edda; color: #155724; }
+        .difficulty-中等 { background: #fff3cd; color: #856404; }
+        .difficulty-困难 { background: #f8d7da; color: #721c24; }
+
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .options-container {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        .option-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .option-input {
+            flex: 1;
+        }
+
+        .option-radio {
+            margin: 0;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+        }
+
+        .pagination button:hover {
+            background: #f8f9fa;
+        }
+
+        .pagination button.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .import-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .file-input-label:hover {
+            background: #0056b3;
+        }
+
+        .selected-file {
+            margin-left: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>题目管理工具</h1>
+        <p>导入、编辑、管理您的题目库</p>
+    </div>
+
+    <div class="container">
+        <!-- 统计卡片 -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-number" id="total-questions">0</div>
+                <div class="stat-label">总题目数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="subjects-count">0</div>
+                <div class="stat-label">科目数量</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="recent-questions">0</div>
+                <div class="stat-label">本月新增</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avg-difficulty">0</div>
+                <div class="stat-label">平均难度</div>
+            </div>
+        </div>
+
+        <!-- 工具栏 -->
+        <div class="toolbar">
+            <div class="toolbar-section">
+                <button class="btn btn-success" onclick="showAddQuestionModal()">
+                    新增题目
+                </button>
+                <button class="btn btn-info" onclick="showImportModal()">
+                    导入题目
+                </button>
+                <button class="btn btn-warning" onclick="exportQuestions()">
+                    导出题目
+                </button>
+            </div>
+            <div class="toolbar-section">
+                <button class="btn btn-danger" onclick="batchDelete()" id="batch-delete" style="display: none;">
+                    批量删除
+                </button>
+                <button class="btn btn-primary" onclick="refreshData()">
+                    刷新数据
+                </button>
+            </div>
+        </div>
+
+        <!-- 导入区域 -->
+        <div class="import-section" id="import-section" style="display: none;">
+            <h3>批量导入题目</h3>
+            <div style="margin-bottom: 15px;">
+                <div class="file-input-wrapper">
+                    <input type="file" id="import-file" class="file-input" accept=".json,.csv,.xlsx,.xls">
+                    <label for="import-file" class="file-input-label">选择文件</label>
+                    <span class="selected-file" id="selected-file"></span>
+                </div>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label>文件格式：</label>
+                <select id="import-format">
+                    <option value="auto">自动检测</option>
+                    <option value="json">JSON</option>
+                    <option value="csv">CSV</option>
+                    <option value="excel">Excel</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn btn-success" onclick="importFile()">开始导入</button>
+                <button class="btn" onclick="hideImportSection()">取消</button>
+            </div>
+            <div id="import-progress" style="display: none; margin-top: 15px;">
+                <div style="background: #f0f0f0; border-radius: 5px; overflow: hidden;">
+                    <div id="progress-bar" style="height: 20px; background: #007bff; width: 0%; transition: width 0.3s;"></div>
+                </div>
+                <div id="import-status" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+
+        <!-- 筛选器 -->
+        <div class="filters">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>科目</label>
+                    <select id="filter-subject">
+                        <option value="">全部科目</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>年份</label>
+                    <select id="filter-year">
+                        <option value="">全部年份</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>难度</label>
+                    <select id="filter-difficulty">
+                        <option value="">全部难度</option>
+                        <option value="简单">简单</option>
+                        <option value="中等">中等</option>
+                        <option value="困难">困难</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>搜索关键词</label>
+                    <input type="text" id="search-keyword" placeholder="搜索题目内容...">
+                </div>
+                <div class="filter-group">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-primary" onclick="applyFilters()">筛选</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 题目表格 -->
+        <div class="questions-table">
+            <table class="table" id="questions-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                        </th>
+                        <th>ID</th>
+                        <th>科目</th>
+                        <th>题目</th>
+                        <th>年份</th>
+                        <th>难度</th>
+                        <th>分值</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="questions-tbody">
+                    <!-- 题目列表将在这里动态生成 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        <div class="pagination" id="pagination">
+            <!-- 分页按钮将在这里动态生成 -->
+        </div>
+    </div>
+
+    <!-- 添加/编辑题目模态框 -->
+    <div class="modal" id="question-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">新增题目</div>
+                <span class="close" onclick="hideQuestionModal()">&times;</span>
+            </div>
+            <form id="question-form">
+                <div class="form-group">
+                    <label for="question-subject">科目 *</label>
+                    <select id="question-subject" required>
+                        <option value="">请选择科目</option>
+                        <!-- 公共课 -->
+                        <optgroup label="公共课">
+                            <option value="高等数学">高等数学</option>
+                            <option value="线性代数">线性代数</option>
+                            <option value="概率论与数理统计">概率论与数理统计</option>
+                            <option value="政治">政治</option>
+                            <option value="英语">英语</option>
+                        </optgroup>
+                        <!-- 专业课 -->
+                        <optgroup label="专业课">
+                            <option value="数据结构">数据结构</option>
+                            <option value="算法设计">算法设计</option>
+                            <option value="操作系统">操作系统</option>
+                            <option value="计算机网络">计算机网络</option>
+                            <option value="组成原理">组成原理</option>
+                            <option value="编译原理">编译原理</option>
+                            <option value="数据库">数据库</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="question-chapter">章节</label>
+                    <input type="text" id="question-chapter" placeholder="例如：线性表">
+                </div>
+                <div class="form-group">
+                    <label for="question-year">年份 *</label>
+                    <input type="number" id="question-year" min="2000" max="2050" required>
+                </div>
+                <div class="form-group">
+                    <label for="question-difficulty">难度</label>
+                    <select id="question-difficulty">
+                        <option value="简单">简单</option>
+                        <option value="中等">中等</option>
+                        <option value="困难">困难</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="question-points">分值</label>
+                    <input type="number" id="question-points" min="1" max="10" value="2">
+                </div>
+                <div class="form-group">
+                    <label for="question-text">题目内容 *</label>
+                    <textarea id="question-text" required placeholder="请输入题目内容..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>选项 *</label>
+                    <div class="options-container" id="options-container">
+                        <!-- 选项将在这里动态生成 -->
+                    </div>
+                    <button type="button" class="btn btn-info btn-sm" onclick="addOption()">添加选项</button>
+                </div>
+                <div class="form-group">
+                    <label for="question-explanation">解析</label>
+                    <textarea id="question-explanation" placeholder="请输入题目解析..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="question-tags">标签</label>
+                    <input type="text" id="question-tags" placeholder="多个标签用逗号分隔">
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn" onclick="hideQuestionModal()">取消</button>
+                    <button type="submit" class="btn btn-success">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 导入模态框 -->
+    <div class="modal" id="import-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">导入题目</div>
+                <span class="close" onclick="hideImportModal()">&times;</span>
+            </div>
+            <div>
+                <h4>支持的文件格式</h4>
+                <ul>
+                    <li><strong>JSON:</strong> 标准的JSON格式题目数据</li>
+                    <li><strong>CSV:</strong> 逗号分隔的表格数据</li>
+                    <li><strong>Excel:</strong> .xlsx 或 .xls 文件</li>
+                </ul>
+                <h4>CSV格式说明</h4>
+                <p>CSV文件应包含以下列（顺序可变）：</p>
+                <code>subject,chapter,year,difficulty,points,question,options,correct_answer,explanation,tags</code>
+                <p>注意：选项用 | 分隔，标签用 | 分隔</p>
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="btn btn-info" onclick="downloadTemplate()">下载模板文件</button>
+                </div>
+                <div style="text-align: right;">
+                    <button class="btn btn-primary" onclick="showImportSection()">开始导入</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载题库管理器 -->
+    <script src="assets/js/question-bank-manager.js"></script>
+    <!-- 题目管理界面脚本 -->
+    <script src="assets/js/question-manager-ui.js"></script>
+    
+    <!-- 快捷导航栏 -->
+    <script src="assets/js/quick-nav.js"></script>
+</body>
+</html>

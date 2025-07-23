@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试学习统计功能</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">学习统计功能测试</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">生成测试数据</h2>
+            <div class="space-y-4">
+                <button onclick="generateTestData()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    生成今日学习数据
+                </button>
+                <button onclick="clearTestData()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    清除所有数据
+                </button>
+                <button onclick="displayCurrentData()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    显示当前数据
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold mb-4">当前统计数据</h2>
+            <div id="dataDisplay" class="text-sm bg-gray-100 p-4 rounded overflow-auto">
+                点击"显示当前数据"按钮查看
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/stats-manager.js"></script>
+    <script>
+        function generateTestData() {
+            console.log('🧪 开始生成测试数据...');
+            
+            if (!window.studyStats) {
+                alert('学习统计管理器未加载，请检查文件路径');
+                return;
+            }
+
+            try {
+                // 模拟今日学习会话
+                const subjects = ['数学', '英语', '政治', '数据结构'];
+                const chapters = ['第一章', '第二章', '第三章', '第四章'];
+                
+                // 生成3个学习会话
+                for (let i = 0; i < 3; i++) {
+                    const subject = subjects[Math.floor(Math.random() * subjects.length)];
+                    const chapter = chapters[Math.floor(Math.random() * chapters.length)];
+                    
+                    // 开始会话
+                    window.studyStats.startStudySession(subject, chapter);
+                    
+                    // 模拟学习时间（5-30分钟）
+                    const studyTime = Math.floor(Math.random() * 25) + 5;
+                    window.studyStats.currentSession.startTime = new Date(Date.now() - studyTime * 60 * 1000);
+                    
+                    // 模拟答题
+                    const questions = Math.floor(Math.random() * 15) + 5;
+                    for (let j = 0; j < questions; j++) {
+                        const isCorrect = Math.random() > 0.3; // 70%正确率
+                        window.studyStats.recordAnswer(isCorrect, subject);
+                    }
+                    
+                    // 结束会话
+                    window.studyStats.endStudySession();
+                    
+                    console.log(`✅ 生成会话 ${i + 1}: ${subject} - ${chapter}, 学习时间: ${studyTime}分钟, 答题: ${questions}题`);
+                }
+                
+                alert('✅ 测试数据生成成功！共生成3个学习会话');
+                displayCurrentData();
+                
+            } catch (error) {
+                console.error('❌ 生成测试数据失败:', error);
+                alert('❌ 生成测试数据失败: ' + error.message);
+            }
+        }
+
+        function clearTestData() {
+            if (confirm('确定要清除所有学习统计数据吗？')) {
+                localStorage.removeItem('study_statistics');
+                
+                // 重新初始化
+                if (window.studyStats) {
+                    window.studyStats.stats = window.studyStats.getDefaultStats();
+                    window.studyStats.saveStats();
+                }
+                
+                alert('✅ 所有数据已清除');
+                displayCurrentData();
+            }
+        }
+
+        function displayCurrentData() {
+            const stored = localStorage.getItem('study_statistics');
+            const displayDiv = document.getElementById('dataDisplay');
+            
+            if (!stored) {
+                displayDiv.innerHTML = '❌ 没有找到学习统计数据';
+                return;
+            }
+            
+            try {
+                const stats = JSON.parse(stored);
+                const today = new Date().toISOString().split('T')[0];
+                const todayStats = stats.dailyStats?.[today];
+                
+                const html = `
+                    <h3 class="font-bold mb-2">📊 今日统计数据 (${today})</h3>
+                    ${todayStats ? `
+                        <div class="mb-4">
+                            <p>📚 学习时长: ${todayStats.studyTime || 0} 分钟</p>
+                            <p>📝 完成习题: ${todayStats.questionsAnswered || 0} 题</p>
+                            <p>✅ 正确答案: ${todayStats.correctAnswers || 0} 题</p>
+                            <p>🎯 正确率: ${todayStats.questionsAnswered > 0 ? Math.round((todayStats.correctAnswers / todayStats.questionsAnswered) * 100) : 0}%</p>
+                            <p>🎪 学习会话: ${todayStats.sessions || 0} 次</p>
+                        </div>
+                    ` : `
+                        <p class="mb-4 text-red-600">❌ 今日暂无学习数据</p>
+                    `}
+                    
+                    <h3 class="font-bold mb-2">🎯 学习目标</h3>
+                    <div class="mb-4">
+                        <p>⏰ 每日学习目标: ${stats.goals?.dailyStudyTime || 120} 分钟</p>
+                        <p>📊 每日答题目标: ${stats.goals?.dailyQuestions || 50} 题</p>
+                        <p>🎯 目标正确率: ${stats.goals?.targetAccuracy || 80}%</p>
+                    </div>
+                    
+                    <h3 class="font-bold mb-2">📈 总体统计</h3>
+                    <div class="mb-4">
+                        <p>📚 总学习时长: ${stats.totalStudyTime || 0} 分钟</p>
+                        <p>📝 总答题数: ${stats.totalQuestionsAnswered || 0} 题</p>
+                        <p>✅ 总正确数: ${stats.correctAnswers || 0} 题</p>
+                        <p>🎯 总正确率: ${stats.totalQuestionsAnswered > 0 ? Math.round((stats.correctAnswers / stats.totalQuestionsAnswered) * 100) : 0}%</p>
+                        <p>🔥 连续天数: ${stats.streakDays || 0} 天</p>
+                    </div>
+                    
+                    <details class="mt-4">
+                        <summary class="cursor-pointer font-bold">🔍 查看完整数据结构</summary>
+                        <pre class="mt-2 text-xs bg-gray-200 p-2 rounded overflow-auto">${JSON.stringify(stats, null, 2)}</pre>
+                    </details>
+                `;
+                
+                displayDiv.innerHTML = html;
+                
+            } catch (error) {
+                displayDiv.innerHTML = '❌ 数据解析失败: ' + error.message;
+            }
+        }
+
+        // 页面加载时显示当前数据
+        window.addEventListener('load', () => {
+            setTimeout(displayCurrentData, 1000);
+        });
+    </script>
+</body>
+</html>

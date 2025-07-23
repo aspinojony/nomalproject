@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI悬浮窗调试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- AI助手加载器 -->
+    <script src="../assets/js/ai-assistant-loader.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">🔧 AI悬浮窗调试工具</h1>
+        
+        <!-- 检查状态面板 -->
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-semibold mb-4">📦 加载状态检查</h2>
+                <div id="loading-status" class="space-y-2 text-sm"></div>
+                <button onclick="checkLoadingStatus()" 
+                        class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    刷新检查
+                </button>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-semibold mb-4">🎯 DOM元素检查</h2>
+                <div id="dom-status" class="space-y-2 text-sm"></div>
+                <button onclick="checkDOMElements()" 
+                        class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    检查DOM
+                </button>
+            </div>
+        </div>
+
+        <!-- 事件测试面板 -->
+        <div class="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-semibold mb-4">⚡ 功能测试</h2>
+            <div class="grid md:grid-cols-4 gap-4">
+                <button onclick="testTriggerButton()" 
+                        class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    测试触发按钮
+                </button>
+                <button onclick="testAIAssistant()" 
+                        class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
+                    手动打开AI助手
+                </button>
+                <button onclick="testAPI()" 
+                        class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    测试API管理器
+                </button>
+                <button onclick="clearConsole()" 
+                        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    清除控制台
+                </button>
+            </div>
+        </div>
+
+        <!-- 控制台日志 -->
+        <div class="mt-6 bg-black text-green-400 rounded-lg p-4">
+            <h3 class="text-white mb-2">📝 调试日志:</h3>
+            <div id="debug-console" class="font-mono text-xs h-64 overflow-y-auto whitespace-pre-wrap"></div>
+        </div>
+    </div>
+
+    <script>
+        // 捕获所有console.log输出
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function appendToDebugConsole(message, type = 'log') {
+            const debugConsole = document.getElementById('debug-console');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                log: 'text-green-400',
+                error: 'text-red-400',
+                warn: 'text-yellow-400'
+            };
+            debugConsole.innerHTML += `<span class="${colors[type]}">[${timestamp}] ${message}</span>\n`;
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            appendToDebugConsole(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            appendToDebugConsole('❌ ' + args.join(' '), 'error');
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            appendToDebugConsole('⚠️ ' + args.join(' '), 'warn');
+        };
+
+        function checkLoadingStatus() {
+            const statusDiv = document.getElementById('loading-status');
+            const checks = [
+                { name: 'window.aiAssistant', value: !!window.aiAssistant },
+                { name: 'window.aiAPIManager', value: !!window.aiAPIManager },
+                { name: 'window.AIAssistantFloat', value: !!window.AIAssistantFloat },
+                { name: 'window.XunfeiSparkAPI', value: !!window.XunfeiSparkAPI },
+                { name: 'window.loadAIAssistant', value: !!window.loadAIAssistant }
+            ];
+
+            let html = '';
+            checks.forEach(check => {
+                const status = check.value ? '✅' : '❌';
+                const color = check.value ? 'text-green-600' : 'text-red-600';
+                html += `<div class="${color}">${status} ${check.name}: ${check.value}</div>`;
+            });
+
+            statusDiv.innerHTML = html;
+            console.log('加载状态检查完成');
+        }
+
+        function checkDOMElements() {
+            const statusDiv = document.getElementById('dom-status');
+            const elements = [
+                { name: 'AI触发按钮', selector: '#ai-assistant-trigger' },
+                { name: 'AI悬浮窗容器', selector: '#ai-assistant-float' },
+                { name: 'AI悬浮窗主体', selector: '#ai-float-window' },
+                { name: 'AI悬浮球', selector: '#ai-float-bubble' },
+                { name: 'AI配置模态框', selector: '#ai-config-modal' }
+            ];
+
+            let html = '';
+            elements.forEach(element => {
+                const el = document.querySelector(element.selector);
+                const exists = !!el;
+                const status = exists ? '✅' : '❌';
+                const color = exists ? 'text-green-600' : 'text-red-600';
+                const style = el ? getComputedStyle(el) : null;
+                const visible = style ? style.display !== 'none' : false;
+                
+                html += `<div class="${color}">${status} ${element.name}: ${exists ? '存在' : '不存在'}`;
+                if (exists) {
+                    html += ` (${visible ? '可见' : '隐藏'})`;
+                }
+                html += `</div>`;
+            });
+
+            statusDiv.innerHTML = html;
+            console.log('DOM元素检查完成');
+        }
+
+        function testTriggerButton() {
+            const trigger = document.getElementById('ai-assistant-trigger');
+            if (trigger) {
+                console.log('找到触发按钮，尝试点击...');
+                trigger.click();
+            } else {
+                console.error('未找到触发按钮元素');
+            }
+        }
+
+        function testAIAssistant() {
+            if (window.aiAssistant) {
+                console.log('尝试手动打开AI助手...');
+                try {
+                    window.aiAssistant.show();
+                    console.log('AI助手.show()调用成功');
+                } catch (error) {
+                    console.error('调用AI助手.show()失败:', error);
+                }
+            } else {
+                console.error('window.aiAssistant未定义');
+            }
+        }
+
+        function testAPI() {
+            if (window.aiAPIManager) {
+                console.log('API管理器存在，检查状态...');
+                const status = window.aiAPIManager.getConfigStatus();
+                console.log('API配置状态:', status);
+            } else {
+                console.error('window.aiAPIManager未定义');
+            }
+        }
+
+        function clearConsole() {
+            document.getElementById('debug-console').innerHTML = '';
+            console.log('调试控制台已清空');
+        }
+
+        // 页面加载后自动检查
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                console.log('页面加载完成，开始自动检查...');
+                checkLoadingStatus();
+                checkDOMElements();
+            }, 2000);
+        });
+
+        // 监听错误事件
+        window.addEventListener('error', function(event) {
+            console.error('全局错误:', event.error?.message || event.message);
+        });
+
+        // 监听AI相关事件
+        window.addEventListener('ai-message', function(event) {
+            console.log('AI消息事件:', event.detail);
+        });
+
+        window.addEventListener('ai-error', function(event) {
+            console.error('AI错误事件:', event.detail);
+        });
+    </script>
+</body>
+</html>

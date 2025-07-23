@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI助手章节笔记功能演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen py-8">
+        <div class="max-w-4xl mx-auto px-4">
+            <!-- 标题 -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">AI助手章节笔记功能演示</h1>
+                <p class="text-gray-600">测试AI助手的章节选择和自动生成笔记功能</p>
+            </div>
+            
+            <!-- 功能介绍卡片 -->
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-book text-white"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">章节选择</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">在AI助手中选择相关章节，让AI更好地理解学习上下文。</p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li>• 按科目分类浏览章节</li>
+                        <li>• 搜索特定章节内容</li>
+                        <li>• 关联问题与学习进度</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-sticky-note text-white"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">自动笔记</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">AI回答后自动生成结构化笔记，保存学习内容。</p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        <li>• 自动整理问答内容</li>
+                        <li>• 关联章节信息</li>
+                        <li>• 支持Markdown格式</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 使用说明 -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-play-circle text-blue-500 mr-2"></i>
+                    使用说明
+                </h3>
+                <div class="space-y-3 text-sm text-gray-600">
+                    <div class="flex items-start">
+                        <span class="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-3 mt-0.5">1</span>
+                        <span>点击右下角的AI助手图标打开对话窗口</span>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-3 mt-0.5">2</span>
+                        <span>点击输入框左侧的书本图标选择相关章节</span>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-3 mt-0.5">3</span>
+                        <span>输入你的问题并发送给AI助手</span>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-3 mt-0.5">4</span>
+                        <span>AI回答后，点击"保存笔记"按钮生成学习笔记</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 测试按钮 -->
+            <div class="text-center">
+                <button id="open-ai-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-robot mr-2"></i>
+                    打开AI助手测试
+                </button>
+            </div>
+            
+            <!-- 状态指示器 -->
+            <div class="mt-8 bg-gray-50 rounded-lg p-4">
+                <h4 class="font-medium text-gray-800 mb-3">系统状态</h4>
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-center">
+                        <span id="ai-status" class="w-2 h-2 rounded-full bg-gray-400 mr-2"></span>
+                        <span>AI助手加载状态</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span id="chapter-status" class="w-2 h-2 rounded-full bg-gray-400 mr-2"></span>
+                        <span>章节选择器状态</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span id="notes-status" class="w-2 h-2 rounded-full bg-gray-400 mr-2"></span>
+                        <span>笔记管理器状态</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 课程数据和脚本 -->
+    <script src="../assets/js/course-data.js"></script>
+    <script src="../assets/js/fallback-data.js"></script>
+    <script src="../assets/js/resource-loader.js"></script>
+    
+    <!-- 笔记管理器 -->
+    <script src="../assets/js/notes-manager.js"></script>
+    <!-- 章节选择器 -->
+    <script src="../assets/js/chapter-selector.js"></script>
+    
+    <!-- AI助手 -->
+    <script src="../assets/js/ai-assistant-loader.js"></script>
+    
+    <script>
+        // 检查各个组件的加载状态
+        function checkComponentStatus() {
+            // AI助手状态
+            const aiStatus = document.getElementById('ai-status');
+            if (window.aiAssistant) {
+                aiStatus.className = 'w-2 h-2 rounded-full bg-green-500 mr-2';
+            } else {
+                aiStatus.className = 'w-2 h-2 rounded-full bg-red-500 mr-2';
+            }
+            
+            // 章节选择器状态
+            const chapterStatus = document.getElementById('chapter-status');
+            if (window.chapterSelector) {
+                chapterStatus.className = 'w-2 h-2 rounded-full bg-green-500 mr-2';
+            } else {
+                chapterStatus.className = 'w-2 h-2 rounded-full bg-red-500 mr-2';
+            }
+            
+            // 笔记管理器状态
+            const notesStatus = document.getElementById('notes-status');
+            if (window.NotesManager) {
+                notesStatus.className = 'w-2 h-2 rounded-full bg-green-500 mr-2';
+            } else {
+                notesStatus.className = 'w-2 h-2 rounded-full bg-red-500 mr-2';
+            }
+        }
+        
+        // 定期检查状态
+        setInterval(checkComponentStatus, 1000);
+        
+        // 页面加载完成后检查
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(checkComponentStatus, 2000);
+        });
+        
+        // 打开AI助手按钮
+        document.getElementById('open-ai-btn').addEventListener('click', () => {
+            if (window.aiAssistant) {
+                window.aiAssistant.show();
+            } else {
+                alert('AI助手未加载，请检查配置');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+{
+  "stats": {
+    "totalStudyTime": 150,
+    "totalSessions": 3,
+    "totalQuestionsAnswered": 30,
+    "correctAnswers": 22,
+    "streakDays": 0,
+    "maxStreakDays": 0,
+    "dailyStats": {
+      "2025-07-22": {
+        "date": "2025-07-22",
+        "studyTime": 150,
+        "sessions": 3,
+        "questionsAnswered": 30,
+        "correctAnswers": 22,
+        "subjects": {}
+      }
+    },
+    "subjectStats": {
+      "mathematics": {
+        "name": "数学",
+        "time": 30,
+        "questions": 10,
+        "correct": 8
+      },
+      "english": {
+        "name": "英语",
+        "time": 0,
+        "questions": 0,
+        "correct": 0
+      },
+      "politics": {
+        "name": "政治",
+        "time": 0,
+        "questions": 0,
+        "correct": 0
+      },
+      "data_structure": {
+        "name": "数据结构",
+        "time": 50,
+        "questions": 10,
+        "correct": 8
+      },
+      "operating_system": {
+        "name": "操作系统",
+        "time": 70,
+        "questions": 10,
+        "correct": 6
+      },
+      "computer_network": {
+        "name": "计算机网络",
+        "time": 0,
+        "questions": 0,
+        "correct": 0
+      },
+      "computer_organization": {
+        "name": "组成原理",
+        "time": 0,
+        "questions": 0,
+        "correct": 0
+      }
+    },
+    "goals": {
+      "dailyStudyTime": 120,
+      "weeklyStudyTime": 840,
+      "monthlyQuestions": 500,
+      "targetAccuracy": 85
+    },
+    "metadata": {
+      "version": "1.0",
+      "createdAt": "2025-07-22T15:51:00.008Z",
+      "lastUpdated": "2025-07-22T15:51:00.483Z"
+    }
+  },
+  "exportTime": "2025-07-22T16:02:30.977Z",
+  "version": "1.0"
+}

@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>笔记管理 - 计算机考研学习平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/common.css" rel="stylesheet">
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        .prose h1, .prose h2, .prose h3 {
+            color: #1f2937;
+            font-weight: 600;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        
+        .prose pre {
+            background: #f3f4f6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        
+        .prose code {
+            background: #f3f4f6;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+        
+        .prose ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+        }
+        
+        .prose li {
+            margin: 0.25rem 0;
+        }
+        
+        .modern-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+        
+        .modern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .note-list-item {
+            transition: all 0.2s ease;
+        }
+        
+        .note-list-item:hover {
+            transform: translateX(4px);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen" x-data="notesApp()">
+    <!-- 导航栏容器 -->
+    <div id="navbar-container"></div>
+    
+    <!-- 主内容区域 -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- 页面标题 -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">📝 笔记管理中心</h1>
+                    <p class="text-gray-600">管理您的学习笔记，支持批量导入导出</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="text-sm text-gray-500" x-text="'共 ' + totalNotes + ' 条笔记'"></span>
+                    <button @click="showStatsModal = true" 
+                            class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-chart-bar mr-2"></i>统计信息
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 工具栏 -->
+        <div class="modern-card p-6 mb-8">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <!-- 左侧操作 -->
+                <div class="flex items-center space-x-3">
+                    <button @click="createNewNote()" 
+                            class="btn-primary text-white px-6 py-2 rounded-lg font-medium">
+                        <i class="fas fa-plus mr-2"></i>新建笔记
+                    </button>
+                    
+                    <button @click="triggerBatchImport()" 
+                            class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                        <i class="fas fa-file-import mr-2"></i>批量导入
+                    </button>
+                    
+                    <button @click="batchExportNotes()" 
+                            class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+                        <i class="fas fa-file-export mr-2"></i>批量导出
+                    </button>
+                    
+                    <button @click="showBatchActions = !showBatchActions" 
+                            x-show="selectedNotes.length > 0"
+                            class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                        <i class="fas fa-tasks mr-2"></i>批量操作 (<span x-text="selectedNotes.length"></span>)
+                    </button>
+                </div>
+                
+                <!-- 右侧搜索和筛选 -->
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <input type="text" 
+                               x-model="searchQuery"
+                               @input="searchNotes()"
+                               placeholder="搜索笔记..." 
+                               class="pl-10 pr-4 py-2 border rounded-lg w-64 focus:border-indigo-500 focus:outline-none">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    
+                    <select x-model="filterSubject" 
+                            @change="filterNotes()"
+                            class="border rounded-lg px-3 py-2 focus:border-indigo-500 focus:outline-none">
+                        <option value="">全部科目</option>
+                        <option value="数学">数学</option>
+                        <option value="英语">英语</option>
+                        <option value="政治">政治</option>
+                        <option value="数据结构">数据结构</option>
+                        <option value="操作系统">操作系统</option>
+                        <option value="计算机网络">计算机网络</option>
+                        <option value="组成原理">组成原理</option>
+                    </select>
+                    
+                    <div class="flex items-center space-x-2">
+                        <button @click="viewMode = 'grid'" 
+                                :class="viewMode === 'grid' ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-600'"
+                                class="p-2 rounded-lg transition-colors">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button @click="viewMode = 'list'" 
+                                :class="viewMode === 'list' ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-600'"
+                                class="p-2 rounded-lg transition-colors">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 批量操作栏 -->
+            <div x-show="showBatchActions" x-cloak class="mt-4 pt-4 border-t border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <span class="text-sm text-gray-600">批量操作:</span>
+                    <button @click="batchDeleteNotes()" 
+                            class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors">
+                        <i class="fas fa-trash mr-1"></i>删除选中
+                    </button>
+                    <button @click="batchExportSelected()" 
+                            class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-download mr-1"></i>导出选中
+                    </button>
+                    <button @click="clearSelection()" 
+                            class="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors">
+                        <i class="fas fa-times mr-1"></i>取消选择
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 笔记列表/网格 -->
+        <div class="mb-8">
+            <!-- 网格视图 -->
+            <div x-show="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <template x-for="note in filteredNotes" :key="note.id">
+                    <div class="modern-card p-6 cursor-pointer note-list-item fade-in"
+                         @click="openNoteEditor(note)">
+                        <!-- 选择框 -->
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" 
+                                       :value="note.id"
+                                       x-model="selectedNotes"
+                                       @click.stop
+                                       class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <h3 class="font-semibold text-gray-900 text-lg" x-text="note.title || '无标题'"></h3>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <button @click.stop="editNote(note)" 
+                                        class="text-gray-400 hover:text-indigo-600 p-1">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button @click.stop="deleteNote(note.id)" 
+                                        class="text-gray-400 hover:text-red-600 p-1">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="text-sm text-gray-500 mb-3">
+                            <span x-text="note.subjectName || '未分类'"></span>
+                            <span x-show="note.chapterName"> · <span x-text="note.chapterName"></span></span>
+                        </div>
+                        
+                        <div class="text-gray-600 mb-4 text-sm line-clamp-3" 
+                             x-text="note.content ? note.content.substring(0, 120) + '...' : '暂无内容'"></div>
+                        
+                        <!-- 标签 -->
+                        <div class="flex flex-wrap gap-1 mb-4">
+                            <template x-for="tag in (note.tags || [])" :key="tag">
+                                <span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs">
+                                    #<span x-text="tag"></span>
+                                </span>
+                            </template>
+                        </div>
+                        
+                        <div class="flex items-center justify-between text-xs text-gray-400">
+                            <span x-text="formatDate(note.updatedAt)"></span>
+                            <span x-text="getContentWordCount(note.content) + ' 字'"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            
+            <!-- 列表视图 -->
+            <div x-show="viewMode === 'list'" class="modern-card overflow-hidden">
+                <div class="p-4 bg-gray-50 border-b">
+                    <div class="flex items-center space-x-4 text-sm font-medium text-gray-600">
+                        <div class="w-8">
+                            <input type="checkbox" 
+                                   :checked="selectedNotes.length === filteredNotes.length && filteredNotes.length > 0"
+                                   @change="toggleSelectAll()"
+                                   class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        </div>
+                        <div class="flex-1">标题</div>
+                        <div class="w-24">科目</div>
+                        <div class="w-32">更新时间</div>
+                        <div class="w-16">字数</div>
+                        <div class="w-20">操作</div>
+                    </div>
+                </div>
+                
+                <div class="divide-y divide-gray-200">
+                    <template x-for="note in filteredNotes" :key="note.id">
+                        <div class="p-4 hover:bg-gray-50 transition-colors note-list-item fade-in"
+                             @click="openNoteEditor(note)">
+                            <div class="flex items-center space-x-4 text-sm">
+                                <div class="w-8" @click.stop>
+                                    <input type="checkbox" 
+                                           :value="note.id"
+                                           x-model="selectedNotes"
+                                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900" x-text="note.title || '无标题'"></div>
+                                    <div class="text-gray-500 text-xs mt-1" 
+                                         x-text="note.content ? note.content.substring(0, 80) + '...' : '暂无内容'"></div>
+                                </div>
+                                <div class="w-24 text-gray-600" x-text="note.subjectName || '未分类'"></div>
+                                <div class="w-32 text-gray-500" x-text="formatDate(note.updatedAt)"></div>
+                                <div class="w-16 text-gray-500" x-text="getContentWordCount(note.content)"></div>
+                                <div class="w-20 flex items-center space-x-1" @click.stop>
+                                    <button @click="editNote(note)" 
+                                            class="text-gray-400 hover:text-indigo-600 p-1">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button @click="deleteNote(note.id)" 
+                                            class="text-gray-400 hover:text-red-600 p-1">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            
+            <!-- 空状态 -->
+            <div x-show="filteredNotes.length === 0" class="text-center py-16">
+                <div class="mb-6">
+                    <i class="fas fa-sticky-note text-6xl text-gray-300"></i>
+                </div>
+                <h3 class="text-xl font-medium text-gray-600 mb-2">暂无笔记</h3>
+                <p class="text-gray-500 mb-6">开始创建您的第一篇学习笔记吧</p>
+                <button @click="createNewNote()" 
+                        class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                    <i class="fas fa-plus mr-2"></i>创建第一篇笔记
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 笔记编辑器弹窗 -->
+    <div x-show="showEditor" x-cloak
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+         @click.self="closeEditor()">
+        <div class="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <!-- 编辑器头部 -->
+            <div class="gradient-bg text-white p-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-edit text-2xl"></i>
+                        <div>
+                            <h2 class="text-xl font-bold">笔记编辑器</h2>
+                            <p class="text-blue-100 text-sm">支持 Markdown 语法</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button @click="saveNote()" 
+                                class="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition-colors">
+                            <i class="fas fa-save mr-2"></i>保存
+                        </button>
+                        <button @click="closeEditor()" 
+                                class="bg-white/20 text-white p-2 rounded-lg hover:bg-white/30 transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 编辑器主体 -->
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <!-- 工具栏 -->
+                <div class="border-b p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <input type="text" 
+                               x-model="currentNote.title"
+                               placeholder="笔记标题..."
+                               class="border rounded-lg px-3 py-2 focus:border-indigo-500 focus:outline-none">
+                        
+                        <select x-model="currentNote.subjectName" 
+                                class="border rounded-lg px-3 py-2 focus:border-indigo-500 focus:outline-none">
+                            <option value="">选择科目</option>
+                            <option value="数学">数学</option>
+                            <option value="英语">英语</option>
+                            <option value="政治">政治</option>
+                            <option value="数据结构">数据结构</option>
+                            <option value="操作系统">操作系统</option>
+                            <option value="计算机网络">计算机网络</option>
+                            <option value="组成原理">组成原理</option>
+                        </select>
+                        
+                        <input type="text" 
+                               x-model="currentNote.chapterName"
+                               placeholder="章节名称..."
+                               class="border rounded-lg px-3 py-2 focus:border-indigo-500 focus:outline-none">
+                    </div>
+                    
+                    <!-- 标签编辑 -->
+                    <div class="flex items-center space-x-2 mb-4">
+                        <span class="text-sm text-gray-600">标签:</span>
+                        <div class="flex flex-wrap gap-1 flex-1">
+                            <template x-for="tag in (currentNote.tags || [])" :key="tag">
+                                <span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs flex items-center">
+                                    #<span x-text="tag"></span>
+                                    <button @click="removeTag(tag)" class="ml-1 text-indigo-600 hover:text-indigo-800">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </span>
+                            </template>
+                            <input type="text" 
+                                   x-model="newTag"
+                                   @keydown.enter="addTag()"
+                                   placeholder="添加标签..."
+                                   class="border-none bg-transparent text-sm focus:outline-none">
+                        </div>
+                    </div>
+                    
+                    <!-- Markdown 工具栏 -->
+                    <div class="flex items-center space-x-3 text-sm">
+                        <button @click="insertMarkdown('**', '**')" 
+                                class="text-gray-600 hover:text-indigo-600 p-2 rounded hover:bg-gray-100" title="粗体">
+                            <i class="fas fa-bold"></i>
+                        </button>
+                        <button @click="insertMarkdown('*', '*')" 
+                                class="text-gray-600 hover:text-indigo-600 p-2 rounded hover:bg-gray-100" title="斜体">
+                            <i class="fas fa-italic"></i>
+                        </button>
+                        <button @click="insertMarkdown('`', '`')" 
+                                class="text-gray-600 hover:text-indigo-600 p-2 rounded hover:bg-gray-100" title="行内代码">
+                            <i class="fas fa-code"></i>
+                        </button>
+                        <button @click="insertMarkdown('```\\n', '\\n```')" 
+                                class="text-gray-600 hover:text-indigo-600 p-2 rounded hover:bg-gray-100" title="代码块">
+                            <i class="fas fa-file-code"></i>
+                        </button>
+                        <div class="border-l border-gray-300 h-6"></div>
+                        <button @click="insertMarkdown('## ', '')" 
+                                class="text-gray-600 hover:text-indigo-600 p-2 rounded hover:bg-gray-100" title="标题">
+                            <i class="fas fa-heading"></i>
+                        </button>
+                        <button @click="insertMarkdown('- ', '')" 
+                                class="text-gray-600 hover:text-indigo-600 p-2 rounded hover:bg-gray-100" title="列表">
+                            <i class="fas fa-list"></i>
+                        </button>
+                        <button @click="insertMarkdown('[链接文字](URL)', '')" 
+                                class="text-gray-600 hover:text-indigo-600 p-2 rounded hover:bg-gray-100" title="链接">
+                            <i class="fas fa-link"></i>
+                        </button>
+                        <div class="border-l border-gray-300 h-6"></div>
+                        <button @click="togglePreview()" 
+                                :class="showPreview ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600'"
+                                class="p-2 rounded hover:bg-gray-100" title="预览">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 编辑区域 -->
+                <div class="flex-1 flex overflow-hidden">
+                    <!-- 编辑器 -->
+                    <div :class="showPreview ? 'w-1/2' : 'w-full'" class="border-r overflow-hidden">
+                        <textarea x-model="currentNote.content"
+                                  x-ref="noteTextarea"
+                                  placeholder="在这里开始写您的学习笔记...
+
+支持 Markdown 语法:
+# 一级标题
+## 二级标题
+### 三级标题
+
+**粗体文字** *斜体文字*
+
+- 无序列表项
+- 另一个列表项
+
+1. 有序列表项
+2. 另一个有序列表项
+
+`行内代码`
+
+```
+代码块
+```
+
+[链接文字](URL地址)"
+                                  class="w-full h-full p-4 border-none resize-none focus:outline-none font-mono text-sm leading-relaxed"></textarea>
+                    </div>
+                    
+                    <!-- 预览区 -->
+                    <div x-show="showPreview" class="w-1/2 p-4 bg-gray-50 overflow-y-auto">
+                        <div class="prose prose-sm max-w-none" x-html="renderMarkdown(currentNote.content)"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 统计信息弹窗 -->
+    <div x-show="showStatsModal" x-cloak
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+         @click.self="showStatsModal = false">
+        <div class="bg-white rounded-xl max-w-2xl w-full p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">📊 笔记统计</h3>
+                <button @click="showStatsModal = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-600" x-text="totalNotes"></div>
+                    <div class="text-sm text-blue-600">总笔记数</div>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-2xl font-bold text-green-600" x-text="totalWords"></div>
+                    <div class="text-sm text-green-600">总字数</div>
+                </div>
+                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <div class="text-2xl font-bold text-purple-600" x-text="totalTags"></div>
+                    <div class="text-sm text-purple-600">标签数量</div>
+                </div>
+                <div class="text-center p-4 bg-orange-50 rounded-lg">
+                    <div class="text-2xl font-bold text-orange-600" x-text="totalSubjects"></div>
+                    <div class="text-sm text-orange-600">科目数量</div>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-2">科目分布</h4>
+                    <div class="space-y-2">
+                        <template x-for="[subject, count] in Object.entries(subjectStats)" :key="subject">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600" x-text="subject || '未分类'"></span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-24 bg-gray-200 rounded-full h-2">
+                                        <div class="bg-indigo-600 h-2 rounded-full" 
+                                             :style="'width: ' + (count / Math.max(...Object.values(subjectStats)) * 100) + '%'"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-500" x-text="count"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 隐藏的文件输入 -->
+    <input type="file" 
+           x-ref="fileInput" 
+           accept=".json,.md,.txt" 
+           multiple
+           style="display: none;"
+           @change="handleFileImport($event)">
+    
+    <script src="assets/js/notes-manager.js"></script>
+    <script>
+        function notesApp() {
+            return {
+                // 数据状态
+                notes: [],
+                filteredNotes: [],
+                selectedNotes: [],
+                currentNote: null,
+                
+                // UI 状态
+                showEditor: false,
+                showPreview: false,
+                showStatsModal: false,
+                showBatchActions: false,
+                viewMode: 'grid', // 'grid' | 'list'
+                
+                // 筛选和搜索
+                searchQuery: '',
+                filterSubject: '',
+                newTag: '',
+                
+                // 笔记管理器实例
+                notesManager: null,
+                
+                init() {
+                    // 初始化笔记管理器
+                    this.notesManager = new NotesManager();
+                    this.loadNotes();
+                    
+                    // 加载导航栏
+                    this.loadNavbar();
+                },
+                
+                loadNavbar() {
+                    fetch('assets/components/navbar.html')
+                        .then(response => response.text())
+                        .then(html => {
+                            const container = document.getElementById('navbar-container');
+                            if (container) {
+                                container.innerHTML = html;
+                            }
+                        })
+                        .catch(error => console.error('导航栏加载失败:', error));
+                },
+                
+                loadNotes() {
+                    this.notes = this.notesManager.getAllNotes();
+                    this.filteredNotes = [...this.notes];
+                    this.updateStats();
+                },
+                
+                searchNotes() {
+                    this.applyFilters();
+                },
+                
+                filterNotes() {
+                    this.applyFilters();
+                },
+                
+                applyFilters() {
+                    let filtered = [...this.notes];
+                    
+                    // 应用搜索
+                    if (this.searchQuery.trim()) {
+                        filtered = this.notesManager.searchNotes(this.searchQuery);
+                    }
+                    
+                    // 应用科目筛选
+                    if (this.filterSubject) {
+                        filtered = filtered.filter(note => note.subjectName === this.filterSubject);
+                    }
+                    
+                    this.filteredNotes = filtered;
+                },
+                
+                createNewNote() {
+                    const note = this.notesManager.createNote(
+                        '新建笔记',
+                        '',
+                        '',
+                        '',
+                        []
+                    );
+                    
+                    note.subjectName = '';
+                    note.chapterName = '';
+                    
+                    this.currentNote = { ...note };
+                    this.showEditor = true;
+                    this.loadNotes();
+                },
+                
+                editNote(note) {
+                    this.currentNote = { ...note };
+                    this.showEditor = true;
+                },
+                
+                openNoteEditor(note) {
+                    if (!this.selectedNotes.includes(note.id)) {
+                        this.editNote(note);
+                    }
+                },
+                
+                saveNote() {
+                    if (!this.currentNote) return;
+                    
+                    this.notesManager.updateNote(this.currentNote.id, {
+                        title: this.currentNote.title,
+                        content: this.currentNote.content,
+                        subjectName: this.currentNote.subjectName,
+                        chapterName: this.currentNote.chapterName,
+                        tags: this.currentNote.tags || []
+                    });
+                    
+                    this.loadNotes();
+                    this.showNotification('✅ 笔记已保存', 'success');
+                },
+                
+                closeEditor() {
+                    if (this.currentNote && this.hasUnsavedChanges()) {
+                        if (confirm('您有未保存的更改，确定要关闭吗？')) {
+                            this.showEditor = false;
+                            this.currentNote = null;
+                        }
+                    } else {
+                        this.showEditor = false;
+                        this.currentNote = null;
+                    }
+                },
+                
+                hasUnsavedChanges() {
+                    if (!this.currentNote) return false;
+                    const original = this.notes.find(n => n.id === this.currentNote.id);
+                    if (!original) return true;
+                    
+                    return original.title !== this.currentNote.title ||
+                           original.content !== this.currentNote.content ||
+                           original.subjectName !== this.currentNote.subjectName ||
+                           original.chapterName !== this.currentNote.chapterName;
+                },
+                
+                deleteNote(noteId) {
+                    if (confirm('确定要删除这篇笔记吗？此操作无法撤销。')) {
+                        this.notesManager.deleteNote(noteId);
+                        this.loadNotes();
+                        this.showNotification('🗑️ 笔记已删除', 'info');
+                    }
+                },
+                
+                // 标签管理
+                addTag() {
+                    if (!this.newTag.trim() || !this.currentNote) return;
+                    
+                    if (!this.currentNote.tags) {
+                        this.currentNote.tags = [];
+                    }
+                    
+                    if (!this.currentNote.tags.includes(this.newTag.trim())) {
+                        this.currentNote.tags.push(this.newTag.trim());
+                        this.newTag = '';
+                    }
+                },
+                
+                removeTag(tag) {
+                    if (!this.currentNote?.tags) return;
+                    this.currentNote.tags = this.currentNote.tags.filter(t => t !== tag);
+                },
+                
+                // Markdown 工具
+                insertMarkdown(before, after) {
+                    const textarea = this.$refs.noteTextarea;
+                    if (!textarea) return;
+                    
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const text = textarea.value;
+                    const selectedText = text.substring(start, end);
+                    
+                    const newText = text.substring(0, start) + before + selectedText + after + text.substring(end);
+                    this.currentNote.content = newText;
+                    
+                    // 重新聚焦并设置光标位置
+                    this.$nextTick(() => {
+                        textarea.focus();
+                        textarea.setSelectionRange(
+                            start + before.length,
+                            start + before.length + selectedText.length
+                        );
+                    });
+                },
+                
+                togglePreview() {
+                    this.showPreview = !this.showPreview;
+                },
+                
+                renderMarkdown(content) {
+                    return window.SimpleMarkdownRenderer.render(content || '');
+                },
+                
+                // 批量操作
+                toggleSelectAll() {
+                    if (this.selectedNotes.length === this.filteredNotes.length) {
+                        this.selectedNotes = [];
+                    } else {
+                        this.selectedNotes = this.filteredNotes.map(note => note.id);
+                    }
+                },
+                
+                clearSelection() {
+                    this.selectedNotes = [];
+                    this.showBatchActions = false;
+                },
+                
+                batchDeleteNotes() {
+                    if (this.selectedNotes.length === 0) return;
+                    
+                    if (confirm(`确定要删除选中的 ${this.selectedNotes.length} 篇笔记吗？此操作无法撤销。`)) {
+                        this.selectedNotes.forEach(noteId => {
+                            this.notesManager.deleteNote(noteId);
+                        });
+                        
+                        this.clearSelection();
+                        this.loadNotes();
+                        this.showNotification('🗑️ 批量删除完成', 'info');
+                    }
+                },
+                
+                batchExportSelected() {
+                    if (this.selectedNotes.length === 0) return;
+                    
+                    const selectedNotesData = this.notes.filter(note => 
+                        this.selectedNotes.includes(note.id)
+                    );
+                    
+                    const exportData = {
+                        notes: selectedNotesData,
+                        exportTime: new Date().toISOString(),
+                        version: '1.0',
+                        totalCount: selectedNotesData.length
+                    };
+                    
+                    this.downloadFile(
+                        JSON.stringify(exportData, null, 2),
+                        `选中笔记_${new Date().toISOString().split('T')[0]}.json`,
+                        'application/json'
+                    );
+                    
+                    this.showNotification('📥 选中笔记已导出', 'success');
+                },
+                
+                // 导入导出
+                triggerBatchImport() {
+                    this.$refs.fileInput.click();
+                },
+                
+                async handleFileImport(event) {
+                    const files = event.target.files;
+                    if (!files || files.length === 0) return;
+                    
+                    let importedCount = 0;
+                    
+                    for (let file of files) {
+                        try {
+                            if (file.name.endsWith('.json')) {
+                                const result = await this.notesManager.importNotesFromFile(file);
+                                importedCount += result.imported;
+                            } else if (file.name.endsWith('.md') || file.name.endsWith('.txt')) {
+                                await this.importTextFile(file);
+                                importedCount += 1;
+                            }
+                        } catch (error) {
+                            console.error('文件导入失败:', error);
+                            this.showNotification(`❌ 文件 ${file.name} 导入失败: ${error.message}`, 'error');
+                        }
+                    }
+                    
+                    if (importedCount > 0) {
+                        this.loadNotes();
+                        this.showNotification(`✅ 成功导入 ${importedCount} 篇笔记`, 'success');
+                    }
+                    
+                    // 清空文件输入
+                    event.target.value = '';
+                },
+                
+                importTextFile(file) {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const content = e.target.result;
+                            const note = this.notesManager.createNote(
+                                file.name.replace(/\.(md|txt)$/, ''),
+                                content,
+                                '',
+                                '',
+                                ['导入']
+                            );
+                            note.subjectName = '导入文件';
+                            note.chapterName = '';
+                            resolve(note);
+                        };
+                        reader.onerror = () => reject(new Error('文件读取失败'));
+                        reader.readAsText(file);
+                    });
+                },
+                
+                batchExportNotes() {
+                    if (this.notes.length === 0) {
+                        this.showNotification('❌ 没有笔记可以导出', 'error');
+                        return;
+                    }
+                    
+                    const exportData = {
+                        notes: this.notes,
+                        exportTime: new Date().toISOString(),
+                        version: '1.0',
+                        totalCount: this.notes.length
+                    };
+                    
+                    this.downloadFile(
+                        JSON.stringify(exportData, null, 2),
+                        `全部笔记_${new Date().toISOString().split('T')[0]}.json`,
+                        'application/json'
+                    );
+                    
+                    this.showNotification('📥 全部笔记已导出', 'success');
+                },
+                
+                downloadFile(content, filename, mimeType) {
+                    const blob = new Blob([content], { type: mimeType });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+                
+                // 工具函数
+                formatDate(dateString) {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('zh-CN', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                },
+                
+                getContentWordCount(content) {
+                    if (!content) return 0;
+                    return content.replace(/\s/g, '').length;
+                },
+                
+                updateStats() {
+                    this.totalNotes = this.notes.length;
+                    this.totalWords = this.notes.reduce((sum, note) => 
+                        sum + this.getContentWordCount(note.content), 0
+                    );
+                    
+                    // 统计标签
+                    const allTags = new Set();
+                    this.notes.forEach(note => {
+                        (note.tags || []).forEach(tag => allTags.add(tag));
+                    });
+                    this.totalTags = allTags.size;
+                    
+                    // 统计科目
+                    const subjects = new Set();
+                    this.notes.forEach(note => {
+                        if (note.subjectName) subjects.add(note.subjectName);
+                    });
+                    this.totalSubjects = subjects.size;
+                    
+                    // 科目分布统计
+                    this.subjectStats = {};
+                    this.notes.forEach(note => {
+                        const subject = note.subjectName || '未分类';
+                        this.subjectStats[subject] = (this.subjectStats[subject] || 0) + 1;
+                    });
+                },
+                
+                showNotification(message, type = 'info') {
+                    const colors = {
+                        success: 'bg-green-500',
+                        error: 'bg-red-500',
+                        warning: 'bg-yellow-500',
+                        info: 'bg-blue-500'
+                    };
+                    
+                    const notification = document.createElement('div');
+                    notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-all duration-300`;
+                    notification.textContent = message;
+                    
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.classList.remove('translate-x-full');
+                    }, 100);
+                    
+                    setTimeout(() => {
+                        notification.classList.add('translate-x-full');
+                        setTimeout(() => notification.remove(), 300);
+                    }, 3000);
+                }
+            };
+        }
+    </script>
+</body>
+</html>

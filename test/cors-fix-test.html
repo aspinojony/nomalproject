@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS修复测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+        <h1 class="text-2xl font-bold text-center mb-6">🔧 CORS修复测试</h1>
+        
+        <div class="text-center mb-6">
+            <p class="text-gray-600 mb-4">测试修复后的AI助手是否能正常加载</p>
+            <button onclick="testAI()" 
+                    class="w-full bg-blue-500 text-white py-3 rounded hover:bg-blue-600 mb-4">
+                🚀 启动AI助手
+            </button>
+        </div>
+        
+        <div id="status" class="bg-gray-800 text-green-400 rounded p-4 font-mono text-sm h-40 overflow-y-auto">
+            等待测试...
+        </div>
+    </div>
+
+    <!-- 加载AI助手 -->
+    <script src="../assets/js/ai-assistant-loader.js"></script>
+
+    <script>
+        function log(message) {
+            const status = document.getElementById('status');
+            const timestamp = new Date().toLocaleTimeString();
+            status.innerHTML += `[${timestamp}] ${message}<br>`;
+            status.scrollTop = status.scrollHeight;
+            console.log(message);
+        }
+
+        function testAI() {
+            log('🚀 开始测试AI助手...');
+            
+            // 检查加载状态
+            setTimeout(() => {
+                log(`AI助手实例: ${!!window.aiAssistant}`);
+                log(`AI助手类型: ${typeof window.aiAssistant}`);
+                log(`show方法: ${!!window.aiAssistant?.show}`);
+                
+                if (window.aiAssistant && typeof window.aiAssistant.show === 'function') {
+                    log('✅ AI助手加载成功，正在显示...');
+                    try {
+                        window.aiAssistant.show();
+                        log('✅ AI助手显示成功！无CORS问题');
+                    } catch (error) {
+                        log(`❌ 显示失败: ${error.message}`);
+                    }
+                } else {
+                    log('❌ AI助手未正确加载');
+                }
+            }, 2000);
+        }
+
+        // 自动检查状态
+        setTimeout(() => {
+            log('📊 页面加载完成，检查资源状态...');
+            log(`CSS加载: ${!!document.querySelector('link[href*="ai-assistant-float.css"]')}`);
+            log(`脚本数量: ${document.querySelectorAll('script[src*="../assets/js"]').length}`);
+        }, 1000);
+
+        // 捕获错误
+        window.addEventListener('error', function(event) {
+            if (event.message.includes('CORS')) {
+                log('❌ 仍存在CORS错误: ' + event.message);
+            } else {
+                log('❌ 其他错误: ' + (event.error?.message || event.message));
+            }
+        });
+    </script>
+</body>
+</html>

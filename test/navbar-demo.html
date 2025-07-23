@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导航栏组件使用演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏容器 -->
+    <div id="navbar-container"></div>
+    
+    <!-- 页面内容 -->
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">导航栏组件使用演示</h1>
+        
+        <!-- 使用说明 -->
+        <div class="bg-white p-6 rounded-lg shadow-sm mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">🚀 如何使用</h2>
+            <div class="space-y-4 text-gray-600">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-medium text-gray-800 mb-2">1. 引入组件文件</h3>
+                    <code class="text-sm bg-gray-100 px-2 py-1 rounded">
+                        &lt;link rel="stylesheet" href="../assets/components/navbar.html"&gt;
+                    </code>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-medium text-gray-800 mb-2">2. 创建导航栏实例</h3>
+                    <pre class="text-sm bg-gray-100 p-2 rounded"><code>const navbar = new NavbarComponent(
+    document.getElementById('navbar-container'),
+    {
+        currentPage: 'home',  // 当前页面
+        progress: 75,         // 学习进度
+        navLinks: [           // 自定义导航链接
+            { href: '../index.html', text: '首页', page: 'home' },
+            { href: '../subjects.html', text: '课程导航', page: 'subjects' }
+        ]
+    }
+);</code></pre>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-medium text-gray-800 mb-2">3. 更新进度和页面状态</h3>
+                    <pre class="text-sm bg-gray-100 p-2 rounded"><code>// 更新进度
+navbar.setProgress(85);
+
+// 设置活动页面
+navbar.setActivePage('subjects');</code></pre>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 功能演示 -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">功能控制</h3>
+                <div class="space-y-3">
+                    <button onclick="updateProgress()" 
+                            class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
+                        更新进度 (+10%)
+                    </button>
+                    <button onclick="setActivePage('subjects')" 
+                            class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition">
+                        设置课程页为活动页
+                    </button>
+                    <button onclick="setActivePage('practice')" 
+                            class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition">
+                        设置练习页为活动页
+                    </button>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">设计特点</h3>
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        简洁的白色背景设计
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        响应式移动端适配
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        粘性定位，始终在顶部
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        学习进度实时显示
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        平滑的过渡动画效果
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- 代码示例 -->
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">完整代码示例</h3>
+            <pre class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;我的页面&lt;/title&gt;
+    &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
+    &lt;link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div id="navbar-container"&gt;&lt;/div&gt;
+    
+    &lt;!-- 包含导航栏组件 --&gt;
+    &lt;script&gt;
+        fetch('../assets/components/navbar.html')
+            .then(response =&gt; response.text())
+            .then(html =&gt; {
+                document.body.insertAdjacentHTML('beforeend', html);
+                
+                // 创建导航栏实例
+                const navbar = new NavbarComponent(
+                    document.getElementById('navbar-container'),
+                    {
+                        currentPage: 'home',
+                        progress: 75
+                    }
+                );
+            });
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        </div>
+        
+        <!-- 测试内容区域 -->
+        <div class="mt-16 space-y-8">
+            <div class="h-96 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center">
+                <p class="text-gray-600 text-lg">测试粘性导航栏效果 - 向下滚动</p>
+            </div>
+            <div class="h-96 bg-gradient-to-r from-green-100 to-teal-100 rounded-lg flex items-center justify-center">
+                <p class="text-gray-600 text-lg">继续滚动测试</p>
+            </div>
+            <div class="h-96 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg flex items-center justify-center">
+                <p class="text-gray-600 text-lg">导航栏应该始终固定在顶部</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 包含导航栏组件 -->
+    <script>
+        // 加载导航栏组件
+        fetch('../assets/components/navbar.html')
+            .then(response => response.text())
+            .then(html => {
+                // 将HTML内容添加到页面中
+                document.body.insertAdjacentHTML('beforeend', html);
+                
+                // 创建导航栏实例
+                window.navbar = new NavbarComponent(
+                    document.getElementById('navbar-container'),
+                    {
+                        currentPage: 'home',
+                        progress: 65,
+                        navLinks: [
+                            { href: '../index.html', text: '首页', page: 'home' },
+                            { href: '../subjects.html', text: '课程导航', page: 'subjects' },
+                            { href: '../practice.html', text: '真题练习', page: 'practice' },
+                            { href: '../resources.html', text: '学习资源', page: 'resources' }
+                        ]
+                    }
+                );
+            })
+            .catch(error => {
+                console.error('加载导航栏组件失败:', error);
+                // 降级处理：创建简单的导航栏
+                createFallbackNavbar();
+            });
+
+        // 降级方案：创建简单导航栏
+        function createFallbackNavbar() {
+            const container = document.getElementById('navbar-container');
+            container.innerHTML = `
+                <nav class="bg-white shadow-lg sticky top-0 z-50">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="flex justify-between items-center py-4">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-graduation-cap text-2xl text-indigo-600"></i>
+                                <h1 class="text-xl font-bold text-gray-800">计算机考研平台</h1>
+                            </div>
+                            <div class="text-sm text-gray-600">
+                                学习进度: <span class="text-indigo-600 font-semibold">65%</span>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            `;
+        }
+
+        // 演示功能函数
+        let currentProgress = 65;
+        function updateProgress() {
+            currentProgress = Math.min(currentProgress + 10, 100);
+            if (window.navbar) {
+                window.navbar.setProgress(currentProgress);
+            }
+        }
+
+        function setActivePage(page) {
+            if (window.navbar) {
+                window.navbar.setActivePage(page);
+            }
+        }
+    </script>
+</body>
+</html>

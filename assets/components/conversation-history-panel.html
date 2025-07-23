@@ -1,0 +1,747 @@
+<!-- AI对话历史管理组件 -->
+<div x-data="conversationHistoryManager" 
+     x-show="visible" 
+     class="conversation-history-panel fixed inset-y-0 right-0 w-96 bg-white shadow-2xl transform transition-transform duration-300 z-50"
+     :class="visible ? 'translate-x-0' : 'translate-x-full'">
+    
+    <!-- 头部 -->
+    <div class="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <h3 class="text-lg font-semibold flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            对话历史
+        </h3>
+        <div class="flex items-center space-x-2">
+            <!-- 搜索按钮 -->
+            <button @click="toggleSearch" 
+                    class="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+                    :class="searchMode ? 'bg-white bg-opacity-20' : ''">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
+                </svg>
+            </button>
+            
+            <!-- 设置按钮 -->
+            <button @click="toggleSettings" 
+                    class="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"/>
+                </svg>
+            </button>
+            
+            <!-- 关闭按钮 -->
+            <button @click="hide" 
+                    class="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- 搜索栏 -->
+    <div x-show="searchMode" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 -translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         class="p-4 border-b bg-gray-50">
+        <div class="relative">
+            <input type="text" 
+                   x-model="searchQuery"
+                   @input="debounceSearch"
+                   placeholder="搜索对话内容..."
+                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
+            </svg>
+        </div>
+        
+        <!-- 搜索结果统计 -->
+        <div x-show="searchResults.length > 0" class="mt-2 text-sm text-gray-600">
+            找到 <span x-text="searchResults.length"></span> 个结果
+        </div>
+    </div>
+
+    <!-- 工具栏 -->
+    <div class="flex items-center justify-between p-3 border-b bg-gray-50 text-sm">
+        <div class="flex items-center space-x-3">
+            <button @click="refreshHistory" 
+                    :disabled="loading"
+                    class="flex items-center space-x-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" :class="loading ? 'animate-spin' : ''">
+                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"/>
+                </svg>
+                <span>刷新</span>
+            </button>
+            
+            <button @click="startNewConversation" 
+                    class="flex items-center space-x-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
+                </svg>
+                <span>新对话</span>
+            </button>
+        </div>
+        
+        <div class="text-gray-500">
+            <span x-text="stats.conversationCount"></span> 个对话
+        </div>
+    </div>
+
+    <!-- 对话列表 -->
+    <div class="flex-1 overflow-y-auto">
+        <!-- 加载状态 -->
+        <div x-show="loading" class="flex items-center justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span class="ml-3 text-gray-600">加载中...</span>
+        </div>
+
+        <!-- 搜索结果 -->
+        <template x-if="searchMode && searchResults.length > 0">
+            <div class="divide-y divide-gray-200">
+                <template x-for="result in searchResults" :key="result.conversation?.id || result.message?.id">
+                    <div class="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                         @click="loadSearchResult(result)">
+                        
+                        <!-- 对话匹配 -->
+                        <template x-if="result.type === 'conversation'">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-medium text-gray-900" x-text="result.conversation.title"></h4>
+                                    <span class="text-xs text-gray-500" x-text="formatDate(result.conversation.updatedAt)"></span>
+                                </div>
+                                <div class="text-sm text-blue-600">标题匹配</div>
+                            </div>
+                        </template>
+                        
+                        <!-- 消息匹配 -->
+                        <template x-if="result.type === 'message'">
+                            <div>
+                                <div class="text-sm text-gray-600 mb-1">
+                                    <span class="font-medium" x-text="result.message.type === 'user' ? '用户' : 'AI'"></span>
+                                    消息匹配
+                                </div>
+                                <div class="text-sm text-gray-900 line-clamp-2" x-text="result.message.content"></div>
+                                <div class="text-xs text-gray-500 mt-1" x-text="formatDate(result.message.timestamp)"></div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- 正常对话列表 -->
+        <template x-if="!searchMode || searchResults.length === 0">
+            <div class="divide-y divide-gray-200">
+                <template x-for="conversation in conversations" :key="conversation.id">
+                    <div class="group relative">
+                        <div class="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                             @click="loadConversation(conversation.id)"
+                             :class="currentConversationId === conversation.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''">
+                            
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-medium text-gray-900 flex-1 pr-2 line-clamp-1" 
+                                    x-text="conversation.title"></h4>
+                                <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <!-- 编辑标题 -->
+                                    <button @click.stop="editConversationTitle(conversation)"
+                                            class="p-1 text-gray-400 hover:text-blue-600 transition-colors">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                                        </svg>
+                                    </button>
+                                    <!-- 删除对话 -->
+                                    <button @click.stop="deleteConversation(conversation.id)"
+                                            class="p-1 text-gray-400 hover:text-red-600 transition-colors">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 012 0v4a1 1 0 11-2 0V9zm4 0a1 1 0 112 0v4a1 1 0 11-2 0V9z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between text-sm text-gray-600">
+                                <div class="flex items-center space-x-2">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100">
+                                        <span x-text="conversation.messageCount || 0"></span> 条消息
+                                    </span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs"
+                                          :class="getProviderBadgeClass(conversation.aiProvider)"
+                                          x-text="getProviderName(conversation.aiProvider)"></span>
+                                </div>
+                                <span x-text="formatDate(conversation.updatedAt)"></span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- 空状态 -->
+        <div x-show="!loading && conversations.length === 0 && (!searchMode || searchResults.length === 0)" 
+             class="text-center py-8 text-gray-500">
+            <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.955 8.955 0 01-2.707-.413l-3.293 3.293a1 1 0 01-1.414-1.414l3.293-3.293A8.955 8.955 0 013 12a8 8 0 018-8c4.418 0 8 3.582 8 8z"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">
+                <span x-show="searchMode">未找到匹配结果</span>
+                <span x-show="!searchMode">暂无对话历史</span>
+            </h3>
+            <p class="mt-1 text-sm text-gray-500">
+                <span x-show="searchMode">尝试使用其他关键词搜索</span>
+                <span x-show="!searchMode">开始与AI助手对话，创建您的第一个对话记录</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- 分页 -->
+    <div x-show="hasMore && !searchMode" 
+         class="p-4 border-t">
+        <button @click="loadMore" 
+                :disabled="loadingMore"
+                class="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors disabled:opacity-50">
+            <span x-show="!loadingMore">加载更多</span>
+            <span x-show="loadingMore">加载中...</span>
+        </button>
+    </div>
+
+    <!-- 设置面板 -->
+    <div x-show="settingsMode" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         class="absolute inset-0 bg-white z-10">
+        
+        <div class="p-4 border-b">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold">历史记录设置</h3>
+                <button @click="settingsMode = false" 
+                        class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="p-4 space-y-6">
+            <!-- 存储统计 -->
+            <div>
+                <h4 class="text-sm font-medium text-gray-700 mb-3">存储统计</h4>
+                <div class="bg-gray-50 p-3 rounded-lg space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span>对话数量:</span>
+                        <span x-text="stats.conversationCount"></span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span>消息总数:</span>
+                        <span x-text="stats.messageCount"></span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span>存储大小:</span>
+                        <span x-text="formatBytes(stats.totalSize || 0)"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 自动保存设置 -->
+            <div>
+                <h4 class="text-sm font-medium text-gray-700 mb-3">自动保存</h4>
+                <div class="space-y-3">
+                    <label class="flex items-center">
+                        <input type="checkbox" 
+                               x-model="autoSaveEnabled"
+                               @change="updateAutoSaveSettings"
+                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm">启用自动保存对话</span>
+                    </label>
+                    
+                    <div x-show="autoSaveEnabled">
+                        <label class="block text-sm text-gray-700">
+                            自动保存阈值（每N条消息）
+                            <input type="number" 
+                                   x-model.number="autoSaveThreshold"
+                                   @change="updateAutoSaveSettings"
+                                   min="1" max="10"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据管理 -->
+            <div>
+                <h4 class="text-sm font-medium text-gray-700 mb-3">数据管理</h4>
+                <div class="space-y-3">
+                    <button @click="exportHistory" 
+                            class="w-full py-2 px-4 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
+                        导出对话历史
+                    </button>
+                    
+                    <button @click="showCleanupDialog = true" 
+                            class="w-full py-2 px-4 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors">
+                        清理旧对话
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 清理确认对话框 -->
+    <div x-show="showCleanupDialog" 
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+         @click.self="showCleanupDialog = false">
+        <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
+            <h3 class="text-lg font-semibold mb-4">清理旧对话</h3>
+            <p class="text-gray-600 mb-4">选择要保留的天数，更早的对话将被永久删除：</p>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">保留天数</label>
+                <select x-model.number="cleanupDays" 
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="7">7天</option>
+                    <option value="15">15天</option>
+                    <option value="30">30天</option>
+                    <option value="60">60天</option>
+                    <option value="90">90天</option>
+                </select>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button @click="showCleanupDialog = false" 
+                        class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                    取消
+                </button>
+                <button @click="cleanupOldConversations" 
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    确认清理
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 对话历史管理器数据
+window.conversationHistoryManager = {
+    // 显示状态
+    visible: false,
+    loading: false,
+    loadingMore: false,
+    
+    // 搜索功能
+    searchMode: false,
+    searchQuery: '',
+    searchResults: [],
+    searchTimeout: null,
+    
+    // 设置面板
+    settingsMode: false,
+    showCleanupDialog: false,
+    cleanupDays: 30,
+    
+    // 自动保存设置
+    autoSaveEnabled: true,
+    autoSaveThreshold: 2,
+    
+    // 数据
+    conversations: [],
+    currentConversationId: null,
+    stats: {
+        conversationCount: 0,
+        messageCount: 0,
+        totalSize: 0
+    },
+    
+    // 分页
+    currentPage: 0,
+    pageSize: 20,
+    hasMore: false,
+
+    // 初始化
+    async init() {
+        console.log('📚 初始化对话历史管理器');
+        await this.loadConversations();
+        await this.loadStats();
+    },
+
+    // 显示/隐藏
+    show() {
+        this.visible = true;
+        this.loadConversations();
+    },
+
+    hide() {
+        this.visible = false;
+        this.searchMode = false;
+        this.settingsMode = false;
+    },
+
+    // 切换搜索模式
+    toggleSearch() {
+        this.searchMode = !this.searchMode;
+        if (!this.searchMode) {
+            this.searchQuery = '';
+            this.searchResults = [];
+        }
+    },
+
+    // 切换设置面板
+    toggleSettings() {
+        this.settingsMode = !this.settingsMode;
+    },
+
+    // 加载对话列表
+    async loadConversations(page = 0) {
+        if (page === 0) {
+            this.loading = true;
+            this.conversations = [];
+        } else {
+            this.loadingMore = true;
+        }
+
+        try {
+            if (!window.aiService) {
+                console.warn('⚠️ AI服务未初始化');
+                return;
+            }
+
+            const result = await window.aiService.getConversationHistory(page, this.pageSize);
+            
+            if (page === 0) {
+                this.conversations = result.conversations || [];
+            } else {
+                this.conversations.push(...(result.conversations || []));
+            }
+            
+            this.hasMore = result.hasMore || false;
+            this.currentPage = page;
+            
+            console.log(`✅ 加载对话列表: 页面${page}, ${result.conversations?.length || 0}个对话`);
+        } catch (error) {
+            console.error('❌ 加载对话列表失败:', error);
+        } finally {
+            this.loading = false;
+            this.loadingMore = false;
+        }
+    },
+
+    // 加载更多
+    async loadMore() {
+        if (this.hasMore && !this.loadingMore) {
+            await this.loadConversations(this.currentPage + 1);
+        }
+    },
+
+    // 刷新历史
+    async refreshHistory() {
+        await this.loadConversations(0);
+        await this.loadStats();
+    },
+
+    // 搜索（防抖）
+    debounceSearch() {
+        if (this.searchTimeout) {
+            clearTimeout(this.searchTimeout);
+        }
+        
+        this.searchTimeout = setTimeout(() => {
+            this.performSearch();
+        }, 300);
+    },
+
+    // 执行搜索
+    async performSearch() {
+        if (!this.searchQuery.trim()) {
+            this.searchResults = [];
+            return;
+        }
+
+        try {
+            if (!window.aiService) {
+                console.warn('⚠️ AI服务未初始化');
+                return;
+            }
+
+            this.searchResults = await window.aiService.searchConversations(
+                this.searchQuery,
+                {
+                    searchInContent: true,
+                    searchInTitle: true,
+                    limit: 50
+                }
+            );
+            
+            console.log(`🔍 搜索"${this.searchQuery}"找到${this.searchResults.length}个结果`);
+        } catch (error) {
+            console.error('❌ 搜索对话失败:', error);
+            this.searchResults = [];
+        }
+    },
+
+    // 加载搜索结果
+    async loadSearchResult(result) {
+        if (result.type === 'conversation') {
+            await this.loadConversation(result.conversation.id);
+        } else if (result.type === 'message') {
+            await this.loadConversation(result.message.conversationId);
+        }
+    },
+
+    // 加载特定对话
+    async loadConversation(conversationId) {
+        try {
+            if (!window.aiService) {
+                console.warn('⚠️ AI服务未初始化');
+                return;
+            }
+
+            const conversation = await window.aiService.loadConversation(conversationId);
+            if (conversation) {
+                this.currentConversationId = conversationId;
+                
+                // 触发UI更新事件
+                if (window.eventBus) {
+                    window.eventBus.emit('conversation.loaded', {
+                        conversationId,
+                        conversation
+                    });
+                }
+                
+                console.log(`✅ 加载对话: ${conversationId}`);
+                
+                // 隐藏面板（可选）
+                // this.hide();
+            }
+        } catch (error) {
+            console.error('❌ 加载对话失败:', error);
+        }
+    },
+
+    // 创建新对话
+    async startNewConversation() {
+        try {
+            if (!window.aiService) {
+                console.warn('⚠️ AI服务未初始化');
+                return;
+            }
+
+            const conversationId = await window.aiService.startNewConversation();
+            this.currentConversationId = conversationId;
+            
+            // 刷新列表
+            await this.loadConversations(0);
+            
+            // 触发UI更新事件
+            if (window.eventBus) {
+                window.eventBus.emit('conversation.new', { conversationId });
+            }
+            
+            console.log(`✅ 创建新对话: ${conversationId}`);
+            
+            // 隐藏面板
+            this.hide();
+        } catch (error) {
+            console.error('❌ 创建新对话失败:', error);
+        }
+    },
+
+    // 删除对话
+    async deleteConversation(conversationId) {
+        if (!confirm('确定要删除这个对话吗？此操作无法撤销。')) {
+            return;
+        }
+
+        try {
+            if (!window.aiService) {
+                console.warn('⚠️ AI服务未初始化');
+                return;
+            }
+
+            const success = await window.aiService.deleteConversation(conversationId);
+            if (success) {
+                // 从列表中移除
+                this.conversations = this.conversations.filter(c => c.id !== conversationId);
+                
+                // 如果删除的是当前对话，清除当前ID
+                if (this.currentConversationId === conversationId) {
+                    this.currentConversationId = null;
+                }
+                
+                // 更新统计
+                await this.loadStats();
+                
+                console.log(`✅ 删除对话: ${conversationId}`);
+            }
+        } catch (error) {
+            console.error('❌ 删除对话失败:', error);
+            alert('删除对话失败: ' + error.message);
+        }
+    },
+
+    // 编辑对话标题
+    async editConversationTitle(conversation) {
+        const newTitle = prompt('修改对话标题:', conversation.title);
+        if (!newTitle || newTitle === conversation.title) {
+            return;
+        }
+
+        try {
+            if (!window.aiService || !window.aiService.conversationStorage) {
+                console.warn('⚠️ 对话存储未初始化');
+                return;
+            }
+
+            await window.aiService.conversationStorage.updateConversationTitle(
+                conversation.id,
+                newTitle
+            );
+            
+            // 更新本地数据
+            const index = this.conversations.findIndex(c => c.id === conversation.id);
+            if (index !== -1) {
+                this.conversations[index].title = newTitle;
+            }
+            
+            console.log(`✅ 更新对话标题: ${conversation.id} -> ${newTitle}`);
+        } catch (error) {
+            console.error('❌ 更新对话标题失败:', error);
+            alert('更新标题失败: ' + error.message);
+        }
+    },
+
+    // 加载统计信息
+    async loadStats() {
+        try {
+            if (!window.aiService) {
+                return;
+            }
+
+            this.stats = await window.aiService.getStorageStats();
+        } catch (error) {
+            console.error('❌ 加载统计信息失败:', error);
+        }
+    },
+
+    // 更新自动保存设置
+    updateAutoSaveSettings() {
+        if (window.aiService) {
+            window.aiService.setAutoSaveOptions(
+                this.autoSaveEnabled,
+                this.autoSaveThreshold
+            );
+        }
+    },
+
+    // 导出历史
+    async exportHistory() {
+        try {
+            if (!window.aiService) {
+                throw new Error('AI服务未初始化');
+            }
+
+            await window.aiService.exportConversationHistory();
+            alert('对话历史导出成功！');
+        } catch (error) {
+            console.error('❌ 导出历史失败:', error);
+            alert('导出失败: ' + error.message);
+        }
+    },
+
+    // 清理旧对话
+    async cleanupOldConversations() {
+        try {
+            if (!window.aiService) {
+                throw new Error('AI服务未初始化');
+            }
+
+            await window.aiService.cleanupOldConversations(this.cleanupDays);
+            
+            this.showCleanupDialog = false;
+            await this.refreshHistory();
+            
+            alert(`清理完成！保留了最近 ${this.cleanupDays} 天的对话。`);
+        } catch (error) {
+            console.error('❌ 清理失败:', error);
+            alert('清理失败: ' + error.message);
+        }
+    },
+
+    // 工具方法
+    formatDate(dateStr) {
+        if (!dateStr) return '';
+        
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diff = now - date;
+        
+        // 小于1分钟
+        if (diff < 60000) {
+            return '刚刚';
+        }
+        
+        // 小于1小时
+        if (diff < 3600000) {
+            return Math.floor(diff / 60000) + '分钟前';
+        }
+        
+        // 小于24小时
+        if (diff < 86400000) {
+            return Math.floor(diff / 3600000) + '小时前';
+        }
+        
+        // 小于7天
+        if (diff < 604800000) {
+            return Math.floor(diff / 86400000) + '天前';
+        }
+        
+        // 超过7天显示具体日期
+        return date.toLocaleDateString('zh-CN', {
+            month: 'numeric',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    },
+
+    formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    },
+
+    getProviderName(provider) {
+        const names = {
+            'spark': '讯飞星火',
+            'kimi': 'Kimi AI',
+            'doubao': '豆包AI',
+            'unknown': '未知'
+        };
+        return names[provider] || provider;
+    },
+
+    getProviderBadgeClass(provider) {
+        const classes = {
+            'spark': 'bg-blue-100 text-blue-800',
+            'kimi': 'bg-purple-100 text-purple-800',
+            'doubao': 'bg-green-100 text-green-800',
+            'unknown': 'bg-gray-100 text-gray-800'
+        };
+        return classes[provider] || classes.unknown;
+    }
+};
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.conversationHistoryManager) {
+        window.conversationHistoryManager.init();
+    }
+});
+
+console.log('✅ 对话历史管理组件加载完成');
+</script>

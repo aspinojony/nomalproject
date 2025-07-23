@@ -1,0 +1,99 @@
+<!-- 快速练习组件 -->
+<template id="quick-practice-template">
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-lg shadow-lg p-6 card-hover cursor-pointer" data-type="mixed">
+            <div class="text-center">
+                <i class="fas fa-random text-3xl text-purple-500 mb-4"></i>
+                <h4 class="text-lg font-semibold mb-2">随机练习</h4>
+                <p class="text-gray-600 text-sm mb-4">从题库中随机抽取10道题</p>
+                <div class="bg-purple-50 rounded p-3">
+                    <div class="text-purple-600 font-medium">推荐新手</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 card-hover cursor-pointer" data-type="wrong">
+            <div class="text-center">
+                <i class="fas fa-redo text-3xl text-red-500 mb-4"></i>
+                <h4 class="text-lg font-semibold mb-2">错题重做</h4>
+                <p class="text-gray-600 text-sm mb-4">复习之前做错的题目</p>
+                <div class="bg-red-50 rounded p-3">
+                    <div class="text-red-600 font-medium" id="wrong-count">0道待复习</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 card-hover cursor-pointer" data-type="favorite">
+            <div class="text-center">
+                <i class="fas fa-star text-3xl text-yellow-500 mb-4"></i>
+                <h4 class="text-lg font-semibold mb-2">收藏题目</h4>
+                <p class="text-gray-600 text-sm mb-4">练习收藏的重点题目</p>
+                <div class="bg-yellow-50 rounded p-3">
+                    <div class="text-yellow-600 font-medium" id="favorite-count">0道已收藏</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+class QuickPracticeComponent {
+    constructor(container, options = {}) {
+        this.container = container;
+        this.options = {
+            wrongCount: 0,
+            favoriteCount: 0,
+            onPracticeStart: null,
+            ...options
+        };
+        this.init();
+    }
+
+    init() {
+        this.render();
+        this.bindEvents();
+        this.updateCounts();
+    }
+
+    render() {
+        const template = document.getElementById('quick-practice-template');
+        const clone = template.content.cloneNode(true);
+        this.container.appendChild(clone);
+    }
+
+    bindEvents() {
+        const practiceCards = this.container.querySelectorAll('[data-type]');
+        
+        practiceCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const type = card.dataset.type;
+                if (this.options.onPracticeStart) {
+                    this.options.onPracticeStart(type);
+                }
+            });
+        });
+    }
+
+    updateCounts() {
+        const wrongCountElement = this.container.querySelector('#wrong-count');
+        const favoriteCountElement = this.container.querySelector('#favorite-count');
+        
+        if (wrongCountElement) {
+            wrongCountElement.textContent = `${this.options.wrongCount}道待复习`;
+        }
+        
+        if (favoriteCountElement) {
+            favoriteCountElement.textContent = `${this.options.favoriteCount}道已收藏`;
+        }
+    }
+
+    setCounts(wrongCount, favoriteCount) {
+        this.options.wrongCount = wrongCount;
+        this.options.favoriteCount = favoriteCount;
+        this.updateCounts();
+    }
+}
+
+// 导出组件类
+window.QuickPracticeComponent = QuickPracticeComponent;
+</script>

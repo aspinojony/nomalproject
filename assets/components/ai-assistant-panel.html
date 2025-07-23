@@ -1,0 +1,155 @@
+<!-- AI小助手面板组件 -->
+<div id="ai-assistant-panel" class="ai-panel-container">
+    <!-- 助手头部 -->
+    <div class="ai-panel-header">
+        <div class="ai-panel-title">
+            <svg class="ai-panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
+                <path d="M2 17L12 22L22 17"/>
+                <path d="M2 12L12 17L22 12"/>
+            </svg>
+            <h3>AI学习助手</h3>
+        </div>
+        <div class="ai-panel-controls">
+            <button class="ai-panel-btn" id="ai-panel-config" title="设置">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v6m0 10v6m11-7h-6M6 12H0m15.364-6.364l-4.243 4.243m-6.243 4.243l-4.242-4.243M19.071 19.071l-4.243-4.243M9.929 4.929L5.686 9.172"/>
+                </svg>
+            </button>
+            <button class="ai-panel-btn" id="ai-panel-toggle" title="收起/展开">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="18,15 12,9 6,15"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- 助手内容 -->
+    <div class="ai-panel-content" id="ai-panel-content">
+        <!-- 快捷功能按钮 -->
+        <div class="ai-quick-actions">
+            <button class="ai-quick-btn" data-action="explain">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                解释知识点
+            </button>
+            <button class="ai-quick-btn" data-action="practice">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 12l2 2 4-4"/>
+                    <circle cx="12" cy="12" r="10"/>
+                </svg>
+                题目讲解
+            </button>
+            <button class="ai-quick-btn" data-action="plan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                学习规划
+            </button>
+        </div>
+
+        <!-- 对话区域 -->
+        <div class="ai-chat-area">
+            <div class="ai-messages" id="ai-panel-messages">
+                <div class="ai-message ai-message-assistant">
+                    <div class="ai-message-avatar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                            <line x1="9" y1="9" x2="9.01" y2="9"/>
+                            <line x1="15" y1="9" x2="15.01" y2="9"/>
+                        </svg>
+                    </div>
+                    <div class="ai-message-content">
+                        <p>你好！我是你的AI学习助手，有什么可以帮助你的吗？可以点击上方快捷按钮或直接输入问题。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="ai-input-area">
+            <div class="ai-input-container">
+                <textarea 
+                    class="ai-input" 
+                    id="ai-panel-input" 
+                    placeholder="输入你的问题，按回车发送..." 
+                    rows="2"
+                    maxlength="500"
+                ></textarea>
+                <button class="ai-send-btn" id="ai-panel-send" title="发送">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22,2 15,22 11,13 2,9"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="ai-input-stats">
+                <span class="ai-char-count" id="ai-panel-char-count">0/500</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 配置模态框 -->
+    <div class="ai-config-modal" id="ai-panel-config-modal" style="display: none;">
+        <div class="ai-config-overlay"></div>
+        <div class="ai-config-content">
+            <div class="ai-config-header">
+                <h3>⚙️ AI服务配置</h3>
+                <button class="ai-config-close" id="ai-panel-config-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="ai-config-body">
+                <div class="ai-config-message" style="display: none;"></div>
+                <div class="ai-config-tab">
+                    <h4>讯飞星火X1配置</h4>
+                    <div class="ai-config-form">
+                        <div class="ai-form-group">
+                            <label>App ID</label>
+                            <input type="text" id="ai-panel-appid" placeholder="请输入App ID">
+                        </div>
+                        <div class="ai-form-group">
+                            <label>API Key</label>
+                            <input type="text" id="ai-panel-apikey" placeholder="请输入API Key">
+                        </div>
+                        <div class="ai-form-group">
+                            <label>API Secret</label>
+                            <input type="password" id="ai-panel-apisecret" placeholder="请输入API Secret">
+                        </div>
+                        <div class="ai-config-help">
+                            <p>📝 获取Spark X1 API密钥步骤：</p>
+                            <ol>
+                                <li>访问 <a href="https://www.xfyun.cn/" target="_blank">讯飞开放平台</a></li>
+                                <li>注册登录后进入控制台</li>
+                                <li>创建星火认知大模型X1应用</li>
+                                <li>获取 App ID、API Key、API Secret</li>
+                            </ol>
+                            <p style="margin-top: 12px; padding: 8px; background: #e3f2fd; border-radius: 4px; font-size: 12px; color: #1976d2;">
+                                💡 <strong>Spark X1</strong> 是讯飞星火的高性能模型，提供更优质的对话体验
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-config-footer">
+                <button class="ai-btn ai-btn-secondary" id="ai-panel-test-btn">
+                    🔧 测试连接
+                </button>
+                <button class="ai-btn ai-btn-primary" id="ai-panel-save-btn">
+                    💾 保存配置
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

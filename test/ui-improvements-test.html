@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI改进效果测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../assets/css/common.css" rel="stylesheet">
+    <style>
+        /* 测试深色模式样式 */
+        .dark {
+            background-color: #0f1419;
+            color: #f8fafc;
+        }
+        .dark .bg-white {
+            background-color: #1e2432 !important;
+        }
+        .dark .text-gray-800 {
+            color: #f8fafc !important;
+        }
+        .dark .text-gray-600 {
+            color: #cbd5e1 !important;
+        }
+        .dark .border-gray-200 {
+            border-color: #4b5563 !important;
+        }
+        .dark .card-hover {
+            background: linear-gradient(145deg, #1e2432 0%, #1a1f2e 100%);
+            border: 1px solid #374151;
+        }
+        .dark .card-hover:hover {
+            background: linear-gradient(145deg, #252a3a 0%, #1e2432 100%);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 transition-colors duration-300" x-data="{ darkMode: false }" :class="{ 'dark': darkMode }">
+    <div class="min-h-screen p-8">
+        <h1 class="text-3xl font-bold text-center mb-8 fade-in-up">UI改进效果测试</h1>
+        
+        <!-- 深色模式切换 -->
+        <div class="text-center mb-8">
+            <button @click="darkMode = !darkMode" 
+                    class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 button-press">
+                <i :class="darkMode ? 'fas fa-sun' : 'fas fa-moon'" class="mr-2"></i>
+                <span x-text="darkMode ? '切换到浅色模式' : '切换到深色模式'"></span>
+            </button>
+        </div>
+
+        <!-- 动画效果测试 -->
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 card-hover fade-in-up stagger-1 dark-mode-transition">
+                <i class="fas fa-rocket text-4xl text-blue-500 mb-4 float"></i>
+                <h3 class="text-xl font-semibold mb-2">动画测试</h3>
+                <p class="text-gray-600">测试float动画效果</p>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-lg p-6 card-hover fade-in-up stagger-2 dark-mode-transition">
+                <i class="fas fa-star text-4xl text-yellow-500 mb-4 pulse-gentle"></i>
+                <h3 class="text-xl font-semibold mb-2">脉冲动画</h3>
+                <p class="text-gray-600">测试pulse-gentle动画</p>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-lg p-6 card-hover fade-in-up stagger-3 dark-mode-transition">
+                <i class="fas fa-heart text-4xl text-red-500 mb-4"></i>
+                <h3 class="text-xl font-semibold mb-2">悬停效果</h3>
+                <p class="text-gray-600">测试卡片悬停变换</p>
+                <button class="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300 transform hover:scale-105 button-press">
+                    点击测试
+                </button>
+            </div>
+        </div>
+
+        <!-- 深色模式颜色测试 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 dark-mode-transition">
+            <h3 class="text-2xl font-bold mb-4">深色模式颜色测试</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <div class="p-3 bg-gray-100 rounded">
+                        <p class="text-gray-800">主要文字颜色</p>
+                        <p class="text-gray-600">次要文字颜色</p>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <button class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105">
+                        主要按钮
+                    </button>
+                    <button class="w-full border border-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-100 transition-all duration-300">
+                        次要按钮
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 移动端测试提示 -->
+        <div class="mt-8 text-center">
+            <p class="text-gray-600">
+                📱 请在不同设备上测试响应式效果<br>
+                🌙 深色模式背景更深更舒适<br>
+                ✨ 动画效果更加流畅自然
+            </p>
+        </div>
+    </div>
+</body>
+</html>

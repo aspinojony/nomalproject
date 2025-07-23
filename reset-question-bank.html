@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>题库数据重置工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">题库数据重置工具</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">重置操作</h2>
+            <div class="space-y-4">
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <h3 class="font-bold text-yellow-800 mb-2">⚠️ 注意事项</h3>
+                    <p class="text-yellow-700 text-sm">
+                        重置操作将清除所有现有题目数据，并加载包含新公共课科目的默认题目。
+                        此操作不可逆，请谨慎操作。
+                    </p>
+                </div>
+                
+                <button onclick="resetQuestionBank()" 
+                        class="bg-red-500 text-white px-6 py-3 rounded hover:bg-red-600 transition">
+                    重置题库数据
+                </button>
+                
+                <button onclick="showCurrentData()" 
+                        class="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 transition ml-4">
+                    查看当前数据
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold mb-4">当前题库状态</h2>
+            <div id="dataStatus" class="text-sm bg-gray-100 p-4 rounded">
+                点击"查看当前数据"按钮查看题库状态
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/question-bank-manager.js"></script>
+    <script>
+        function resetQuestionBank() {
+            if (!confirm('确定要重置题库数据吗？此操作将清除所有现有题目！')) {
+                return;
+            }
+            
+            if (!confirm('最后确认：这将删除所有题目数据，包括您手动添加的题目。确定继续吗？')) {
+                return;
+            }
+            
+            try {
+                console.log('🔄 开始重置题库数据...');
+                
+                // 清除本地存储
+                localStorage.removeItem('question_bank');
+                
+                // 重新初始化题库管理器
+                if (window.questionBank) {
+                    window.questionBank.questions = window.questionBank.getDefaultQuestions();
+                    window.questionBank.saveQuestions();
+                }
+                
+                alert('✅ 题库数据重置成功！\n\n新的题库包含以下科目：\n• 高等数学（2题）\n• 线性代数（2题）\n• 概率论与数理统计（2题）\n• 政治（2题）\n• 英语（2题）\n• 数据结构、操作系统、计算机网络（各1题）\n\n请刷新题目管理页面查看新题库。');
+                
+                showCurrentData();
+                
+            } catch (error) {
+                console.error('❌ 重置失败:', error);
+                alert('❌ 重置失败: ' + error.message);
+            }
+        }
+
+        function showCurrentData() {
+            const statusDiv = document.getElementById('dataStatus');
+            
+            try {
+                const stored = localStorage.getItem('question_bank');
+                if (!stored) {
+                    statusDiv.innerHTML = '❌ 没有找到题库数据';
+                    return;
+                }
+                
+                const questions = JSON.parse(stored);
+                
+                // 按科目统计
+                const subjectStats = {};
+                questions.forEach(q => {
+                    subjectStats[q.subject] = (subjectStats[q.subject] || 0) + 1;
+                });
+                
+                // 按年份统计
+                const yearStats = {};
+                questions.forEach(q => {
+                    yearStats[q.year] = (yearStats[q.year] || 0) + 1;
+                });
+                
+                // 按难度统计
+                const difficultyStats = {};
+                questions.forEach(q => {
+                    difficultyStats[q.difficulty] = (difficultyStats[q.difficulty] || 0) + 1;
+                });
+                
+                const html = `
+                    <h3 class="font-bold mb-3">📊 题库统计</h3>
+                    <div class="mb-4">
+                        <p><strong>总题目数：</strong>${questions.length}</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-semibold mb-2">📚 按科目分布：</h4>
+                        ${Object.entries(subjectStats).map(([subject, count]) => 
+                            `<p class="ml-4">• ${subject}: ${count}题</p>`
+                        ).join('')}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-semibold mb-2">📅 按年份分布：</h4>
+                        ${Object.entries(yearStats).map(([year, count]) => 
+                            `<p class="ml-4">• ${year}年: ${count}题</p>`
+                        ).join('')}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-semibold mb-2">⭐ 按难度分布：</h4>
+                        ${Object.entries(difficultyStats).map(([difficulty, count]) => 
+                            `<p class="ml-4">• ${difficulty}: ${count}题</p>`
+                        ).join('')}
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4 class="font-semibold mb-2">📋 前5题预览：</h4>
+                        <div class="text-xs space-y-1">
+                            ${questions.slice(0, 5).map(q => 
+                                `<p class="ml-4 bg-gray-50 p-2 rounded">
+                                    <strong>[${q.subject}]</strong> ${q.question.substring(0, 50)}${q.question.length > 50 ? '...' : ''}
+                                </p>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                statusDiv.innerHTML = html;
+                
+            } catch (error) {
+                statusDiv.innerHTML = '❌ 数据解析失败: ' + error.message;
+            }
+        }
+
+        // 页面加载时显示当前数据
+        window.addEventListener('load', () => {
+            setTimeout(showCurrentData, 1000);
+        });
+    </script>
+</body>
+</html>

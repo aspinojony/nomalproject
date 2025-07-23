@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI助手修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-info {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .test-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #3b82f6;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .test-btn:hover {
+            background: #2563eb;
+        }
+        #console-output {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-info">
+        <h1>🔧 AI助手修复测试页面</h1>
+        <p>这个页面用于测试AI助手的修复情况，检查所有功能是否正常工作。</p>
+        
+        <h3>测试项目：</h3>
+        <ul>
+            <li>✅ DOM元素正确加载</li>
+            <li>✅ 事件绑定成功</li>
+            <li>✅ 模式切换功能</li>
+            <li>✅ 拖拽移动功能</li>
+            <li>✅ 窗口缩放功能</li>
+            <li>✅ 非阻塞显示模式</li>
+        </ul>
+    </div>
+
+    <div class="test-buttons">
+        <button class="test-btn" onclick="openAI()">打开AI助手</button>
+        <button class="test-btn" onclick="testPageInteraction()">测试页面交互</button>
+        <button class="test-btn" onclick="clearConsole()">清空控制台</button>
+    </div>
+
+    <div>
+        <h3>实时控制台输出：</h3>
+        <div id="console-output">等待测试...</div>
+    </div>
+
+    <script>
+        // 捕获控制台输出
+        const consoleOutput = document.getElementById('console-output');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        function addToConsole(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const prefix = {
+                'log': '💬',
+                'error': '❌',
+                'warn': '⚠️'
+            }[type];
+            
+            consoleOutput.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole('log', ...args);
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole('error', ...args);
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToConsole('warn', ...args);
+        };
+
+        function openAI() {
+            console.log('🚀 尝试打开AI助手...');
+            if (window.aiAssistant && typeof window.aiAssistant.show === 'function') {
+                window.aiAssistant.show();
+                console.log('✅ AI助手打开成功');
+            } else {
+                console.error('❌ AI助手未正确初始化');
+                console.log('📊 当前状态:', {
+                    aiAssistant: !!window.aiAssistant,
+                    showMethod: !!window.aiAssistant?.show
+                });
+            }
+        }
+
+        function testPageInteraction() {
+            const btn = document.createElement('button');
+            btn.textContent = '测试按钮 - 点击我';
+            btn.style.cssText = 'position: fixed; top: 100px; left: 100px; padding: 10px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; z-index: 1000;';
+            btn.onclick = function() {
+                alert('页面交互正常！这说明AI助手没有阻塞其他元素的交互。');
+                btn.remove();
+            };
+            document.body.appendChild(btn);
+            console.log('✅ 测试按钮已添加到页面，请检查是否能正常点击');
+        }
+
+        function clearConsole() {
+            consoleOutput.textContent = '';
+        }
+
+        // 页面加载完成后的初始化检查
+        window.addEventListener('load', function() {
+            console.log('🔍 开始AI助手状态检查...');
+            
+            setTimeout(() => {
+                console.log('📊 AI助手组件状态:', {
+                    aiAssistant: !!window.aiAssistant,
+                    aiAPIManager: !!window.aiAPIManager,
+                    showMethod: !!window.aiAssistant?.show,
+                    hideMethod: !!window.aiAssistant?.hide,
+                    toggleModeMethod: !!window.aiAssistant?.toggleMode
+                });
+
+                if (window.aiAssistant) {
+                    console.log('✅ AI助手已正确初始化');
+                } else {
+                    console.error('❌ AI助手初始化失败');
+                }
+            }, 2000);
+        });
+    </script>
+
+    <!-- 加载AI助手 -->
+    <script src="assets/js/ai-assistant-loader.js"></script>
+</body>
+</html>

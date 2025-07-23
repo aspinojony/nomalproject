@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>章节进度修复验证</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .card { background: white; border-radius: 8px; padding: 20px; margin: 15px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .status { padding: 8px 15px; border-radius: 20px; font-size: 14px; margin: 5px; display: inline-block; }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .log { background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; margin: 10px 0; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .progress-item { padding: 10px; margin: 5px 0; background: #e9ecef; border-left: 4px solid #007bff; border-radius: 0 5px 5px 0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 章节进度修复验证测试</h1>
+        
+        <div class="card">
+            <h2>🎮 测试控制</h2>
+            <button onclick="createSampleData()">创建样本数据</button>
+            <button onclick="testDataLoading()">测试数据加载</button>
+            <button onclick="openDataManager()">打开数据管理页面</button>
+            <button onclick="clearData()">清空测试数据</button>
+            <button onclick="clearLog()">清空日志</button>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>📋 测试状态</h2>
+                <div id="testStatus">
+                    <div class="status warning">等待测试</div>
+                </div>
+                
+                <h3>📊 数据统计</h3>
+                <div id="dataStats">
+                    <p>尚未加载数据</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📝 测试日志</h2>
+                <div id="testLog" class="log">测试准备就绪...\n</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📈 章节进度详情</h2>
+            <div id="progressDetails">
+                <p>点击"测试数据加载"按钮开始...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入必要的JS -->
+    <script src="assets/js/stats-manager.js"></script>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            logDiv.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('testLog').textContent = '日志已清空...\n';
+        }
+
+        function updateStatus(message, type = 'warning') {
+            const statusDiv = document.getElementById('testStatus');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function createSampleData() {
+            log('创建样本测试数据...');
+            
+            const sampleData = {
+                publicSubjects: [
+                    {
+                        id: "mathematics",
+                        name: "数学",
+                        chapters: [
+                            { name: "高等数学基础", duration: "2小时30分钟", difficulty: "简单", completed: true },
+                            { name: "线性代数", duration: "1小时45分钟", difficulty: "中等", completed: true },
+                            { name: "概率统计", duration: "3小时15分钟", difficulty: "困难", completed: false },
+                            { name: "数学分析", duration: "2小时", difficulty: "困难", completed: false }
+                        ]
+                    },
+                    {
+                        id: "english",
+                        name: "英语",
+                        chapters: [
+                            { name: "词汇基础", duration: "1小时30分钟", difficulty: "简单", completed: true },
+                            { name: "阅读理解", duration: "2小时", difficulty: "中等", completed: false },
+                            { name: "写作技巧", duration: "1小时15分钟", difficulty: "中等", completed: false }
+                        ]
+                    }
+                ],
+                professionalSubjects: [
+                    {
+                        id: "data_structure",
+                        name: "数据结构",
+                        chapters: [
+                            { name: "线性表", duration: "3小时", difficulty: "中等", completed: true },
+                            { name: "栈和队列", duration: "2小时30分钟", difficulty: "中等", completed: true },
+                            { name: "树和二叉树", duration: "4小时", difficulty: "困难", completed: false },
+                            { name: "图论基础", duration: "3小时30分钟", difficulty: "困难", completed: false }
+                        ]
+                    },
+                    {
+                        id: "operating_system",
+                        name: "操作系统",
+                        chapters: [
+                            { name: "进程管理", duration: "2小时45分钟", difficulty: "中等", completed: true },
+                            { name: "内存管理", duration: "3小时", difficulty: "困难", completed: false },
+                            { name: "文件系统", duration: "2小时15分钟", difficulty: "中等", completed: false }
+                        ]
+                    }
+                ]
+            };
+
+            localStorage.setItem('study_progress', JSON.stringify(sampleData));
+            log('样本数据已保存到localStorage', 'success');
+            updateStatus('样本数据已创建', 'success');
+            
+            // 计算统计信息
+            const totalSubjects = sampleData.publicSubjects.length + sampleData.professionalSubjects.length;
+            let totalChapters = 0;
+            let completedChapters = 0;
+            
+            [...sampleData.publicSubjects, ...sampleData.professionalSubjects].forEach(subject => {
+                totalChapters += subject.chapters.length;
+                completedChapters += subject.chapters.filter(ch => ch.completed).length;
+            });
+            
+            document.getElementById('dataStats').innerHTML = `
+                <p><strong>科目数量:</strong> ${totalSubjects}</p>
+                <p><strong>章节总数:</strong> ${totalChapters}</p>
+                <p><strong>已完成:</strong> ${completedChapters}</p>
+                <p><strong>完成率:</strong> ${Math.round((completedChapters / totalChapters) * 100)}%</p>
+            `;
+        }
+
+        async function testDataLoading() {
+            log('开始测试数据加载功能...');
+            updateStatus('测试进行中...', 'warning');
+
+            try {
+                // 检查StudyStatsManager是否存在
+                if (!window.studyStats) {
+                    throw new Error('StudyStatsManager未初始化');
+                }
+                log('StudyStatsManager初始化检查通过', 'success');
+
+                // 测试getAllChapterProgress方法
+                log('调用getAllChapterProgress()方法...');
+                const chapterProgress = await window.studyStats.getAllChapterProgress();
+                
+                log(`数据加载完成! 总章节: ${chapterProgress.totalChapters}, 已完成: ${chapterProgress.completedChapters}`, 'success');
+                
+                // 显示详细结果
+                let detailsHTML = '<h3>📊 章节进度统计</h3>';
+                detailsHTML += `
+                    <div class="progress-item" style="background: #d4edda; border-left-color: #28a745;">
+                        <strong>总体进度:</strong> ${chapterProgress.completedChapters}/${chapterProgress.totalChapters} 章节完成 
+                        (${chapterProgress.totalChapters > 0 ? Math.round((chapterProgress.completedChapters / chapterProgress.totalChapters) * 100) : 0}%)
+                    </div>
+                `;
+                
+                if (chapterProgress.courseProgress) {
+                    detailsHTML += '<h4>📚 各科目详情:</h4>';
+                    Object.values(chapterProgress.courseProgress).forEach(course => {
+                        const completionRate = course.chapters && course.chapters.length > 0 ? 
+                            Math.round((course.completedCount / course.chapters.length) * 100) : 0;
+                        
+                        detailsHTML += `
+                            <div class="progress-item">
+                                <strong>${course.courseName}</strong><br>
+                                进度: ${course.completedCount}/${course.chapters ? course.chapters.length : 0} (${completionRate}%)<br>
+                                <small>课程ID: ${course.courseId} | 观看时长: ${Math.round(course.totalWatchedSeconds / 60)}分钟</small>
+                            </div>
+                        `;
+                    });
+                }
+                
+                document.getElementById('progressDetails').innerHTML = detailsHTML;
+                updateStatus('测试完成 - 数据加载正常', 'success');
+                log('所有测试通过!', 'success');
+                
+            } catch (error) {
+                log(`测试失败: ${error.message}`, 'error');
+                updateStatus('测试失败', 'error');
+                console.error('测试错误:', error);
+            }
+        }
+
+        function openDataManager() {
+            log('打开学习记录管理页面...');
+            window.open('study-data-manager.html', '_blank');
+        }
+
+        function clearData() {
+            localStorage.removeItem('study_progress');
+            log('测试数据已清空', 'warning');
+            updateStatus('数据已清空', 'warning');
+            document.getElementById('dataStats').innerHTML = '<p>数据已清空</p>';
+            document.getElementById('progressDetails').innerHTML = '<p>数据已清空</p>';
+        }
+
+        // 页面加载时的初始化
+        window.addEventListener('load', () => {
+            log('页面加载完成');
+            if (window.studyStats) {
+                log('StudyStatsManager已就绪', 'success');
+                updateStatus('系统就绪', 'success');
+            } else {
+                log('StudyStatsManager未找到', 'error');
+                updateStatus('系统初始化失败', 'error');
+            }
+            
+            // 检查是否已有数据
+            const existingData = localStorage.getItem('study_progress');
+            if (existingData) {
+                log('检测到已有的study_progress数据');
+                updateStatus('检测到现有数据', 'warning');
+            }
+        });
+    </script>
+</body>
+</html>

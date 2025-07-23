@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI助手窗口大小调节测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .test-info {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .feature-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 12px;
+            margin: 24px 0;
+            flex-wrap: wrap;
+        }
+        .test-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .test-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+        .instructions {
+            background: #e0f2fe;
+            border: 1px solid #81d4fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #0277bd;
+        }
+        .demo-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .demo-box {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .demo-box:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-info">
+        <h1>🎛️ AI助手 - 自由调节窗口大小</h1>
+        <p>现在AI助手支持完全自由的窗口大小调节！体验全新的交互方式。</p>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🖱️</div>
+                <h4>边缘拖拽调整</h4>
+                <p>拖拽窗口边缘和角落调整大小</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📐</div>
+                <h4>预设尺寸</h4>
+                <p>快速切换小、中、大、宽屏模式</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h4>智能约束</h4>
+                <p>自动限制最小/最大尺寸</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">✨</div>
+                <p>悬停边缘时会显示调节提示</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>📋 使用说明</h3>
+        <ol>
+            <li><strong>打开AI助手</strong> - 点击下方按钮或右下角悬浮按钮</li>
+            <li><strong>切换悬浮模式</strong> - 点击标题栏的"切换模式"按钮 (📐)</li>
+            <li><strong>拖拽移动</strong> - 在悬浮模式下拖拽标题栏移动窗口</li>
+            <li><strong>边缘调节</strong> - 将鼠标移到窗口边缘，出现双向箭头时拖拽调整大小</li>
+            <li><strong>角落调节</strong> - 拖拽窗口四个角落可同时调整宽度和高度</li>
+            <li><strong>预设尺寸</strong> - 点击窗口图标按钮选择预设大小</li>
+        </ol>
+    </div>
+
+    <div class="test-buttons">
+        <button class="test-btn" onclick="openAI()">🚀 打开AI助手</button>
+        <button class="test-btn" onclick="testFloatingMode()">🏃‍♂️ 直接进入悬浮模式</button>
+        <button class="test-btn" onclick="demonstrateSizes()">📏 演示不同尺寸</button>
+    </div>
+
+    <div class="demo-content">
+        <div class="demo-box" onclick="showTip('drag')">
+            <h4>🖱️ 拖拽演示</h4>
+            <p>点击体验拖拽提示</p>
+        </div>
+        <div class="demo-box" onclick="showTip('resize')">
+            <h4>📐 调节演示</h4>
+            <p>点击体验调节提示</p>
+        </div>
+        <div class="demo-box" onclick="showTip('preset')">
+            <h4>⚡ 预设演示</h4>
+            <p>点击体验预设切换</p>
+        </div>
+        <div class="demo-box" onclick="showTip('interaction')">
+            <h4>🎮 交互测试</h4>
+            <p>测试页面交互不被阻塞</p>
+        </div>
+    </div>
+
+    <script>
+        function openAI() {
+            if (window.aiAssistant && typeof window.aiAssistant.show === 'function') {
+                window.aiAssistant.show();
+            } else {
+                alert('AI助手正在加载中，请稍后再试...');
+            }
+        }
+
+        function testFloatingMode() {
+            if (window.aiAssistant) {
+                // 先显示，再切换到悬浮模式
+                window.aiAssistant.show();
+                setTimeout(() => {
+                    if (window.aiAssistant.toggleMode) {
+                        window.aiAssistant.toggleMode();
+                        alert('✅ 已切换到悬浮模式！\\n\\n现在你可以：\\n• 拖拽标题栏移动窗口\\n• 拖拽边缘调整大小\\n• 点击其他页面元素不会关闭窗口');
+                    }
+                }, 500);
+            } else {
+                alert('AI助手还未加载完成，请稍后再试...');
+            }
+        }
+
+        function demonstrateSizes() {
+            if (!window.aiAssistant) {
+                alert('请先打开AI助手');
+                return;
+            }
+            
+            // 确保在悬浮模式
+            window.aiAssistant.show();
+            if (!window.aiAssistant.isFloatingMode) {
+                window.aiAssistant.toggleMode();
+            }
+            
+            const sizes = [
+                { w: 350, h: 450, name: '小窗口' },
+                { w: 480, h: 650, name: '中窗口' },
+                { w: 600, h: 800, name: '大窗口' },
+                { w: 700, h: 500, name: '宽屏模式' }
+            ];
+            
+            let currentSize = 0;
+            const demo = setInterval(() => {
+                if (currentSize < sizes.size) {
+                    const size = sizes[currentSize];
+                    if (window.aiAssistant.window) {
+                        window.aiAssistant.window.style.width = size.w + 'px';
+                        window.aiAssistant.window.style.height = size.h + 'px';
+                        console.log(`演示: ${size.name} (${size.w}x${size.h})`);
+                    }
+                    currentSize++;
+                } else {
+                    clearInterval(demo);
+                    alert('✅ 尺寸演示完成！\\n\\n现在你可以手动拖拽边缘调整到任意大小。');
+                }
+            }, 1500);
+        }
+
+        function showTip(type) {
+            const tips = {
+                drag: '💡 拖拽提示：\\n\\n1. 打开AI助手并切换到悬浮模式\\n2. 将鼠标移到标题栏\\n3. 按住鼠标左键拖拽移动窗口\\n4. 窗口会自动限制在屏幕范围内',
+                resize: '💡 调节提示：\\n\\n1. 将鼠标移到窗口边缘或角落\\n2. 看到双向箭头光标时按住拖拽\\n3. 边缘调节单个方向\\n4. 角落调节两个方向同时\\n5. 自动限制最小320x400像素',
+                preset: '💡 预设提示：\\n\\n1. 点击标题栏的窗口图标按钮\\n2. 选择预设尺寸:\\n   • 小窗口: 350x450\\n   • 中窗口: 480x650\\n   • 大窗口: 600x800\\n   • 宽屏: 700x500',
+                interaction: '💡 交互提示：\\n\\n1. 悬浮模式下背景透明\\n2. 可以点击页面其他元素\\n3. 不会因为点击其他地方而关闭\\n4. 完全不阻塞页面交互'
+            };
+            
+            alert(tips[type] || '提示信息');
+        }
+
+        // 页面加载完成后检查AI助手状态
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (window.aiAssistant) {
+                    console.log('✅ AI助手已加载，包含窗口调节功能');
+                } else {
+                    console.log('⏳ AI助手正在加载中...');
+                }
+            }, 2000);
+        });
+    </script>
+
+    <!-- 加载AI助手 -->
+    <script src="assets/js/ai-assistant-loader.js"></script>
+</body>
+</html>

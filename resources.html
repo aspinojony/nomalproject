@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习资源 - 计算机考研学习平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/common.css" rel="stylesheet">
+    <style>
+        .hero-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .resource-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .resource-card:hover {
+            border-left-color: #4f46e5;
+        }
+        .tag-official { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .tag-community { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+        .tag-video { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .tag-practice { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+        .tag-download { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .tag-course { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+        .tag-cloud { background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%); }
+        .tag-document { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .tag-experience { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); }
+        .tag-github { background: linear-gradient(135deg, #374151 0%, #1f2937 100%); }
+        .tag-tech { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+        .tag-guide { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); }
+        .tag-academic { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
+        .filter-btn.active {
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            color: white;
+        }
+        .search-highlight {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="resourcesApp()">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-2">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <i class="fas fa-graduation-cap text-2xl text-indigo-600"></i>
+                        <h1 class="text-xl font-bold text-gray-800">计算机考研平台</h1>
+                    </a>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="text-gray-600 hover:text-indigo-600 transition">首页</a>
+                    <a href="subjects.html" class="text-gray-600 hover:text-indigo-600 transition">课程导航</a>
+                    <a href="practice.html" class="text-gray-600 hover:text-indigo-600 transition">真题练习</a>
+                    <a href="question-manager.html" class="text-gray-600 hover:text-indigo-600 transition">题目管理</a>
+                    <a href="#" class="text-indigo-600 font-semibold">学习资源</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="hidden md:block text-sm text-gray-600">
+                        共 <span class="text-indigo-600 font-semibold" x-text="resources.length"></span> 个资源
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 面包屑导航 -->
+    <div class="bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center space-x-2 text-sm">
+                <a href="index.html" class="text-indigo-600 hover:text-indigo-800">首页</a>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+                <span class="text-gray-600">学习资源</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero区域 -->
+    <section class="hero-bg text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h2 class="text-4xl font-bold mb-4">🎓 考研学习资源大全</h2>
+            <p class="text-xl opacity-90 mb-8">精选优质考研网站，助力备考之路</p>
+            <div class="flex justify-center items-center space-x-8">
+                <div class="text-center">
+                    <div class="text-2xl font-bold" x-text="getResourceCount('官方政策')"></div>
+                    <div class="text-sm opacity-75">官方网站</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold" x-text="getResourceCount('社区/题库')"></div>
+                    <div class="text-sm opacity-75">社区论坛</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold" x-text="getResourceCount('视频')"></div>
+                    <div class="text-sm opacity-75">视频课程</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold" x-text="getResourceCount('刷题')"></div>
+                    <div class="text-sm opacity-75">刷题平台</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 搜索和筛选区域 -->
+    <section class="py-8 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <!-- 搜索框 -->
+            <div class="mb-8">
+                <div class="relative max-w-2xl mx-auto">
+                    <input type="text" x-model="searchKeyword" @input="filterResources()" 
+                           placeholder="搜索资源名称、类型或特色..." 
+                           class="w-full px-6 py-4 text-lg border-2 border-gray-200 rounded-full focus:outline-none focus:border-indigo-500 transition">
+                    <i class="fas fa-search absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+
+            <!-- 分类筛选按钮 -->
+            <div class="flex flex-wrap justify-center gap-3 mb-8">
+                <button @click="filterType = ''; filterResources()" 
+                        :class="filterType === '' ? 'active' : ''"
+                        class="filter-btn px-6 py-3 rounded-full border border-gray-300 hover:border-indigo-500 transition">
+                    <i class="fas fa-globe mr-2"></i>全部资源
+                </button>
+                <button @click="filterType = '官方政策'; filterResources()" 
+                        :class="filterType === '官方政策' ? 'active' : ''"
+                        class="filter-btn px-6 py-3 rounded-full border border-gray-300 hover:border-indigo-500 transition">
+                    <i class="fas fa-university mr-2"></i>官方政策
+                </button>
+                <button @click="filterType = '社区/题库'; filterResources()" 
+                        :class="filterType === '社区/题库' ? 'active' : ''"
+                        class="filter-btn px-6 py-3 rounded-full border border-gray-300 hover:border-indigo-500 transition">
+                    <i class="fas fa-users mr-2"></i>社区论坛
+                </button>
+                <button @click="filterType = '视频'; filterResources()" 
+                        :class="filterType === '视频' ? 'active' : ''"
+                        class="filter-btn px-6 py-3 rounded-full border border-gray-300 hover:border-indigo-500 transition">
+                    <i class="fas fa-play-circle mr-2"></i>视频课程
+                </button>
+                <button @click="filterType = '刷题'; filterResources()" 
+                        :class="filterType === '刷题' ? 'active' : ''"
+                        class="filter-btn px-6 py-3 rounded-full border border-gray-300 hover:border-indigo-500 transition">
+                    <i class="fas fa-code mr-2"></i>刷题平台
+                </button>
+                <button @click="filterType = '真题下载'; filterResources()" 
+                        :class="filterType === '真题下载' ? 'active' : ''"
+                        class="filter-btn px-6 py-3 rounded-full border border-gray-300 hover:border-indigo-500 transition">
+                    <i class="fas fa-download mr-2"></i>真题下载
+                </button>
+                <button @click="filterType = '网盘'; filterResources()" 
+                        :class="filterType === '网盘' ? 'active' : ''"
+                        class="filter-btn px-6 py-3 rounded-full border border-gray-300 hover:border-indigo-500 transition">
+                    <i class="fas fa-cloud mr-2"></i>网盘资源
+                </button>
+                <button @click="filterType = '文档'; filterResources()" 
+                        :class="filterType === '文档' ? 'active' : ''"
+                        class="filter-btn px-6 py-3 rounded-full border border-gray-300 hover:border-indigo-500 transition">
+                    <i class="fas fa-file-alt mr-2"></i>文档库
+                </button>
+                <button @click="filterType = '专项课程'; filterResources()" 
+                        :class="filterType === '专项课程' ? 'active' : ''"
+                        class="filter-btn px-6 py-3 rounded-full border border-gray-300 hover:border-indigo-500 transition">
+                    <i class="fas fa-graduation-cap mr-2"></i>专项课程
+                </button>
+                <button @click="filterType = '技术社区'; filterResources()" 
+                        :class="filterType === '技术社区' ? 'active' : ''"
+                        class="filter-btn px-6 py-3 rounded-full border border-gray-300 hover:border-indigo-500 transition">
+                    <i class="fas fa-laptop-code mr-2"></i>技术社区
+                </button>
+                <button @click="filterType = '学习指导'; filterResources()" 
+                        :class="filterType === '学习指导' ? 'active' : ''"
+                        class="filter-btn px-6 py-3 rounded-full border border-gray-300 hover:border-indigo-500 transition">
+                    <i class="fas fa-book-open mr-2"></i>学习指导
+                </button>
+            </div>
+
+            <!-- 搜索结果提示 -->
+            <div x-show="searchKeyword.trim() || filterType" class="text-center mb-6">
+                <p class="text-gray-600">
+                    找到 <span class="font-semibold text-indigo-600" x-text="filteredResources.length"></span> 个匹配的资源
+                    <button @click="clearFilters()" class="ml-2 text-sm text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i> 清除筛选
+                    </button>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 资源卡片网格 -->
+    <section class="py-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <template x-for="resource in filteredResources" :key="resource.name">
+                    <div class="resource-card rounded-xl shadow-lg p-6 card-hover">
+                        <!-- 资源头部 -->
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold text-gray-800 mb-2" x-text="resource.name"></h3>
+                                <div class="flex items-center space-x-2 mb-3">
+                                    <span class="text-white text-xs px-3 py-1 rounded-full font-medium"
+                                          :class="getTypeTagClass(resource.type)" 
+                                          x-text="resource.type"></span>
+                                    <span class="text-xs text-gray-500" x-show="resource.popular">
+                                        <i class="fas fa-fire text-orange-500"></i> 热门
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button @click="toggleBookmark(resource)" 
+                                        :class="isBookmarked(resource.name) ? 'text-yellow-500' : 'text-gray-400'"
+                                        class="hover:text-yellow-500 transition">
+                                    <i class="fas fa-bookmark text-lg"></i>
+                                </button>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-500">访问量</div>
+                                    <div class="text-lg font-semibold text-indigo-600" x-text="resource.visits || '999+'"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 特色说明 -->
+                        <p class="text-gray-600 text-sm leading-relaxed mb-4" x-text="resource.description"></p>
+
+                        <!-- 标签 -->
+                        <div class="flex flex-wrap gap-2 mb-4" x-show="resource.tags">
+                            <template x-for="tag in resource.tags" :key="tag">
+                                <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded" x-text="tag"></span>
+                            </template>
+                        </div>
+
+                        <!-- 操作按钮 -->
+                        <div class="flex space-x-3">
+                            <a :href="resource.url" target="_blank" rel="noopener noreferrer"
+                               @click="recordVisit(resource)"
+                               class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 px-4 rounded-lg text-center hover:from-indigo-600 hover:to-purple-700 transition font-medium">
+                                <i class="fas fa-external-link-alt mr-2"></i>访问网站
+                            </a>
+                            <button @click="copyUrl(resource.url)" 
+                                    class="bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button @click="shareResource(resource)" 
+                                    class="bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- 空状态 -->
+            <div x-show="filteredResources.length === 0" class="text-center py-16">
+                <div class="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-search text-gray-400 text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">未找到匹配的资源</h3>
+                <p class="text-gray-500 mb-6">尝试调整搜索关键词或筛选条件</p>
+                <button @click="clearFilters()" 
+                        class="bg-indigo-500 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 transition">
+                    查看全部资源
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 使用统计 -->
+    <section class="bg-gray-800 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4">
+            <h3 class="text-2xl font-bold text-center mb-12">📊 使用统计</h3>
+            <div class="grid md:grid-cols-4 gap-8 text-center">
+                <div>
+                    <div class="text-3xl font-bold mb-2" x-text="totalVisits"></div>
+                    <div class="text-gray-300">总访问次数</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold mb-2" x-text="bookmarks.length"></div>
+                    <div class="text-gray-300">收藏的资源</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold mb-2" x-text="getPopularResources().length"></div>
+                    <div class="text-gray-300">热门资源</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold mb-2" x-text="getUniqueTypes().length"></div>
+                    <div class="text-gray-300">资源类型</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-300">&copy; 2026 计算机考研学习平台. 精选优质资源，助力考研成功</p>
+            <p class="text-sm text-gray-400 mt-2">所有外链资源版权归原网站所有</p>
+        </div>
+    </footer>
+
+    <script>
+        function resourcesApp() {
+            return {
+                searchKeyword: '',
+                filterType: '',
+                bookmarks: [],
+                visitHistory: {},
+                totalVisits: 0,
+                
+                resources: [
+                    {
+                        name: '中国研究生招生信息网',
+                        url: 'https://yz.chsi.com.cn/',
+                        type: '官方政策',
+                        description: '官方信息、院校专业查询、招生简章、真题公告',
+                        tags: ['官方', '招生', '院校查询', '政策'],
+                        popular: true,
+                        visits: 1580
+                    },
+                    {
+                        name: '考研帮',
+                        url: 'https://www.kaoyan.com/',
+                        type: '社区/题库',
+                        description: '论坛，经验贴丰富，历年真题与学长学姐经验',
+                        tags: ['社区', '经验分享', '真题', '论坛'],
+                        popular: true,
+                        visits: 1245
+                    },
+                    {
+                        name: '小木虫',
+                        url: 'https://emuch.net/',
+                        type: '论坛',
+                        description: '资料下载区、讨论区、师兄师姐答疑',
+                        tags: ['学术', '资料下载', '答疑', '讨论'],
+                        visits: 892
+                    },
+                    {
+                        name: '哔哩哔哩（B站）',
+                        url: 'https://www.bilibili.com/',
+                        type: '视频',
+                        description: '数学/英语/408高质量公开课、真题讲解',
+                        tags: ['视频', '公开课', '讲解', '数学', '英语', '408'],
+                        popular: true,
+                        visits: 2150
+                    },
+                    {
+                        name: '王道论坛',
+                        url: 'https://www.cskaoyan.com/',
+                        type: '论坛/题库',
+                        description: '408各科资料、真题解析、刷题工具',
+                        tags: ['408', '计算机', '真题解析', '刷题'],
+                        popular: true,
+                        visits: 1680
+                    },
+                    {
+                        name: 'CSDN博客',
+                        url: 'https://blog.csdn.net/',
+                        type: '技术博客',
+                        description: '计算机专业课知识点总结、真题PDF、复习笔记',
+                        tags: ['技术博客', '知识点', '笔记', '计算机'],
+                        visits: 980
+                    },
+                    {
+                        name: '牛客网',
+                        url: 'https://www.nowcoder.com/exam/oj',
+                        type: '刷题',
+                        description: '408题库刷题，自动判分、详细解析',
+                        tags: ['刷题', '408', '在线判题', '算法'],
+                        popular: true,
+                        visits: 1420
+                    },
+                    {
+                        name: '知乎',
+                        url: 'https://www.zhihu.com/',
+                        type: '问答社区',
+                        description: '考研经验、资料推荐、院校信息、数英408高赞经验帖',
+                        tags: ['问答', '经验', '院校信息', '推荐'],
+                        visits: 1350
+                    },
+                    {
+                        name: '研途宝',
+                        url: 'https://www.yantubao.com/',
+                        type: '题库/下载',
+                        description: '真题库、模考卷、知识点卡片、下载区',
+                        tags: ['真题库', '模考', '知识点', '下载'],
+                        visits: 780
+                    },
+                    {
+                        name: '机工社官方',
+                        url: 'http://www.cmpedu.com/',
+                        type: '出版社',
+                        description: '王道/天勤官方教材配套资料、讲义下载',
+                        tags: ['官方', '教材', '王道', '天勤'],
+                        visits: 520
+                    },
+                    {
+                        name: 'GitHub 资源',
+                        url: 'https://github.com/search?q=408+kaoyan',
+                        type: '开源/题库',
+                        description: '开源 408 题库与知识点总结，结构化下载',
+                        tags: ['开源', 'GitHub', '408', '知识点'],
+                        visits: 450
+                    },
+                    {
+                        name: 'MOOC 学堂在线',
+                        url: 'https://www.xuetangx.com/',
+                        type: '慕课',
+                        description: '免费/优质高校 408 四科课程，基础强化/真题解析',
+                        tags: ['慕课', '免费', '高校', '408'],
+                        visits: 680
+                    },
+                    {
+                        name: '网易公开课',
+                        url: 'https://open.163.com/',
+                        type: '视频',
+                        description: '高等数学、英语、408 专业课公开课',
+                        tags: ['公开课', '数学', '英语', '408'],
+                        visits: 920
+                    },
+                    {
+                        name: '石墨文档共享区',
+                        url: 'https://shimo.im/',
+                        type: '网盘/文档区',
+                        description: '搜索"408考研真题"、"考研数学笔记"常能发现优质共享文档',
+                        tags: ['共享文档', '408', '数学笔记', '协作平台'],
+                        visits: 650
+                    },
+                    {
+                        name: '夸克网盘',
+                        url: 'https://pan.quark.cn/',
+                        type: '网盘',
+                        description: '很多学长分享打包资料，可通过"408 真题"、"考研英语一电子书"等关键词搜索',
+                        tags: ['网盘', '打包资料', '408', '英语', '搜索'],
+                        visits: 980
+                    },
+                    {
+                        name: '百度文库',
+                        url: 'https://wenku.baidu.com/',
+                        type: '文档下载',
+                        description: '汇集众多院校/个人分享的真题、笔记、总结，可用作辅助搜索资料来源',
+                        tags: ['文档', '真题', '笔记', '总结', '院校资料'],
+                        visits: 1200
+                    },
+                    {
+                        name: 'DOC88（道客巴巴）',
+                        url: 'https://www.doc88.com/',
+                        type: '文档搜索',
+                        description: '类似百度文库，适合查找 PDF、DOC 格式真题和辅导笔记',
+                        tags: ['PDF', 'DOC', '真题', '辅导笔记', '文档搜索'],
+                        visits: 450
+                    },
+                    {
+                        name: '哔哩哔哩UP主合集',
+                        url: 'https://www.bilibili.com/search?keyword=三石研考 HY同学 考研日记',
+                        type: '视频系列',
+                        description: '系统性讲课 + 解题讲解，适合搬运入资源站或嵌入型展示',
+                        tags: ['UP主', '系统讲解', '解题', '三石研考', 'HY同学'],
+                        visits: 1350
+                    },
+                    {
+                        name: '力扣（LeetCode）',
+                        url: 'https://leetcode.cn/',
+                        type: '刷题',
+                        description: '算法与数据结构在线练习平台，程序设计科目必备',
+                        tags: ['算法', '数据结构', '编程', '面试'],
+                        popular: true,
+                        visits: 2100
+                    },
+                    {
+                        name: '408考研真题库',
+                        url: 'https://github.com/topics/408',
+                        type: 'GitHub整理',
+                        description: 'GitHub上开源的408真题资源整理与解析',
+                        tags: ['开源', '408', '真题', 'GitHub'],
+                        visits: 680
+                    },
+                    {
+                        name: '清华大学在线',
+                        url: 'https://www.xuetangx.com/',
+                        type: '慕课',
+                        description: '清华大学计算机专业课程，包含操作系统、计算机网络等',
+                        tags: ['清华', '专业课', '操作系统', '计算机网络'],
+                        popular: true,
+                        visits: 1200
+                    },
+                    {
+                        name: '中国计算机学会CCF',
+                        url: 'https://www.ccf.org.cn/',
+                        type: '官方政策',
+                        description: '计算机领域权威学会，提供学科发展动态和学术资源',
+                        tags: ['官方', '学术', 'CCF', '学科动态'],
+                        visits: 450
+                    },
+                    {
+                        name: '北京理工大学慕课',
+                        url: 'https://www.icourse163.org/university/BIT',
+                        type: '慕课',
+                        description: '北理工计算机专业课程，数据结构、算法设计等精品课程',
+                        tags: ['北理工', '数据结构', '算法', '精品课程'],
+                        visits: 850
+                    },
+                    {
+                        name: '程序员客栈',
+                        url: 'https://www.proginn.com/',
+                        type: '技术社区',
+                        description: '计算机技术讨论社区，包含考研复试技术面试准备',
+                        tags: ['技术讨论', '复试', '面试', '程序员'],
+                        visits: 520
+                    },
+                    {
+                        name: '计算机考研408资料站',
+                        url: 'https://cs408.com/',
+                        type: '专项课程',
+                        description: '专门针对408考试的资料站，包含四门专业课系统复习',
+                        tags: ['408专项', '专业课', '系统复习', '考试'],
+                        visits: 1450
+                    },
+                    {
+                        name: 'ACM竞赛资源',
+                        url: 'https://codeforces.com/',
+                        type: '刷题',
+                        description: '国际编程竞赛平台，提升算法编程能力',
+                        tags: ['ACM', '编程竞赛', '算法', '国际平台'],
+                        visits: 780
+                    },
+                    {
+                        name: '中科院计算所开放课程',
+                        url: 'http://www.ict.ac.cn/',
+                        type: '学术机构',
+                        description: '中科院计算技术研究所，前沿计算机技术资源',
+                        tags: ['中科院', '前沿技术', '学术', '研究所'],
+                visits: 380
+                    },
+                    {
+                        name: '408考研论坛',
+                        url: 'https://bbs.kaoyan.com/forum-408-1.html',
+                        type: '论坛',
+                        description: '专门的408考研交流论坛，经验分享和答疑解惑',
+                        tags: ['408论坛', '交流', '经验分享', '答疑'],
+                        visits: 920
+                    },
+                    {
+                        name: 'CS自学指南',
+                        url: 'https://csdiy.wiki/',
+                        type: '学习指导',
+                        description: '计算机科学自学资源指南，包含各专业课学习路径',
+                        tags: ['自学指南', '学习路径', '计算机科学', 'CS'],
+                        popular: true,
+                        visits: 1680
+                    }
+                ],
+                
+                filteredResources: [],
+                
+                // 初始化
+                init() {
+                    this.loadData();
+                    this.filteredResources = [...this.resources];
+                    this.calculateTotalVisits();
+                },
+                
+                // 加载本地数据
+                loadData() {
+                    const savedBookmarks = localStorage.getItem('resource_bookmarks');
+                    if (savedBookmarks) {
+                        this.bookmarks = JSON.parse(savedBookmarks);
+                    }
+                    
+                    const savedVisits = localStorage.getItem('resource_visits');
+                    if (savedVisits) {
+                        this.visitHistory = JSON.parse(savedVisits);
+                    }
+                },
+                
+                // 保存数据
+                saveData() {
+                    localStorage.setItem('resource_bookmarks', JSON.stringify(this.bookmarks));
+                    localStorage.setItem('resource_visits', JSON.stringify(this.visitHistory));
+                },
+                
+                // 筛选资源
+                filterResources() {
+                    let filtered = [...this.resources];
+                    
+                    // 按类型筛选
+                    if (this.filterType) {
+                        filtered = filtered.filter(resource => 
+                            resource.type.includes(this.filterType)
+                        );
+                    }
+                    
+                    // 按关键词搜索
+                    if (this.searchKeyword.trim()) {
+                        const keyword = this.searchKeyword.toLowerCase();
+                        filtered = filtered.filter(resource =>
+                            resource.name.toLowerCase().includes(keyword) ||
+                            resource.description.toLowerCase().includes(keyword) ||
+                            resource.type.toLowerCase().includes(keyword) ||
+                            (resource.tags && resource.tags.some(tag => 
+                                tag.toLowerCase().includes(keyword)
+                            ))
+                        );
+                    }
+                    
+                    this.filteredResources = filtered;
+                },
+                
+                // 清除筛选
+                clearFilters() {
+                    this.searchKeyword = '';
+                    this.filterType = '';
+                    this.filterResources();
+                },
+                
+                // 获取类型标签样式
+                getTypeTagClass(type) {
+                    const styleMap = {
+                        '官方政策': 'tag-official',
+                        '社区/题库': 'tag-community',
+                        '论坛/题库': 'tag-community',
+                        '论坛': 'tag-community',
+                        '问答社区': 'tag-community',
+                        '视频': 'tag-video',
+                        '视频系列': 'tag-video',
+                        '慕课': 'tag-course',
+                        '专项课程平台': 'tag-course',
+                        '刷题': 'tag-practice',
+                        '刷题/题库': 'tag-practice',
+                        '真题下载': 'tag-download',
+                        '真题/下载站': 'tag-download',
+                        '开源/题库': 'tag-github',
+                        'GitHub整理': 'tag-github',
+                        '技术博客': 'tag-course',
+                        '出版社': 'tag-official',
+                        '数学题库': 'tag-practice',
+                        '英语题库': 'tag-practice',
+                        '题库/下载': 'tag-download',
+                        '网盘': 'tag-cloud',
+                        '网盘/文档区': 'tag-cloud',
+                        '文档下载': 'tag-document',
+                        '文档搜索': 'tag-document',
+                        '经验帖/干货': 'tag-experience',
+                        '技术社区': 'tag-tech',
+                        '学习指导': 'tag-guide',
+                        '学术机构': 'tag-academic'
+                    };
+                    return styleMap[type] || 'tag-community';
+                },
+                
+                // 获取资源数量
+                getResourceCount(type) {
+                    if (type === '社区/题库') {
+                        return this.resources.filter(r => 
+                            r.type.includes('社区') || r.type.includes('论坛') || r.type.includes('题库')
+                        ).length;
+                    }
+                    return this.resources.filter(r => r.type.includes(type)).length;
+                },
+                
+                // 收藏功能
+                toggleBookmark(resource) {
+                    const index = this.bookmarks.findIndex(b => b === resource.name);
+                    if (index > -1) {
+                        this.bookmarks.splice(index, 1);
+                        this.showToast('已取消收藏', 'info');
+                    } else {
+                        this.bookmarks.push(resource.name);
+                        this.showToast('已添加到收藏', 'success');
+                    }
+                    this.saveData();
+                },
+                
+                isBookmarked(name) {
+                    return this.bookmarks.includes(name);
+                },
+                
+                // 记录访问
+                recordVisit(resource) {
+                    this.visitHistory[resource.name] = (this.visitHistory[resource.name] || 0) + 1;
+                    this.saveData();
+                    this.calculateTotalVisits();
+                },
+                
+                // 计算总访问次数
+                calculateTotalVisits() {
+                    this.totalVisits = Object.values(this.visitHistory).reduce((sum, count) => sum + count, 0);
+                },
+                
+                // 复制链接
+                copyUrl(url) {
+                    navigator.clipboard.writeText(url).then(() => {
+                        this.showToast('链接已复制到剪贴板', 'success');
+                    }).catch(() => {
+                        this.showToast('复制失败，请手动复制', 'error');
+                    });
+                },
+                
+                // 分享资源
+                shareResource(resource) {
+                    if (navigator.share) {
+                        navigator.share({
+                            title: resource.name,
+                            text: resource.description,
+                            url: resource.url
+                        });
+                    } else {
+                        this.copyUrl(resource.url);
+                        this.showToast('链接已复制，可以分享给朋友', 'success');
+                    }
+                },
+                
+                // 获取热门资源
+                getPopularResources() {
+                    return this.resources.filter(r => r.popular);
+                },
+                
+                // 获取唯一类型
+                getUniqueTypes() {
+                    return [...new Set(this.resources.map(r => r.type))];
+                },
+                
+                // 显示提示信息
+                showToast(message, type = 'info') {
+                    const toast = document.createElement('div');
+                    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 transition-all duration-300 ${
+                        type === 'success' ? 'bg-green-500' : 
+                        type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                    }`;
+                    toast.textContent = message;
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                        toast.style.opacity = '0';
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
+                }
+            };
+        }
+    </script>
+    
+    <!-- 快捷导航栏 -->
+    <script src="assets/js/quick-nav.js"></script>
+</body>
+</html>

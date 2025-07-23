@@ -1,0 +1,249 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "description": "计算机考研题库增强版数据结构",
+    "created_at": "2024-01-22",
+    "total_questions": 0,
+    "categories": ["数据结构", "算法设计", "操作系统", "计算机网络", "组成原理", "编译原理", "数据库"],
+    "years": [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "difficulty_levels": ["简单", "中等", "困难"]
+  },
+  "questions": [
+    {
+      "id": "DS_2023_001",
+      "category": "data_structure",
+      "subject": "数据结构",
+      "chapter": "线性表",
+      "section": "顺序表",
+      "year": 2023,
+      "difficulty": "中等",
+      "difficulty_score": 7,
+      "points": 2,
+      "estimated_time": 3,
+      "question_type": "single_choice",
+      "question": "在一个长度为n的顺序表中，在第i个位置上插入一个元素时需要移动的元素个数为（）",
+      "options": [
+        "n-i",
+        "n-i+1", 
+        "n-i-1",
+        "i"
+      ],
+      "correct_answer": 0,
+      "explanation": "在顺序表的第i个位置插入元素时，需要将第i个位置及其后面的所有元素向后移动一位。由于顺序表长度为n，第i个位置后面还有n-i个元素需要移动。",
+      "detailed_explanation": {
+        "concept": "顺序表插入操作的时间复杂度分析",
+        "key_points": [
+          "插入操作需要移动后续元素",
+          "移动元素个数与插入位置相关",
+          "最坏情况是在表头插入，需要移动所有元素"
+        ],
+        "related_concepts": ["时间复杂度", "空间复杂度", "数组操作"]
+      },
+      "tags": ["顺序表", "插入操作", "算法分析", "基础概念"],
+      "knowledge_points": [
+        {
+          "name": "顺序表基本操作",
+          "weight": 0.8
+        },
+        {
+          "name": "算法复杂度分析", 
+          "weight": 0.6
+        }
+      ],
+      "source": {
+        "exam_name": "全国硕士研究生入学统一考试",
+        "exam_code": "408",
+        "paper_type": "统考真题",
+        "question_number": "1",
+        "reference": "《2023年全国硕士研究生入学统一考试计算机科学与技术学科联考计算机学科专业基础综合试题》"
+      },
+      "statistics": {
+        "total_attempts": 0,
+        "correct_attempts": 0,
+        "accuracy_rate": 0.0,
+        "avg_time_spent": 0
+      },
+      "created_at": "2024-01-22T10:00:00Z",
+      "updated_at": "2024-01-22T10:00:00Z"
+    },
+    {
+      "id": "OS_2023_001",
+      "category": "operating_system",
+      "subject": "操作系统",
+      "chapter": "进程管理",
+      "section": "死锁",
+      "year": 2023,
+      "difficulty": "困难",
+      "difficulty_score": 9,
+      "points": 3,
+      "estimated_time": 5,
+      "question_type": "single_choice",
+      "question": "下列关于死锁的叙述中，正确的是（）",
+      "options": [
+        "只有在系统中同时出现四个必要条件时，才会发生死锁",
+        "死锁预防是通过设置某些限制条件，去破坏产生死锁的四个必要条件中的一个或几个",
+        "死锁避免是当进程提出资源请求时，系统测试分配后是否会产生死锁",
+        "以上都正确"
+      ],
+      "correct_answer": 3,
+      "explanation": "四个选项都是正确的。死锁的四个必要条件同时满足时会发生死锁；死锁预防通过破坏必要条件来防止死锁；死锁避免通过银行家算法等方法在分配资源前进行安全性检查。",
+      "detailed_explanation": {
+        "concept": "死锁的预防、避免和检测机制",
+        "key_points": [
+          "死锁四个必要条件：互斥、占有和等待、不可抢占、循环等待",
+          "死锁预防：破坏四个条件之一",
+          "死锁避免：动态检查资源分配安全性",
+          "死锁检测：检测并解除已发生的死锁"
+        ],
+        "related_concepts": ["银行家算法", "资源分配图", "安全状态"]
+      },
+      "tags": ["死锁", "进程管理", "资源管理", "系统安全"],
+      "knowledge_points": [
+        {
+          "name": "死锁理论",
+          "weight": 0.9
+        },
+        {
+          "name": "资源管理策略",
+          "weight": 0.7
+        }
+      ],
+      "source": {
+        "exam_name": "全国硕士研究生入学统一考试",
+        "exam_code": "408",
+        "paper_type": "统考真题", 
+        "question_number": "5",
+        "reference": "《2023年全国硕士研究生入学统一考试计算机科学与技术学科联考计算机学科专业基础综合试题》"
+      },
+      "statistics": {
+        "total_attempts": 0,
+        "correct_attempts": 0,
+        "accuracy_rate": 0.0,
+        "avg_time_spent": 0
+      },
+      "created_at": "2024-01-22T10:00:00Z",
+      "updated_at": "2024-01-22T10:00:00Z"
+    },
+    {
+      "id": "CN_2022_001", 
+      "category": "computer_network",
+      "subject": "计算机网络",
+      "chapter": "传输层",
+      "section": "TCP协议",
+      "year": 2022,
+      "difficulty": "简单",
+      "difficulty_score": 3,
+      "points": 2,
+      "estimated_time": 2,
+      "question_type": "single_choice",
+      "question": "TCP协议提供的是（）",
+      "options": [
+        "可靠的数据报服务",
+        "不可靠的数据报服务", 
+        "可靠的字节流服务",
+        "不可靠的字节流服务"
+      ],
+      "correct_answer": 2,
+      "explanation": "TCP（传输控制协议）提供面向连接的可靠字节流服务。它通过序号、确认、重传等机制保证数据的可靠传输，并且以字节流的方式提供服务。",
+      "detailed_explanation": {
+        "concept": "TCP协议的服务特性",
+        "key_points": [
+          "面向连接：需要建立连接后才能通信",
+          "可靠传输：通过确认和重传保证数据完整性",
+          "字节流服务：将数据看作连续的字节流",
+          "流量控制和拥塞控制"
+        ],
+        "related_concepts": ["UDP协议", "套接字", "网络编程"]
+      },
+      "tags": ["TCP", "传输协议", "可靠性", "字节流"],
+      "knowledge_points": [
+        {
+          "name": "TCP协议特性",
+          "weight": 0.9
+        },
+        {
+          "name": "传输层服务",
+          "weight": 0.6
+        }
+      ],
+      "source": {
+        "exam_name": "全国硕士研究生入学统一考试",
+        "exam_code": "408", 
+        "paper_type": "统考真题",
+        "question_number": "12",
+        "reference": "《2022年全国硕士研究生入学统一考试计算机科学与技术学科联考计算机学科专业基础综合试题》"
+      },
+      "statistics": {
+        "total_attempts": 0,
+        "correct_attempts": 0,
+        "accuracy_rate": 0.0,
+        "avg_time_spent": 0
+      },
+      "created_at": "2024-01-22T10:00:00Z",
+      "updated_at": "2024-01-22T10:00:00Z"
+    }
+  ],
+  "data_sources": {
+    "official_exams": [
+      {
+        "name": "全国硕士研究生入学统一考试(408)",
+        "description": "计算机科学与技术学科联考",
+        "coverage_years": [2009, 2024],
+        "subjects": ["数据结构", "计算机组成原理", "操作系统", "计算机网络"],
+        "reliability": "official",
+        "update_frequency": "yearly"
+      }
+    ],
+    "recommended_sources": [
+      {
+        "name": "王道考研数据结构",
+        "type": "教辅资料",
+        "publisher": "电子工业出版社",
+        "isbn": "978-7-121-xxxxx-x",
+        "subjects": ["数据结构"],
+        "quality": "high"
+      },
+      {
+        "name": "天勤计算机考研高分笔记",
+        "type": "教辅资料", 
+        "publisher": "机械工业出版社",
+        "subjects": ["数据结构", "操作系统", "计算机网络", "组成原理"],
+        "quality": "high"
+      },
+      {
+        "name": "历年真题详解",
+        "type": "真题集",
+        "subjects": ["全科目"],
+        "quality": "official"
+      }
+    ]
+  },
+  "import_guidelines": {
+    "naming_convention": {
+      "id_format": "{SUBJECT_CODE}_{YEAR}_{NUMBER}",
+      "subject_codes": {
+        "数据结构": "DS",
+        "算法设计": "AD", 
+        "操作系统": "OS",
+        "计算机网络": "CN",
+        "组成原理": "CO",
+        "编译原理": "CP",
+        "数据库": "DB"
+      }
+    },
+    "quality_requirements": {
+      "question_text": "清晰准确，符合考试标准",
+      "options": "选项互斥且完整",
+      "explanation": "详细说明解题思路",
+      "tags": "至少包含3个相关标签",
+      "knowledge_points": "明确对应的知识点"
+    },
+    "validation_rules": [
+      "每个题目必须包含完整的元数据",
+      "正确答案索引必须在有效范围内",
+      "难度分数应在1-10之间",
+      "题目ID必须唯一",
+      "必须提供题目来源信息"
+    ]
+  }
+}

@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI对话历史记录测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        .line-clamp-1 { 
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+        .line-clamp-2 { 
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <!-- 页面标题 -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">AI对话历史记录测试</h1>
+            <p class="text-gray-600">测试完整的AI对话历史记录功能</p>
+        </div>
+
+        <!-- 测试面板 -->
+        <div x-data="conversationHistoryTest" class="max-w-6xl mx-auto">
+            <!-- 状态指示器 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-medium text-gray-900">存储状态</h3>
+                        <div class="flex items-center">
+                            <div class="w-2 h-2 rounded-full mr-2" 
+                                 :class="storageReady ? 'bg-green-500' : 'bg-red-500'"></div>
+                            <span class="text-xs" :class="storageReady ? 'text-green-600' : 'text-red-600'">
+                                <span x-show="storageReady">就绪</span>
+                                <span x-show="!storageReady">未就绪</span>
+                            </span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1" x-text="storageType"></p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-medium text-gray-900">当前对话</h3>
+                        <span class="text-xs text-gray-600" x-text="currentConversationId || '无'"></span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">
+                        <span x-text="messageCount"></span> 条消息
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-medium text-gray-900">历史统计</h3>
+                        <span class="text-xs text-gray-600" x-text="totalConversations"></span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">
+                        总计 <span x-text="totalMessages"></span> 条消息
+                    </p>
+                </div>
+            </div>
+
+            <!-- 功能测试区域 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- 基础功能测试 -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">基础功能测试</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <button @click="testCreateConversation" 
+                                :disabled="testing"
+                                class="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                            <span x-show="!testing">创建新对话</span>
+                            <span x-show="testing">处理中...</span>
+                        </button>
+
+                        <div x-show="currentConversationId" class="space-y-2">
+                            <input type="text" 
+                                   x-model="testMessage"
+                                   placeholder="输入测试消息..."
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   @keyup.enter="testSendMessage">
+                            
+                            <button @click="testSendMessage" 
+                                    :disabled="!testMessage.trim() || testing"
+                                    class="w-full py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50">
+                                发送测试消息
+                            </button>
+                        </div>
+
+                        <button @click="testLoadHistory" 
+                                :disabled="testing"
+                                class="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50">
+                            加载历史记录
+                        </button>
+
+                        <button @click="testSearchConversations" 
+                                :disabled="testing"
+                                class="w-full py-2 px-4 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50">
+                            搜索测试
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 高级功能测试 -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">高级功能测试</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <button @click="testBatchCreate" 
+                                :disabled="testing"
+                                class="w-full py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50">
+                            批量创建测试数据
+                        </button>
+
+                        <button @click="testExportData" 
+                                :disabled="testing"
+                                class="w-full py-2 px-4 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50">
+                            导出数据测试
+                        </button>
+
+                        <button @click="testCleanupData" 
+                                :disabled="testing"
+                                class="w-full py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50">
+                            清理数据测试
+                        </button>
+
+                        <button @click="testPerformance" 
+                                :disabled="testing"
+                                class="w-full py-2 px-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50">
+                            性能测试
+                        </button>
+
+                        <button @click="clearAllData" 
+                                :disabled="testing"
+                                class="w-full py-2 px-4 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50">
+                            ⚠️ 清空所有数据
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 当前对话显示 -->
+            <div x-show="currentMessages.length > 0" class="bg-white rounded-lg shadow mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">当前对话</h3>
+                    <p class="text-sm text-gray-600" x-text="currentConversationTitle"></p>
+                </div>
+                <div class="p-6 max-h-96 overflow-y-auto">
+                    <div class="space-y-4">
+                        <template x-for="message in currentMessages" :key="message.timestamp">
+                            <div class="flex" :class="message.role === 'user' ? 'justify-end' : 'justify-start'">
+                                <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg"
+                                     :class="message.role === 'user' 
+                                         ? 'bg-blue-600 text-white' 
+                                         : message.role === 'assistant' 
+                                         ? 'bg-gray-200 text-gray-900'
+                                         : 'bg-red-100 text-red-800'">
+                                    <p class="text-sm" x-text="message.content"></p>
+                                    <p class="text-xs mt-1 opacity-75" 
+                                       x-text="formatTime(message.timestamp)"></p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 历史对话列表 -->
+            <div class="bg-white rounded-lg shadow mb-6">
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <h3 class="text-lg font-medium text-gray-900">历史对话</h3>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" 
+                               x-model="searchQuery"
+                               @input="performSearch"
+                               placeholder="搜索对话..."
+                               class="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button @click="loadConversationHistory" 
+                                class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
+                            刷新
+                        </button>
+                    </div>
+                </div>
+                <div class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                    <template x-for="conversation in (searchResults.length > 0 ? searchResults : conversationHistory)" :key="conversation.id">
+                        <div class="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                             @click="loadConversation(conversation.id)"
+                             :class="conversation.id === currentConversationId ? 'bg-blue-50 border-l-4 border-blue-500' : ''">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-medium text-gray-900 line-clamp-1" 
+                                        x-text="conversation.title"></h4>
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        <span x-text="conversation.messageCount || 0"></span> 条消息 • 
+                                        <span x-text="conversation.aiProvider || 'unknown'"></span>
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-1" 
+                                       x-text="formatDate(conversation.updatedAt)"></p>
+                                </div>
+                                <div class="flex items-center space-x-1 ml-2">
+                                    <button @click.stop="deleteConversation(conversation.id)"
+                                            class="p-1 text-gray-400 hover:text-red-600 transition-colors">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 012 0v4a1 1 0 11-2 0V9zm4 0a1 1 0 112 0v4a1 1 0 11-2 0V9z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- 空状态 -->
+                    <div x-show="conversationHistory.length === 0 && searchResults.length === 0 && !loading" 
+                         class="p-8 text-center text-gray-500">
+                        <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.955 8.955 0 01-2.707-.413l-3.293 3.293a1 1 0 01-1.414-1.414l3.293-3.293A8.955 8.955 0 013 12a8 8 0 018-8c4.418 0 8 3.582 8 8z"/>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">暂无对话历史</h3>
+                        <p class="mt-1 text-sm text-gray-500">开始创建一些测试对话吧！</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 测试日志 -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <h3 class="text-lg font-medium text-gray-900">测试日志</h3>
+                    <button @click="clearLogs" 
+                            class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                        清空日志
+                    </button>
+                </div>
+                <div class="p-6 max-h-64 overflow-y-auto bg-gray-50 font-mono text-sm">
+                    <template x-for="log in logs" :key="log.timestamp">
+                        <div class="mb-2" :class="{
+                            'text-green-600': log.type === 'success',
+                            'text-red-600': log.type === 'error',
+                            'text-blue-600': log.type === 'info',
+                            'text-yellow-600': log.type === 'warning'
+                        }">
+                            <span class="text-gray-500 text-xs" x-text="formatTime(log.timestamp)"></span>
+                            <span x-text="log.message"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载必要的脚本 -->
+    <script src="../assets/js/ai-conversation-storage.js"></script>
+    <script src="../assets/js/ai-service.js"></script>
+
+    <script>
+    // AI对话历史测试数据
+    window.conversationHistoryTest = {
+        // 状态
+        storageReady: false,
+        storageType: '检查中...',
+        testing: false,
+        loading: false,
+
+        // 当前对话
+        currentConversationId: null,
+        currentConversationTitle: '',
+        currentMessages: [],
+        messageCount: 0,
+
+        // 历史数据
+        conversationHistory: [],
+        totalConversations: 0,
+        totalMessages: 0,
+
+        // 搜索
+        searchQuery: '',
+        searchResults: [],
+        searchTimeout: null,
+
+        // 测试数据
+        testMessage: '',
+        logs: [],
+
+        // AI服务实例
+        aiService: null,
+        storage: null,
+
+        // 初始化
+        async init() {
+            this.log('info', '🔄 开始初始化AI对话历史测试...');
+            
+            try {
+                await this.initializeServices();
+                await this.checkStorageStatus();
+                await this.loadInitialData();
+                
+                this.log('success', '✅ 初始化完成');
+            } catch (error) {
+                this.log('error', '❌ 初始化失败: ' + error.message);
+                console.error('初始化失败:', error);
+            }
+        },
+
+        // 初始化服务
+        async initializeServices() {
+            // 初始化存储
+            if (window.aiConversationStorage) {
+                this.storage = window.aiConversationStorage;
+                await this.storage.init();
+                this.log('success', '✅ 对话存储初始化成功');
+            } else {
+                throw new Error('AI对话存储模块未加载');
+            }
+
+            // 初始化AI服务
+            if (window.AIService) {
+                this.aiService = new window.AIService();
+                await this.aiService.initConversationStorage();
+                this.log('success', '✅ AI服务初始化成功');
+            } else {
+                throw new Error('AI服务模块未加载');
+            }
+        },
+
+        // 检查存储状态
+        async checkStorageStatus() {
+            try {
+                if (this.storage) {
+                    if (this.storage.useLocalStorageFallback) {
+                        this.storageType = 'localStorage (降级模式)';
+                    } else {
+                        this.storageType = 'IndexedDB';
+                    }
+                    this.storageReady = true;
+                    this.log('success', `✅ 存储就绪: ${this.storageType}`);
+                }
+            } catch (error) {
+                this.storageReady = false;
+                this.storageType = '不可用';
+                this.log('error', '❌ 存储检查失败: ' + error.message);
+            }
+        },
+
+        // 加载初始数据
+        async loadInitialData() {
+            await this.loadConversationHistory();
+            await this.loadStats();
+        },
+
+        // 创建测试对话
+        async testCreateConversation() {
+            this.testing = true;
+            this.log('info', '📝 创建新测试对话...');
+
+            try {
+                const title = `测试对话 ${new Date().toLocaleTimeString()}`;
+                this.currentConversationId = await this.aiService.startNewConversation(title);
+                this.currentConversationTitle = title;
+                this.currentMessages = [];
+                this.messageCount = 0;
+
+                await this.loadConversationHistory();
+                await this.loadStats();
+
+                this.log('success', `✅ 创建对话成功: ${this.currentConversationId}`);
+            } catch (error) {
+                this.log('error', '❌ 创建对话失败: ' + error.message);
+            } finally {
+                this.testing = false;
+            }
+        },
+
+        // 发送测试消息
+        async testSendMessage() {
+            if (!this.testMessage.trim() || !this.currentConversationId) return;
+
+            this.testing = true;
+            const message = this.testMessage;
+            this.testMessage = '';
+
+            this.log('info', `📤 发送消息: "${message}"`);
+
+            try {
+                // 模拟AI响应
+                const mockResponse = this.generateMockResponse(message);
+                
+                // 添加用户消息
+                await this.storage.addMessage(
+                    this.currentConversationId,
+                    'user',
+                    message,
+                    { service: 'test' }
+                );
+
+                // 添加AI响应
+                setTimeout(async () => {
+                    await this.storage.addMessage(
+                        this.currentConversationId,
+                        'assistant',
+                        mockResponse,
+                        { service: 'test', processingTime: 1000 }
+                    );
+
+                    await this.loadCurrentConversation();
+                    this.log('success', '✅ 消息发送成功');
+                }, 1000);
+
+                await this.loadCurrentConversation();
+                
+            } catch (error) {
+                this.log('error', '❌ 发送消息失败: ' + error.message);
+            } finally {
+                this.testing = false;
+            }
+        },
+
+        // 生成模拟AI响应
+        generateMockResponse(message) {
+            const responses = [
+                `我理解您说的"${message}"。这是一个有趣的话题。`,
+                `关于"${message}"，我可以为您提供一些见解。`,
+                `感谢您的问题"${message}"。让我来帮您分析一下。`,
+                `"${message}"是一个很好的问题。根据我的理解...`,
+                `您提到的"${message}"确实值得深入探讨。`
+            ];
+            
+            return responses[Math.floor(Math.random() * responses.length)];
+        },
+
+        // 加载当前对话
+        async loadCurrentConversation() {
+            if (!this.currentConversationId) return;
+
+            try {
+                const messages = await this.storage.getConversationMessages(this.currentConversationId);
+                this.currentMessages = messages;
+                this.messageCount = messages.length;
+            } catch (error) {
+                this.log('error', '❌ 加载当前对话失败: ' + error.message);
+            }
+        },
+
+        // 加载对话历史
+        async loadConversationHistory() {
+            this.loading = true;
+            this.log('info', '📚 加载对话历史...');
+
+            try {
+                const result = await this.aiService.getConversationHistory(0, 50);
+                this.conversationHistory = result.conversations || [];
+                this.log('success', `✅ 加载了 ${this.conversationHistory.length} 个历史对话`);
+            } catch (error) {
+                this.log('error', '❌ 加载对话历史失败: ' + error.message);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        // 加载特定对话
+        async loadConversation(conversationId) {
+            this.log('info', `📖 加载对话: ${conversationId}`);
+
+            try {
+                const conversation = await this.aiService.loadConversation(conversationId);
+                if (conversation) {
+                    this.currentConversationId = conversationId;
+                    this.currentMessages = conversation.messages;
+                    this.messageCount = conversation.messages.length;
+                    
+                    // 获取对话标题
+                    const convData = this.conversationHistory.find(c => c.id === conversationId);
+                    this.currentConversationTitle = convData?.title || '未知对话';
+                    
+                    this.log('success', `✅ 加载对话成功: ${this.messageCount} 条消息`);
+                }
+            } catch (error) {
+                this.log('error', '❌ 加载对话失败: ' + error.message);
+            }
+        },
+
+        // 删除对话
+        async deleteConversation(conversationId) {
+            if (!confirm('确定要删除这个对话吗？')) return;
+
+            this.log('info', `🗑️ 删除对话: ${conversationId}`);
+
+            try {
+                await this.aiService.deleteConversation(conversationId);
+                
+                // 从列表中移除
+                this.conversationHistory = this.conversationHistory.filter(c => c.id !== conversationId);
+                
+                // 如果删除的是当前对话
+                if (this.currentConversationId === conversationId) {
+                    this.currentConversationId = null;
+                    this.currentMessages = [];
+                    this.currentConversationTitle = '';
+                    this.messageCount = 0;
+                }
+
+                await this.loadStats();
+                this.log('success', '✅ 对话删除成功');
+            } catch (error) {
+                this.log('error', '❌ 删除对话失败: ' + error.message);
+            }
+        },
+
+        // 搜索测试
+        async testSearchConversations() {
+            this.testing = true;
+            this.log('info', '🔍 开始搜索测试...');
+
+            try {
+                const testQueries = ['测试', '对话', '消息', 'AI'];
+                const randomQuery = testQueries[Math.floor(Math.random() * testQueries.length)];
+                
+                const results = await this.aiService.searchConversations(randomQuery);
+                
+                this.log('success', `✅ 搜索"${randomQuery}"找到 ${results.length} 个结果`);
+                
+                // 显示搜索结果
+                this.searchQuery = randomQuery;
+                this.searchResults = results.map(r => r.conversation || { id: r.message?.conversationId }).filter(Boolean);
+                
+            } catch (error) {
+                this.log('error', '❌ 搜索测试失败: ' + error.message);
+            } finally {
+                this.testing = false;
+            }
+        },
+
+        // 执行搜索
+        async performSearch() {
+            if (this.searchTimeout) {
+                clearTimeout(this.searchTimeout);
+            }
+            
+            this.searchTimeout = setTimeout(async () => {
+                if (!this.searchQuery.trim()) {
+                    this.searchResults = [];
+                    return;
+                }
+
+                try {
+                    const results = await this.aiService.searchConversations(this.searchQuery);
+                    this.searchResults = results.map(r => r.conversation || { id: r.message?.conversationId }).filter(Boolean);
+                } catch (error) {
+                    this.log('error', '❌ 搜索失败: ' + error.message);
+                }
+            }, 300);
+        },
+
+        // 批量创建测试数据
+        async testBatchCreate() {
+            this.testing = true;
+            this.log('info', '📦 批量创建测试数据...');
+
+            try {
+                const conversationTopics = [
+                    '数据结构学习讨论',
+                    '算法题目解答',
+                    '计算机网络原理',
+                    '操作系统概念',
+                    '数据库设计问题',
+                    '编程语言比较',
+                    '软件工程实践',
+                    '人工智能基础'
+                ];
+
+                const testMessages = [
+                    ['请解释一下栈和队列的区别？', '栈是后进先出(LIFO)，队列是先进先出(FIFO)...'],
+                    ['时间复杂度O(n)是什么意思？', '时间复杂度O(n)表示算法的执行时间与输入大小成正比...'],
+                    ['什么是TCP和UDP的区别？', 'TCP是可靠的传输协议，UDP是不可靠但快速的协议...'],
+                    ['进程和线程有什么不同？', '进程是系统资源分配的基本单位，线程是CPU调度的基本单位...']
+                ];
+
+                for (let i = 0; i < 5; i++) {
+                    const topic = conversationTopics[i % conversationTopics.length];
+                    const conversationId = await this.aiService.startNewConversation(topic);
+                    
+                    // 为每个对话添加几条消息
+                    const messageSet = testMessages[i % testMessages.length];
+                    
+                    await this.storage.addMessage(conversationId, 'user', messageSet[0], { service: 'test' });
+                    await new Promise(resolve => setTimeout(resolve, 100)); // 小延迟
+                    await this.storage.addMessage(conversationId, 'assistant', messageSet[1], { service: 'test' });
+                    
+                    this.log('info', `✅ 创建测试对话: ${topic}`);
+                }
+
+                await this.loadConversationHistory();
+                await this.loadStats();
+                
+                this.log('success', '✅ 批量创建完成');
+            } catch (error) {
+                this.log('error', '❌ 批量创建失败: ' + error.message);
+            } finally {
+                this.testing = false;
+            }
+        },
+
+        // 导出测试
+        async testExportData() {
+            this.testing = true;
+            this.log('info', '📤 测试数据导出...');
+
+            try {
+                await this.aiService.exportConversationHistory();
+                this.log('success', '✅ 数据导出成功');
+            } catch (error) {
+                this.log('error', '❌ 数据导出失败: ' + error.message);
+            } finally {
+                this.testing = false;
+            }
+        },
+
+        // 清理测试
+        async testCleanupData() {
+            this.testing = true;
+            this.log('info', '🧹 测试数据清理 (保留7天)...');
+
+            try {
+                await this.aiService.cleanupOldConversations(7);
+                await this.loadConversationHistory();
+                await this.loadStats();
+                this.log('success', '✅ 数据清理完成');
+            } catch (error) {
+                this.log('error', '❌ 数据清理失败: ' + error.message);
+            } finally {
+                this.testing = false;
+            }
+        },
+
+        // 性能测试
+        async testPerformance() {
+            this.testing = true;
+            this.log('info', '⚡ 开始性能测试...');
+
+            try {
+                const startTime = Date.now();
+                
+                // 测试1: 创建对话速度
+                const createStart = Date.now();
+                const conversationId = await this.aiService.startNewConversation('性能测试对话');
+                const createTime = Date.now() - createStart;
+                this.log('info', `创建对话耗时: ${createTime}ms`);
+
+                // 测试2: 批量添加消息速度
+                const messageStart = Date.now();
+                for (let i = 0; i < 10; i++) {
+                    await this.storage.addMessage(conversationId, 'user', `测试消息 ${i}`, { service: 'test' });
+                    await this.storage.addMessage(conversationId, 'assistant', `回复消息 ${i}`, { service: 'test' });
+                }
+                const messageTime = Date.now() - messageStart;
+                this.log('info', `添加20条消息耗时: ${messageTime}ms`);
+
+                // 测试3: 加载对话速度
+                const loadStart = Date.now();
+                await this.storage.getConversationMessages(conversationId);
+                const loadTime = Date.now() - loadStart;
+                this.log('info', `加载对话耗时: ${loadTime}ms`);
+
+                // 测试4: 搜索速度
+                const searchStart = Date.now();
+                await this.aiService.searchConversations('测试');
+                const searchTime = Date.now() - searchStart;
+                this.log('info', `搜索耗时: ${searchTime}ms`);
+
+                const totalTime = Date.now() - startTime;
+                this.log('success', `✅ 性能测试完成，总耗时: ${totalTime}ms`);
+
+                // 清理测试数据
+                await this.aiService.deleteConversation(conversationId);
+                
+            } catch (error) {
+                this.log('error', '❌ 性能测试失败: ' + error.message);
+            } finally {
+                this.testing = false;
+            }
+        },
+
+        // 清空所有数据
+        async clearAllData() {
+            if (!confirm('⚠️ 确定要清空所有数据吗？此操作无法撤销！')) return;
+
+            this.testing = true;
+            this.log('warning', '⚠️ 清空所有数据...');
+
+            try {
+                // 删除所有对话
+                for (const conversation of this.conversationHistory) {
+                    await this.aiService.deleteConversation(conversation.id);
+                }
+
+                // 重置状态
+                this.conversationHistory = [];
+                this.currentConversationId = null;
+                this.currentMessages = [];
+                this.currentConversationTitle = '';
+                this.messageCount = 0;
+                this.searchResults = [];
+                this.searchQuery = '';
+
+                await this.loadStats();
+                
+                this.log('success', '✅ 所有数据已清空');
+            } catch (error) {
+                this.log('error', '❌ 清空数据失败: ' + error.message);
+            } finally {
+                this.testing = false;
+            }
+        },
+
+        // 加载统计信息
+        async loadStats() {
+            try {
+                const stats = await this.aiService.getStorageStats();
+                this.totalConversations = stats.conversationCount || 0;
+                this.totalMessages = stats.messageCount || 0;
+            } catch (error) {
+                this.log('error', '❌ 加载统计失败: ' + error.message);
+            }
+        },
+
+        // 日志管理
+        log(type, message) {
+            this.logs.unshift({
+                type: type,
+                message: message,
+                timestamp: new Date()
+            });
+            
+            // 保持最近100条日志
+            if (this.logs.length > 100) {
+                this.logs = this.logs.slice(0, 100);
+            }
+            
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        },
+
+        clearLogs() {
+            this.logs = [];
+        },
+
+        // 工具方法
+        formatTime(date) {
+            if (!date) return '';
+            return new Date(date).toLocaleTimeString('zh-CN');
+        },
+
+        formatDate(dateStr) {
+            if (!dateStr) return '';
+            
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return '刚刚';
+            if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+            if (diff < 604800000) return Math.floor(diff / 86400000) + '天前';
+            
+            return date.toLocaleDateString('zh-CN');
+        }
+    };
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            if (window.conversationHistoryTest) {
+                window.conversationHistoryTest.init();
+            }
+        }, 100); // 给脚本加载一点时间
+    });
+    </script>
+</body>
+</html>

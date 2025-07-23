@@ -1,0 +1,2364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科目学习 - 计算机考研学习平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 添加CryptoJS库支持 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link href="assets/css/common.css" rel="stylesheet">
+    <!-- AI助手加载器 -->
+    <script src="assets/js/ai-assistant-loader.js"></script>
+    <!-- 资源加载器和数据文件 -->
+    <script src="assets/js/course-data.js"></script>
+    <script src="assets/js/fallback-data.js"></script>
+    <script src="assets/js/resource-loader.js"></script>
+    <!-- 笔记管理系统 -->
+    <script src="assets/js/notes-manager.js"></script>
+    <!-- 学习统计管理器 -->
+    <script src="assets/js/stats-manager.js"></script>
+    <style>
+        .hero-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+        }
+
+        .chapter-item:hover {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        .prose h1,
+        .prose h2,
+        .prose h3 {
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .prose pre {
+            background: #f3f4f6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .prose code {
+            background: #f3f4f6;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        /* 可调节窗口样式 */
+        .resize-container {
+            transition: all 0.3s ease;
+            min-width: 600px;
+            min-height: 400px;
+        }
+
+        .resize-container:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50" x-data="subjectApp()">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-2">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <i class="fas fa-graduation-cap text-2xl text-indigo-600"></i>
+                        <h1 class="text-xl font-bold text-gray-800">计算机考研平台</h1>
+                    </a>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="text-gray-600 hover:text-indigo-600 transition">首页</a>
+                    <a href="#" class="text-indigo-600 font-semibold">课程导航</a>
+                    <a href="practice.html" class="text-gray-600 hover:text-indigo-600 transition">真题练习</a>
+                    <a href="resources.html" class="text-gray-600 hover:text-indigo-600 transition">学习资源</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="hidden md:block text-sm text-gray-600">
+                        学习进度: <span class="text-indigo-600 font-semibold" x-text="overallProgress + '%'"></span>
+                    </div>
+                    <button class="md:hidden text-gray-600 hover:text-indigo-600">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 面包屑导航 -->
+    <div class="bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2 text-sm">
+                    <a href="index.html" class="text-indigo-600 hover:text-indigo-800">首页</a>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                    <span class="text-gray-600" x-text="currentSubjectType === 'public' ? '公共课' : '专业课'"></span>
+                </div>
+                <!-- 调试信息 -->
+                <div class="text-xs text-gray-500">
+                    调试: <span x-text="currentSubjects.length"></span> 门课程已加载
+                    <button @click="console.log('当前科目数据:', currentSubjects)"
+                        class="ml-2 text-blue-500 hover:text-blue-700">
+                        查看数据
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 头部区域 -->
+    <section class="hero-bg text-white py-12">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                    <span x-show="currentSubjectType === 'public'">📚 公共课学习</span>
+                    <span x-show="currentSubjectType === 'professional'">💻 专业课学习</span>
+                </h2>
+                <p class="text-lg opacity-90 mb-6"
+                    x-text="currentSubjectType === 'public' ? '数学、政治、英语 - 奠定考研基础' : '计算机核心科目 - 专业能力提升'"></p>
+            </div>
+            
+            <!-- 学习进度统计 -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                <div class="text-center">
+                    <div class="text-2xl font-bold" x-text="totalChapters"></div>
+                    <div class="text-sm opacity-75">总章节</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold" x-text="completedChapters"></div>
+                    <div class="text-sm opacity-75">已完成</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold" x-text="overallProgress + '%'"></div>
+                    <div class="text-sm opacity-75">完成度</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold" x-text="formatTime(getTodayStudyTime())"></div>
+                    <div class="text-sm opacity-75">今日学习</div>
+                </div>
+            </div>
+
+            <!-- 今日学习目标进度面板 -->
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-bullseye mr-2"></i>
+                    今日学习目标
+                </h3>
+                
+                <!-- 无数据时的提示 -->
+                <div x-show="getTodayStudyTime() === 0 && getTodayQuestions() === 0">
+                    <div class="text-center py-8">
+                        <i class="fas fa-rocket text-4xl text-white/50 mb-4"></i>
+                        <p class="text-white/80 mb-4">开始学习后，这里将显示您的进度</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div class="bg-white/10 rounded-lg p-3 text-center">
+                                <i class="fas fa-play-circle text-xl mb-2"></i>
+                                <div>观看视频课程</div>
+                            </div>
+                            <div class="bg-white/10 rounded-lg p-3 text-center">
+                                <i class="fas fa-edit text-xl mb-2"></i>
+                                <div>完成练习题</div>
+                            </div>
+                            <div class="bg-white/10 rounded-lg p-3 text-center">
+                                <i class="fas fa-chart-line text-xl mb-2"></i>
+                                <div>追踪进度</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 有数据时显示进度 -->
+                <div x-show="getTodayStudyTime() > 0 || getTodayQuestions() > 0">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- 学习时长目标 -->
+                        <div class="text-center">
+                            <div class="mb-2">
+                                <div class="text-2xl font-bold" x-text="formatTime(getTodayStudyTime())"></div>
+                                <div class="text-sm opacity-75" x-text="'/ ' + formatTime(getDailyGoal())"></div>
+                            </div>
+                            <div class="w-full bg-white/20 rounded-full h-3 mb-2">
+                                <div class="bg-white rounded-full h-3 transition-all duration-500" 
+                                     :style="`width: ${Math.min(100, Math.round((getTodayStudyTime() / getDailyGoal()) * 100))}%`"></div>
+                            </div>
+                            <div class="text-xs opacity-90">
+                                学习时长 (<span x-text="Math.min(100, Math.round((getTodayStudyTime() / getDailyGoal()) * 100))"></span>%)
+                            </div>
+                        </div>
+
+                        <!-- 答题数量目标 -->
+                        <div class="text-center">
+                            <div class="mb-2">
+                                <div class="text-2xl font-bold" x-text="getTodayQuestions()"></div>
+                                <div class="text-sm opacity-75" x-text="'/ ' + getDailyQuestionsGoal() + ' 题'"></div>
+                            </div>
+                            <div class="w-full bg-white/20 rounded-full h-3 mb-2">
+                                <div class="bg-yellow-300 rounded-full h-3 transition-all duration-500" 
+                                     :style="`width: ${Math.min(100, Math.round((getTodayQuestions() / getDailyQuestionsGoal()) * 100))}%`"></div>
+                            </div>
+                            <div class="text-xs opacity-90">
+                                答题数量 (<span x-text="Math.min(100, Math.round((getTodayQuestions() / getDailyQuestionsGoal()) * 100))"></span>%)
+                            </div>
+                        </div>
+
+                        <!-- 正确率目标 -->
+                        <div class="text-center">
+                            <div class="mb-2">
+                                <div class="text-2xl font-bold" x-text="getTodayAccuracy() + '%'"></div>
+                                <div class="text-sm opacity-75" x-text="'/ ' + getAccuracyGoal() + '%'"></div>
+                            </div>
+                            <div class="w-full bg-white/20 rounded-full h-3 mb-2">
+                                <div class="rounded-full h-3 transition-all duration-500"
+                                     :class="getTodayAccuracy() >= getAccuracyGoal() ? 'bg-green-400' : 'bg-orange-400'"
+                                     :style="`width: ${Math.min(100, Math.round((getTodayAccuracy() / getAccuracyGoal()) * 100))}%`"></div>
+                            </div>
+                            <div class="text-xs opacity-90">
+                                正确率 (<span x-text="getTodayAccuracy() >= getAccuracyGoal() ? '已达成' : '努力中'"></span>)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 目标完成提示 -->
+                <div class="mt-4 p-3 rounded-lg bg-white/10 border border-white/20">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fas fa-flag mr-2" 
+                               :class="getTodayStudyTime() > 0 || getTodayQuestions() > 0 ? (getDailyGoalCompletionCount().completed === 3 ? 'text-green-300' : 'text-blue-300') : 'text-blue-300'"></i>
+                            <span class="text-sm font-medium" 
+                                  x-text="getTodayStudyTime() > 0 || getTodayQuestions() > 0 ? getDailyGoalCompletionCount().message : '🎯 设置学习目标，开始追踪进度'"></span>
+                        </div>
+                        <button @click="openStatsModal()" 
+                                class="text-xs text-white/80 hover:text-white underline">
+                            查看统计详情
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 科目列表 -->
+    <section class="py-16">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- 科目卡片 -->
+                <template x-for="subject in currentSubjects" :key="subject.id">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                        <!-- 科目头部 -->
+                        <div class="p-6 bg-gradient-to-r" :class="subject.bgColor">
+                            <div class="flex items-center justify-between text-white">
+                                <div class="flex items-center space-x-3">
+                                    <i :class="subject.icon" class="text-2xl"></i>
+                                    <div>
+                                        <h3 class="text-xl font-bold" x-text="subject.name"></h3>
+                                        <p class="opacity-90 text-sm" x-text="subject.description"></p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-lg font-bold" x-text="subject.progress + '%'"></div>
+                                    <div class="text-xs opacity-75">完成度</div>
+                                </div>
+                            </div>
+                            <!-- 进度条 -->
+                            <div class="mt-4">
+                                <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                                    <div class="progress-bar h-2 rounded-full transition-all duration-500"
+                                        :style="`width: ${subject.progress}%`"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 章节列表 -->
+                        <div class="p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-semibold text-gray-800">学习章节</h4>
+                                <span class="text-sm text-gray-500"
+                                    x-text="`${subject.completedChapters}/${subject.chapters.length}`"></span>
+                            </div>
+                            <div class="space-y-2 max-h-64 overflow-y-auto">
+                                <template x-for="(chapter, index) in subject.chapters" :key="index">
+                                    <div class="chapter-item p-3 rounded-lg border transition-all duration-200"
+                                        :class="chapter.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'">
+
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-3">
+                                                <i class="cursor-pointer"
+                                                    :class="chapter.completed ? 'fas fa-check-circle text-green-500' : 'far fa-circle text-gray-400'"
+                                                    @click.stop="toggleChapter(subject.id, index)">
+                                                </i>
+
+                                                <div>
+                                                    <div class="font-medium text-sm flex items-center">
+                                                        <span x-text="chapter.name"></span>
+                                                        <span x-show="chapter.url || chapter.bv"
+                                                            class="ml-2 text-blue-500">
+                                                            <i class="fas fa-play-circle cursor-pointer text-blue-500"
+                                                                @click.stop="goToChapterPlayer(subject.id, index, chapter)"></i>
+
+                                                        </span>
+
+
+                                                    </div>
+                                                    <div class="text-xs text-gray-500" x-text="chapter.duration"></div>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-xs px-2 py-1 rounded"
+                                                    :class="getDifficultyColor(chapter.difficulty)"
+                                                    x-text="chapter.difficulty"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            <!-- 操作按钮 -->
+                            <div class="mt-6 flex space-x-3">
+                                <button
+                                    class="flex-1 bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition text-sm font-medium"
+                                    @click="startStudy(subject.id)">
+                                    <i class="fas fa-play mr-2"></i>开始学习
+                                </button>
+                                <button
+                                    class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm"
+                                    @click="showNotes(subject.id)">
+                                    <i class="fas fa-sticky-note"></i>
+                                </button>
+                                <button
+                                    class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm"
+                                    @click="showStats(subject.id)">
+                                    <i class="fas fa-chart-bar"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <!-- 学习建议区域 -->
+    <section class="bg-gradient-to-r from-indigo-50 to-purple-50 py-16">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center mb-8">
+                <div class="text-center flex-1">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">💡 学习建议</h3>
+                    <p class="text-gray-600">根据您的学习进度，为您推荐最佳学习路径</p>
+                </div>
+                <button @click="refreshSuggestions()"
+                    class="ml-6 bg-white text-indigo-600 px-4 py-2 rounded-lg shadow hover:shadow-md transition-all duration-200 flex items-center space-x-2">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>换一换</span>
+                </button>
+            </div>
+
+            <!-- 建议卡片容器 -->
+            <div class="relative overflow-hidden">
+                <!-- 滑动容器 -->
+                <div class="flex transition-transform duration-500 ease-in-out" :style="`transform: translateX(0)`">
+                    <template x-for="(suggestion, index) in currentSuggestions" :key="`${suggestion.type}-${index}`">
+                        <div class="w-full md:w-1/3 flex-shrink-0 px-3">
+                            <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                                @click="applySuggestion(suggestion)">
+                                <div class="flex items-center mb-4">
+                                    <i :class="`${suggestion.icon} text-${suggestion.color} text-xl mr-3`"></i>
+                                    <h4 class="font-semibold text-gray-800" x-text="suggestion.title"></h4>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-3" x-text="suggestion.content"></p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-gray-500" x-text="suggestion.detail"></span>
+                                    <i class="fas fa-arrow-right text-gray-400 text-sm"></i>
+                                </div>
+
+                                <!-- 建议类型标识 -->
+                                <div class="mt-3 pt-3 border-t border-gray-100">
+                                    <span class="inline-block px-2 py-1 text-xs rounded-full" :class="{
+                                              'bg-yellow-100 text-yellow-700': suggestion.type === 'today',
+                                              'bg-red-100 text-red-700': suggestion.type === 'weak',
+                                              'bg-green-100 text-green-700': suggestion.type === 'achievement',
+                                              'bg-blue-100 text-blue-700': suggestion.type === 'motivation',
+                                              'bg-purple-100 text-purple-700': suggestion.type === 'schedule',
+                                              'bg-orange-100 text-orange-700': suggestion.type === 'review',
+                                              'bg-indigo-100 text-indigo-700': suggestion.type === 'practice',
+                                              'bg-gray-100 text-gray-700': !['today', 'weak', 'achievement', 'motivation', 'schedule', 'review', 'practice'].includes(suggestion.type)
+                                          }" x-text="getSuggestionTypeText(suggestion.type)">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- 滑动指示器 -->
+            <div class="flex justify-center mt-6 space-x-2" x-show="studySuggestions.length > maxVisibleSuggestions">
+                <template x-for="(dot, index) in Math.ceil(studySuggestions.length / maxVisibleSuggestions)"
+                    :key="index">
+                    <button @click="currentSuggestionIndex = index * maxVisibleSuggestions"
+                        class="w-2 h-2 rounded-full transition-all duration-200"
+                        :class="Math.floor(currentSuggestionIndex / maxVisibleSuggestions) === index ? 'bg-indigo-600' : 'bg-gray-300'">
+                    </button>
+                </template>
+            </div>
+
+            <!-- 学习统计概览 -->
+            <div class="mt-8 bg-white rounded-lg shadow-sm p-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div>
+                        <div class="text-2xl font-bold text-indigo-600" x-text="totalChapters"></div>
+                        <div class="text-sm text-gray-600">总章节数</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-green-600" x-text="completedChapters"></div>
+                        <div class="text-sm text-gray-600">已完成</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-orange-600" x-text="overallProgress + '%'"></div>
+                        <div class="text-sm text-gray-600">总进度</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-purple-600" x-text="getStreakDays()"></div>
+                        <div class="text-sm text-gray-600">连续天数</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 笔记管理弹窗 -->
+    <div x-show="showNotesModal" x-cloak
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        @click.self="showNotesModal = false">
+        <div class="bg-white rounded-xl w-full overflow-hidden flex flex-col resize-container"
+            :style="`width: ${modalWidth}px; height: ${modalHeight}px; max-width: 95vw; max-height: 95vh;`">
+            <!-- 头部 -->
+            <div class="flex justify-between items-center p-6 border-b bg-gray-50">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-sticky-note text-indigo-600 text-xl"></i>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">学习笔记</h3>
+                        <p class="text-sm text-gray-600" x-text="currentNoteSubject?.name || '全部笔记'"></p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <!-- 窗口尺寸控制 -->
+                    <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <button @click="resizeModal('small')"
+                            :class="modalSize === 'small' ? 'text-indigo-600' : 'text-gray-400'"
+                            class="hover:text-indigo-600" title="小窗口">
+                            <i class="fas fa-compress-alt"></i>
+                        </button>
+                        <button @click="resizeModal('medium')"
+                            :class="modalSize === 'medium' ? 'text-indigo-600' : 'text-gray-400'"
+                            class="hover:text-indigo-600" title="中等窗口">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                        </button>
+                        <button @click="resizeModal('large')"
+                            :class="modalSize === 'large' ? 'text-indigo-600' : 'text-gray-400'"
+                            class="hover:text-indigo-600" title="大窗口">
+                            <i class="fas fa-expand-alt"></i>
+                        </button>
+                    </div>
+
+                    <!-- 搜索框 -->
+                    <div class="relative">
+                        <input type="text" x-model="noteSearchQuery" @input="searchNotes()" placeholder="搜索笔记..."
+                            class="pl-10 pr-4 py-2 border rounded-lg text-sm w-64 focus:border-indigo-500 focus:outline-none">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
+                    </div>
+                    <button @click="showNotesModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-1 overflow-hidden">
+                <!-- 左侧：笔记列表 -->
+                <div class="w-1/3 border-r bg-gray-50 overflow-y-auto">
+                    <!-- 筛选器 -->
+                    <div class="p-4 border-b bg-white">
+                        <div class="space-y-3">
+                            <!-- 科目筛选 -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">科目</label>
+                                <select x-model="noteFilterSubject" @change="filterNotes()"
+                                    class="w-full p-2 border rounded text-sm">
+                                    <option value="">全部科目</option>
+                                    <template x-for="subject in allSubjects" :key="subject.id">
+                                        <option :value="subject.id" x-text="subject.name"></option>
+                                    </template>
+                                </select>
+                            </div>
+
+                            <!-- 标签筛选 -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">标签</label>
+                                <div class="flex flex-wrap gap-1">
+                                    <template x-for="tag in allNoteTags" :key="tag">
+                                        <button @click="toggleTagFilter(tag)" :class="selectedTagFilters.includes(tag) ? 
+                                                       'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-600'"
+                                            class="px-2 py-1 rounded text-xs hover:bg-indigo-50">
+                                            #<span x-text="tag"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- 新建笔记按钮 -->
+                            <button @click="createNewNote()"
+                                class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium">
+                                <i class="fas fa-plus mr-2"></i>新建笔记
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 笔记列表 -->
+                    <div class="p-4">
+                        <template x-for="note in filteredNotes" :key="note.id">
+                            <div @click="selectNote(note)" :class="selectedNote?.id === note.id ? 
+                                         'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200'"
+                                class="p-4 border rounded-lg mb-3 cursor-pointer hover:bg-gray-50 transition">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-medium text-gray-800 text-sm" x-text="note.title"></h4>
+                                    <div class="flex items-center space-x-1">
+                                        <button @click.stop="deleteNote(note.id)"
+                                            class="text-gray-400 hover:text-red-600 text-xs">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="text-xs text-gray-500 mb-2"
+                                    x-text="note.subjectName + ' • ' + note.chapterName"></div>
+
+                                <div class="text-xs text-gray-600 mb-2"
+                                    x-text="note.content.substring(0, 80) + (note.content.length > 80 ? '...' : '')">
+                                </div>
+
+                                <!-- 标签 -->
+                                <div class="flex flex-wrap gap-1 mb-2">
+                                    <template x-for="tag in note.tags" :key="tag">
+                                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
+                                            #<span x-text="tag"></span>
+                                        </span>
+                                    </template>
+                                </div>
+
+                                <div class="text-xs text-gray-400" x-text="formatNoteDate(note.updatedAt)"></div>
+                            </div>
+                        </template>
+
+                        <div x-show="filteredNotes.length === 0" class="text-center text-gray-500 py-8">
+                            <i class="fas fa-sticky-note text-3xl mb-3 opacity-50"></i>
+                            <p>暂无笔记</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧：笔记编辑器 -->
+                <div class="flex-1 flex flex-col">
+                    <div x-show="selectedNote" class="flex-1 flex flex-col">
+                        <!-- 笔记头部 -->
+                        <div class="p-4 border-b bg-gray-50">
+                            <div class="flex justify-between items-center mb-3">
+                                <input type="text" x-model="selectedNote.title" @input="updateSelectedNote()"
+                                    placeholder="笔记标题..."
+                                    class="text-lg font-semibold bg-transparent border-none focus:outline-none flex-1">
+                                <div class="flex items-center space-x-2">
+                                    <button @click="exportSelectedNote()" class="text-gray-500 hover:text-indigo-600">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 元信息 -->
+                            <div class="flex items-center space-x-4 text-sm">
+                                <select x-model="selectedNote.subjectId" @change="updateSelectedNote()"
+                                    class="border rounded px-2 py-1 text-sm">
+                                    <template x-for="subject in allSubjects" :key="subject.id">
+                                        <option :value="subject.id" x-text="subject.name"></option>
+                                    </template>
+                                </select>
+
+                                <select x-model="selectedNote.chapterId" @change="updateSelectedNote()"
+                                    class="border rounded px-2 py-1 text-sm">
+                                    <option value="">选择章节</option>
+                                   <template x-for="(chapter, idx) in getChaptersBySubject(selectedNote.subjectId)" :key="idx">
+                                         <option :value="chapter.name" x-text="chapter.name"></option>
+                                   </template>
+
+                                </select>
+
+                                <span class="text-gray-500"
+                                    x-text="'最后编辑: ' + formatNoteDate(selectedNote.updatedAt)"></span>
+                            </div>
+
+                            <!-- 标签编辑 -->
+                            <div class="mt-3">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-600">标签:</span>
+                                    <div class="flex flex-wrap gap-1 flex-1">
+                                        <template x-for="tag in selectedNote.tags" :key="tag">
+                                            <span
+                                                class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded text-xs flex items-center">
+                                                #<span x-text="tag"></span>
+                                                <button @click="removeNoteTag(tag)"
+                                                    class="ml-1 text-indigo-600 hover:text-indigo-800">
+                                                    <i class="fas fa-times text-xs"></i>
+                                                </button>
+                                            </span>
+                                        </template>
+                                        <input type="text" x-model="newNoteTag" @keydown.enter="addNoteTag()"
+                                            placeholder="添加标签..."
+                                            class="border-none bg-transparent text-sm focus:outline-none min-w-0 flex-1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 编辑器工具栏 -->
+                        <div class="p-3 border-b bg-white">
+                            <div class="flex items-center space-x-3 text-sm">
+                                <button @click="insertMarkdown('**', '**')" class="text-gray-600 hover:text-indigo-600"
+                                    title="粗体">
+                                    <i class="fas fa-bold"></i>
+                                </button>
+                                <button @click="insertMarkdown('*', '*')" class="text-gray-600 hover:text-indigo-600"
+                                    title="斜体">
+                                    <i class="fas fa-italic"></i>
+                                </button>
+                                <button @click="insertMarkdown('`', '`')" class="text-gray-600 hover:text-indigo-600"
+                                    title="代码">
+                                    <i class="fas fa-code"></i>
+                                </button>
+                                <span class="text-gray-300">|</span>
+                                <button @click="insertMarkdown('## ', '')" class="text-gray-600 hover:text-indigo-600"
+                                    title="标题">
+                                    <i class="fas fa-heading"></i>
+                                </button>
+                                <button @click="insertMarkdown('- ', '')" class="text-gray-600 hover:text-indigo-600"
+                                    title="列表">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                                <button @click="insertMarkdown('[链接文字](URL)', '')"
+                                    class="text-gray-600 hover:text-indigo-600" title="链接">
+                                    <i class="fas fa-link"></i>
+                                </button>
+                                <span class="text-gray-300">|</span>
+                                <button @click="togglePreview()"
+                                    :class="showPreview ? 'text-indigo-600' : 'text-gray-600'"
+                                    class="hover:text-indigo-600" title="预览">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 内容编辑区 -->
+                        <div class="flex-1 flex">
+                            <!-- Markdown 编辑器 -->
+                            <div :class="showPreview ? 'w-1/2' : 'w-full'" class="border-r">
+                                <textarea x-model="selectedNote.content" @input="updateSelectedNote()"
+                                    x-ref="noteTextarea" placeholder="在这里开始写你的学习笔记...
+
+支持 Markdown 语法:
+# 一级标题
+## 二级标题
+**粗体** *斜体*
+- 列表项
+```
+代码块
+```
+[链接](URL)" class="w-full h-full p-4 border-none resize-none focus:outline-none font-mono text-sm leading-relaxed"></textarea>
+                            </div>
+
+                            <!-- 预览区 -->
+                            <div x-show="showPreview" class="w-1/2 p-4 bg-gray-50 overflow-y-auto">
+                                <div class="prose prose-sm max-w-none" x-html="renderMarkdown(selectedNote.content)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 空状态 -->
+                    <div x-show="!selectedNote" class="flex-1 flex items-center justify-center">
+                        <div class="text-center text-gray-500">
+                            <i class="fas fa-sticky-note text-6xl mb-4 opacity-30"></i>
+                            <h3 class="text-lg font-medium mb-2">选择一个笔记开始编辑</h3>
+                            <p class="text-sm">或者创建一个新的学习笔记</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-300">&copy; 2026 计算机考研学习平台. 专注高效学习体验.Copyright belongs to Ouyang Ziheng</p>
+        </div>
+    </footer>
+
+    <script>
+        const PROGRESS_KEY = "chapterProgress";
+
+        // 保存某章节的学习进度
+        function saveProgress(courseId, chapterIndex, progressData) {
+            const all = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}");
+            if (!all[courseId]) all[courseId] = {};
+
+            all[courseId][chapterIndex] = {
+                ...all[courseId][chapterIndex],
+                ...progressData,
+                lastVisited: new Date().toISOString()
+            };
+
+            localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+        }
+
+        // 加载某课程的所有章节进度
+        function loadProgress(courseId) {
+            const all = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}");
+            return all[courseId] || {};
+        }
+
+        // 合并用户进度到课程数据中（加载后调用）
+        function mergeProgressIntoCourses(courses) {
+            return courses.map(course => {
+                const progressMap = loadProgress(course.id);
+                const updatedChapters = course.chapters.map((chapter, index) => {
+                    const saved = progressMap[index] || {};
+                    return {
+                        ...chapter,
+                        completed: saved.completed ?? false,
+                        watchedSeconds: saved.watchedSeconds ?? 0,
+                        lastVisited: saved.lastVisited ?? null,
+                        isAutoCompleted: saved.isAutoCompleted ?? false
+                    };
+                });
+                return {
+                    ...course,
+                    chapters: updatedChapters
+                };
+            });
+        }
+        function subjectApp() {
+            return {
+                currentSubjectType: 'public', // 'public' or 'professional'
+                publicSubjects: [
+                    {
+                        id: 'math',
+                        name: '高等数学',
+                        description: '数学一/数学二',
+                        icon: 'fas fa-square-root-alt',
+                        bgColor: 'from-blue-500 to-blue-600',
+                        progress: 65,
+                        completedChapters: 8,
+                        chapters: [
+                            { name: '函数与极限', duration: '3小时', difficulty: '中等', completed: true },
+                            { name: '导数与微分', duration: '2.5小时', difficulty: '简单', completed: true },
+                            { name: '积分学', duration: '4小时', difficulty: '困难', completed: true },
+                            { name: '多元函数微分学', duration: '3.5小时', difficulty: '困难', completed: false },
+                            { name: '重积分', duration: '3小时', difficulty: '困难', completed: false },
+                            { name: '级数', duration: '2小时', difficulty: '中等', completed: false },
+                            { name: '常微分方程', duration: '2.5小时', difficulty: '中等', completed: false },
+                            { name: '线性代数', duration: '4小时', difficulty: '中等', completed: true },
+                            { name: '概率论', duration: '3小时', difficulty: '中等', completed: true },
+                            { name: '数理统计', duration: '2小时', difficulty: '简单', completed: true },
+                            { name: '随机变量', duration: '3小时', difficulty: '中等', completed: true },
+                            { name: '数字特征', duration: '2小时', difficulty: '简单', completed: true }
+                        ]
+                    },
+                    {
+                        id: 'politics',
+                        name: '政治',
+                        description: '马原、毛概、史纲、思修',
+                        icon: 'fas fa-flag',
+                        bgColor: 'from-red-500 to-red-600',
+                        progress: 40,
+                        completedChapters: 6,
+                        chapters: [
+                            { name: '马克思主义基本原理', duration: '4小时', difficulty: '中等', completed: true },
+                            { name: '毛泽东思想概论', duration: '3小时', difficulty: '简单', completed: true },
+                            { name: '邓小平理论', duration: '2.5小时', difficulty: '简单', completed: true },
+                            { name: '三个代表重要思想', duration: '2小时', difficulty: '简单', completed: false },
+                            { name: '科学发展观', duration: '2小时', difficulty: '简单', completed: false },
+                            { name: '习近平新时代理论', duration: '3小时', difficulty: '中等', completed: false },
+                            { name: '中国近现代史纲要', duration: '4小时', difficulty: '中等', completed: true },
+                            { name: '思想道德修养', duration: '2小时', difficulty: '简单', completed: true },
+                            { name: '法律基础', duration: '3小时', difficulty: '中等', completed: true },
+                            { name: '形势与政策', duration: '1.5小时', difficulty: '简单', completed: false },
+                            { name: '当代世界经济', duration: '2小时', difficulty: '中等', completed: false },
+                            { name: '国际关系', duration: '1.5小时', difficulty: '简单', completed: false },
+                            { name: '时政热点', duration: '2小时', difficulty: '中等', completed: false },
+                            { name: '分析题技巧', duration: '2小时', difficulty: '困难', completed: false },
+                            { name: '选择题技巧', duration: '1.5小时', difficulty: '中等', completed: false }
+                        ]
+                    },
+                    {
+                        id: 'english',
+                        name: '英语二',
+                        description: '阅读、写作、翻译',
+                        icon: 'fas fa-language',
+                        bgColor: 'from-green-500 to-green-600',
+                        progress: 55,
+                        completedChapters: 5,
+                        chapters: [
+                            { name: '词汇基础', duration: '6小时', difficulty: '中等', completed: true },
+                            { name: '语法精讲', duration: '4小时', difficulty: '中等', completed: true },
+                            { name: '阅读理解技巧', duration: '3小时', difficulty: '困难', completed: true },
+                            { name: '完型填空', duration: '2小时', difficulty: '中等', completed: false },
+                            { name: '新题型', duration: '2小时', difficulty: '中等', completed: false },
+                            { name: '翻译技巧', duration: '2.5小时', difficulty: '困难', completed: true },
+                            { name: '小作文', duration: '2小时', difficulty: '简单', completed: true },
+                            { name: '大作文', duration: '3小时', difficulty: '中等', completed: false },
+                            { name: '长难句分析', duration: '3小时', difficulty: '困难', completed: false }
+                        ]
+                    }
+                ],
+                professionalSubjects: [],
+                publicSubjects: [
+                    {
+                        id: 1,
+                        name: '高等数学',
+                        description: '数学一/数学二',
+                        icon: 'fas fa-square-root-alt',
+                        bgColor: 'from-blue-500 to-blue-600',
+                        progress: 65,
+                        completedChapters: 8,
+                        chapters: [
+                            { name: '函数与极限', duration: '3小时', difficulty: '中等', completed: true },
+                            { name: '导数与微分', duration: '2.5小时', difficulty: '简单', completed: true },
+                            { name: '积分学', duration: '4小时', difficulty: '困难', completed: true },
+                            { name: '多元函数微分学', duration: '3.5小时', difficulty: '困难', completed: false },
+                            { name: '重积分', duration: '3小时', difficulty: '困难', completed: false },
+                            { name: '级数', duration: '2小时', difficulty: '中等', completed: false },
+                            { name: '常微分方程', duration: '2.5小时', difficulty: '中等', completed: false },
+                            { name: '线性代数', duration: '4小时', difficulty: '中等', completed: true },
+                            { name: '概率论', duration: '3小时', difficulty: '中等', completed: true },
+                            { name: '数理统计', duration: '2小时', difficulty: '简单', completed: true },
+                            { name: '随机变量', duration: '3小时', difficulty: '中等', completed: true },
+                            { name: '数字特征', duration: '2小时', difficulty: '简单', completed: true }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        name: '政治',
+                        description: '马原、毛概、史纲、思修',
+                        icon: 'fas fa-flag',
+                        bgColor: 'from-red-500 to-red-600',
+                        progress: 40,
+                        completedChapters: 6,
+                        chapters: [
+                            { name: '马克思主义基本原理', duration: '4小时', difficulty: '中等', completed: true },
+                            { name: '毛泽东思想概论', duration: '3小时', difficulty: '简单', completed: true },
+                            { name: '邓小平理论', duration: '2.5小时', difficulty: '简单', completed: true },
+                            { name: '三个代表重要思想', duration: '2小时', difficulty: '简单', completed: false },
+                            { name: '科学发展观', duration: '2小时', difficulty: '简单', completed: false },
+                            { name: '习近平新时代理论', duration: '3小时', difficulty: '中等', completed: false },
+                            { name: '中国近现代史纲要', duration: '4小时', difficulty: '中等', completed: true },
+                            { name: '思想道德修养', duration: '2小时', difficulty: '简单', completed: true },
+                            { name: '法律基础', duration: '3小时', difficulty: '中等', completed: true },
+                            { name: '形势与政策', duration: '1.5小时', difficulty: '简单', completed: false },
+                            { name: '当代世界经济', duration: '2小时', difficulty: '中等', completed: false },
+                            { name: '国际关系', duration: '1.5小时', difficulty: '简单', completed: false },
+                            { name: '时政热点', duration: '2小时', difficulty: '中等', completed: false },
+                            { name: '分析题技巧', duration: '2小时', difficulty: '困难', completed: false },
+                            { name: '选择题技巧', duration: '1.5小时', difficulty: '中等', completed: false }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        name: '英语二',
+                        description: '阅读、写作、翻译',
+                        icon: 'fas fa-language',
+                        bgColor: 'from-green-500 to-green-600',
+                        progress: 55,
+                        completedChapters: 5,
+                        chapters: [
+                            { name: '词汇基础', duration: '6小时', difficulty: '中等', completed: true },
+                            { name: '语法精讲', duration: '4小时', difficulty: '中等', completed: true },
+                            { name: '阅读理解技巧', duration: '3小时', difficulty: '困难', completed: true },
+                            { name: '完型填空', duration: '2小时', difficulty: '中等', completed: false },
+                            { name: '新题型', duration: '2小时', difficulty: '中等', completed: false },
+                            { name: '翻译技巧', duration: '2.5小时', difficulty: '困难', completed: true },
+                            { name: '小作文', duration: '2小时', difficulty: '简单', completed: true },
+                            { name: '大作文', duration: '3小时', difficulty: '中等', completed: false },
+                            { name: '长难句分析', duration: '3小时', difficulty: '困难', completed: false }
+                        ]
+                    }
+                ],
+                coursesData: [],
+
+                // 笔记相关数据
+                notesManager: null,
+                showNotesModal: false,
+                selectedNote: null,
+                filteredNotes: [],
+                allNoteTags: [],
+                noteSearchQuery: '',
+                noteFilterSubject: '',
+                selectedTagFilters: [],
+                newNoteTag: '',
+                currentNoteSubject: null,
+                showPreview: false,
+
+                // 窗口大小控制
+                modalSize: 'medium',
+                modalWidth: 1024,
+                modalHeight: 700,
+
+                // 学习建议相关
+                studySuggestions: [],
+                currentSuggestionIndex: 0,
+                maxVisibleSuggestions: 3,
+
+                init() {
+                    // 获取URL参数
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const type = urlParams.get('type');
+                    if (type === 'professional') {
+                        this.currentSubjectType = 'professional';
+                    }
+
+                    // 初始化笔记管理器
+                    this.notesManager = new NotesManager();
+                    this.loadNotesData();
+
+                    // 加载窗口大小偏好
+                    this.loadModalSizePreference();
+
+                    // 加载课程数据
+                    this.loadCoursesData();
+
+                    // 初始化学习建议
+                    this.initializeStudySuggestions();
+
+                    // 初始化学习统计功能
+                    this.initializeStudyStats();
+                },
+
+                // 初始化学习统计功能
+                initializeStudyStats() {
+                    let retryCount = 0;
+                    const maxRetries = 5;
+                    
+                    const tryInit = () => {
+                        if (window.studyStats) {
+                            this.studyStatsManager = window.studyStats;
+                            console.log('✅ subjects页面学习统计已连接');
+                            // 强制重新渲染界面
+                            this.$nextTick(() => {
+                                console.log('📊 学习统计数据:', {
+                                    todayStats: this.getTodayStudyTime(),
+                                    dailyGoal: this.getDailyGoal(),
+                                    hasStatsManager: !!this.studyStatsManager
+                                });
+                                // 强制 Alpine.js 重新渲染
+                                this.$el.dispatchEvent(new CustomEvent('refresh-stats'));
+                            });
+                        } else if (retryCount < maxRetries) {
+                            retryCount++;
+                            console.log(`⏳ 等待学习统计管理器加载中... 重试 ${retryCount}/${maxRetries}`);
+                            setTimeout(tryInit, 500);
+                        } else {
+                            console.warn('⚠️ 学习统计管理器加载超时，但会尝试从本地存储读取数据');
+                            this.studyStatsManager = null;
+                            // 即使没有管理器，也要刷新显示以使用本地存储数据
+                            this.$nextTick(() => {
+                                console.log('📊 使用本地存储数据:', {
+                                    todayStats: this.getTodayStudyTime(),
+                                    dailyGoal: this.getDailyGoal()
+                                });
+                            });
+                        }
+                    };
+                    
+                    tryInit();
+                },
+
+                // 获取今日学习时长（分钟）
+                getTodayStudyTime() {
+                    // 优先使用全局统计管理器
+                    if (window.studyStats) {
+                        const todayStats = window.studyStats.getTodayStats();
+                        return todayStats.studyTime || 0;
+                    }
+                    
+                    // 检查本地存储中是否有学习记录
+                    try {
+                        const stored = localStorage.getItem('study_statistics');
+                        if (stored) {
+                            const stats = JSON.parse(stored);
+                            const today = new Date().toISOString().split('T')[0];
+                            return stats.dailyStats?.[today]?.studyTime || 0;
+                        }
+                    } catch (error) {
+                        console.error('读取本地学习数据失败:', error);
+                    }
+                    
+                    // 如果没有数据，返回模拟数据用于演示
+                    console.log('⚠️ 没有找到学习统计数据，建议开始学习以记录数据');
+                    return 0;
+                },
+
+                // 获取今日答题数量
+                getTodayQuestions() {
+                    // 优先使用全局统计管理器
+                    if (window.studyStats) {
+                        const todayStats = window.studyStats.getTodayStats();
+                        return todayStats.questionsAnswered || 0;
+                    }
+                    
+                    // 从本地存储获取数据
+                    try {
+                        const stored = localStorage.getItem('study_statistics');
+                        if (stored) {
+                            const stats = JSON.parse(stored);
+                            const today = new Date().toISOString().split('T')[0];
+                            return stats.dailyStats?.[today]?.questionsAnswered || 0;
+                        }
+                    } catch (error) {
+                        console.error('读取本地答题数据失败:', error);
+                    }
+                    return 0;
+                },
+
+                // 获取今日正确率
+                getTodayAccuracy() {
+                    // 优先使用全局统计管理器
+                    if (window.studyStats) {
+                        const todayStats = window.studyStats.getTodayStats();
+                        if (!todayStats.questionsAnswered || todayStats.questionsAnswered === 0) {
+                            return 0;
+                        }
+                        return Math.round((todayStats.correctAnswers / todayStats.questionsAnswered) * 100);
+                    }
+                    
+                    // 从本地存储计算正确率
+                    try {
+                        const stored = localStorage.getItem('study_statistics');
+                        if (stored) {
+                            const stats = JSON.parse(stored);
+                            const today = new Date().toISOString().split('T')[0];
+                            const todayData = stats.dailyStats?.[today];
+                            if (todayData && todayData.questionsAnswered > 0) {
+                                return Math.round((todayData.correctAnswers / todayData.questionsAnswered) * 100);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('读取本地正确率数据失败:', error);
+                    }
+                    return 0;
+                },
+
+                // 获取每日学习时长目标（分钟）
+                getDailyGoal() {
+                    // 优先使用全局统计管理器
+                    if (window.studyStats && window.studyStats.stats.goals) {
+                        return window.studyStats.stats.goals.dailyStudyTime || 120;
+                    }
+                    
+                    // 从本地存储获取目标
+                    try {
+                        const stored = localStorage.getItem('study_statistics');
+                        if (stored) {
+                            const stats = JSON.parse(stored);
+                            return stats.goals?.dailyStudyTime || 120;
+                        }
+                    } catch (error) {
+                        console.error('读取本地目标数据失败:', error);
+                    }
+                    return 120; // 默认2小时
+                },
+
+                // 获取每日答题目标
+                getDailyQuestionsGoal() {
+                    // 优先使用全局统计管理器
+                    if (window.studyStats && window.studyStats.stats.goals) {
+                        return window.studyStats.stats.goals.dailyQuestions || 50;
+                    }
+                    
+                    // 从本地存储获取目标
+                    try {
+                        const stored = localStorage.getItem('study_statistics');
+                        if (stored) {
+                            const stats = JSON.parse(stored);
+                            return stats.goals?.dailyQuestions || 50;
+                        }
+                    } catch (error) {
+                        console.error('读取本地答题目标失败:', error);
+                    }
+                    return 50;
+                },
+
+                // 获取正确率目标
+                getAccuracyGoal() {
+                    // 优先使用全局统计管理器
+                    if (window.studyStats && window.studyStats.stats.goals) {
+                        return window.studyStats.stats.goals.targetAccuracy || 80;
+                    }
+                    
+                    // 从本地存储获取目标
+                    try {
+                        const stored = localStorage.getItem('study_statistics');
+                        if (stored) {
+                            const stats = JSON.parse(stored);
+                            return stats.goals?.targetAccuracy || 80;
+                        }
+                    } catch (error) {
+                        console.error('读取本地正确率目标失败:', error);
+                    }
+                    return 80;
+                },
+
+                // 获取连续学习天数
+                getStreakDays() {
+                    // 优先使用全局统计管理器
+                    if (window.studyStats && window.studyStats.stats) {
+                        return window.studyStats.stats.streakDays || 0;
+                    }
+                    
+                    // 从本地存储计算连续天数
+                    try {
+                        const stored = localStorage.getItem('study_statistics');
+                        if (stored) {
+                            const stats = JSON.parse(stored);
+                            return stats.streakDays || 0;
+                        }
+                    } catch (error) {
+                        console.error('读取连续天数数据失败:', error);
+                    }
+                    return 0;
+                },
+
+                // 格式化时间显示
+                formatTime(minutes) {
+                    if (!minutes || minutes === 0) return '0分钟';
+                    const hours = Math.floor(minutes / 60);
+                    const mins = minutes % 60;
+                    if (hours > 0) {
+                        return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+                    }
+                    return `${mins}m`;
+                },
+
+                // 获取今日目标完成情况
+                getDailyGoalCompletionCount() {
+                    const timeGoalMet = this.getTodayStudyTime() >= this.getDailyGoal();
+                    const questionGoalMet = this.getTodayQuestions() >= this.getDailyQuestionsGoal();
+                    const accuracyGoalMet = this.getTodayAccuracy() >= this.getAccuracyGoal();
+                    
+                    const completed = [timeGoalMet, questionGoalMet, accuracyGoalMet].filter(Boolean).length;
+                    const total = 3;
+                    
+                    let message = '';
+                    if (completed === total) {
+                        message = '🎉 恭喜！今日所有学习目标已完成！';
+                    } else if (completed === 0) {
+                        message = '💪 开始今日的学习之旅，向目标出发！';
+                    } else {
+                        message = `⚡ 已完成 ${completed}/${total} 个目标，继续加油！`;
+                    }
+                    
+                    return { completed, total, message };
+                },
+
+                // 打开统计弹窗
+                openStatsModal() {
+                    if (window.openStatsModal) {
+                        window.openStatsModal();
+                    } else {
+                        alert('统计功能正在加载中，请稍后再试...');
+                    }
+                },
+
+                async loadCoursesData() {
+                    try {
+                        console.log('开始加载课程数据...');
+
+                        // 使用新的资源加载器
+                        const loader = window.resourceLoader;
+                        if (loader) {
+                            this.coursesData = await loader.loadJSON(
+                                'bilibilicatgorybydifficulty.json',
+                                window.fallbackCourseData || window.courseDataMain,
+                                { useJSFallback: true }
+                            );
+                            this.coursesData = mergeProgressIntoCourses(this.coursesData);
+
+                        } else {
+                            // 备用加载方式
+                            if (window.courseDataMain) {
+                                this.coursesData = window.courseDataMain;
+                            } else if (window.fallbackCourseData) {
+                                this.coursesData = window.fallbackCourseData;
+                            } else {
+                                this.coursesData = this.getEmbeddedCoursesData();
+                            }
+                        }
+
+                        console.log('课程数据加载成功，总数:', this.coursesData.length);
+                        console.log('课程ID列表:', this.coursesData.map(c => `${c.id}: ${c.name}`));
+
+                        this.setupSubjects();
+                        // 数据加载完成后，恢复学习进度
+                        this.loadProgress();
+                    } catch (error) {
+                        console.error('加载课程数据失败:', error);
+                        console.log('使用默认数据...');
+                        this.setupDefaultSubjects();
+                        // 即使使用默认数据，也尝试加载进度
+                        this.loadProgress();
+                    }
+                },
+                goToChapterPlayer(subjectId, chapterIndex, chapter) {
+                    const title = encodeURIComponent(chapter.name || '章节');
+                    const url = encodeURIComponent(chapter.url);
+                    const playerUrl = `assets/html/player.html?subjectId=${subjectId}&chapterIndex=${chapterIndex}&title=${title}&url=${url}`;
+                    window.open(playerUrl, '_blank');
+                },
+                getEmbeddedCoursesData() {
+                    // 内置的课程数据（从bilibilicatgorybydifficulty.json提取的核心部分）
+                    return [
+                        {
+                            "id": 1,
+                            "name": "高等数学",
+                            "desc": "数学一/二/三必备",
+                            "icon": "fas fa-square-root-alt",
+                            "color": "#3b82f6",
+                            "chapters": [
+                                { "name": "2026考研数学张宇老师基础30讲引言", "duration": "23分24秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1bez8YzEWn?p=1" },
+                                { "name": "30讲零基础基础知识结构01", "duration": "6分45秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1bez8YzEWn?p=2" },
+                                { "name": "30讲零基础 基本逻辑02", "duration": "1小时5分", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1bez8YzEWn?p=3" },
+                                { "name": "第1讲 函数极限与连续基础知识结构01", "duration": "8分29秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1bez8YzEWn?p=16" },
+                                { "name": "第1讲 函数的概念与特性02", "duration": "51分43秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1bez8YzEWn?p=17" }
+                            ]
+                        },
+                        {
+                            "id": 2,
+                            "name": "线性代数",
+                            "desc": "线代全套详细目录",
+                            "icon": "fas fa-th",
+                            "color": "#06b6d4",
+                            "chapters": [
+                                { "name": "线代引言", "duration": "1小时2分", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19U411d7ec?p=1" },
+                                { "name": "第1讲 行列式基础知识结构", "duration": "26分52秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19U411d7ec?p=2" },
+                                { "name": "第1讲 行列式的本质定义", "duration": "28分2秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19U411d7ec?p=3" },
+                                { "name": "第1讲 行列式的性质", "duration": "49分51秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19U411d7ec?p=4" },
+                                { "name": "第1讲 行列式的逆序数法", "duration": "31分41秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19U411d7ec?p=5" },
+                                { "name": "第1讲 行列式的展开定理", "duration": "25分12秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19U411d7ec?p=6" },
+                                { "name": "第2讲 矩阵基础知识结构", "duration": "5分52秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19U411d7ec?p=13" },
+                                { "name": "第2讲 矩阵的概念", "duration": "18分58秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19U411d7ec?p=14" },
+                                { "name": "第2讲 矩阵的运算", "duration": "40分45秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19U411d7ec?p=15" }
+                            ]
+                        },
+                        {
+                            "id": 3,
+                            "name": "概率论与数理统计",
+                            "desc": "考研概率必考",
+                            "icon": "fas fa-percentage",
+                            "color": "#f59e42",
+                            "chapters": [
+                                { "name": "2026 基础30讲概率引言", "duration": "20分25秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1kqJMzZE27?p=1" },
+                                { "name": "第1讲 随机事件与概率基础知识结构", "duration": "5分1秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1kqJMzZE27?p=2" },
+                                { "name": "第1讲 样本空间、随机事件", "duration": "35分56秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1kqJMzZE27?p=3" },
+                                { "name": "第1讲 频率与概率", "duration": "18分15秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1kqJMzZE27?p=4" },
+                                { "name": "第1讲 等可能概型（古典概型）", "duration": "25分38秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1kqJMzZE27?p=5" },
+                                { "name": "第1讲 几何概型", "duration": "13分44秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1kqJMzZE27?p=6" },
+                                { "name": "第1讲 条件概率", "duration": "27分29秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1kqJMzZE27?p=7" },
+                                { "name": "第1讲 事件的独立性", "duration": "21分34秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1kqJMzZE27?p=8" }
+                            ]
+                        },
+                        {
+                            "id": 6,
+                            "name": "数据结构",
+                            "desc": "算法与结构基础",
+                            "icon": "fas fa-code",
+                            "color": "#a21caf",
+                            "chapters": [
+                                { "name": "1.0_开篇_数据结构在学什么", "duration": "7分59秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1b7411N798?p=2" },
+                                { "name": "1.1_数据结构的基本概念", "duration": "22分29秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1b7411N798?p=3" },
+                                { "name": "2.1_线性表的定义和基本操作", "duration": "17分42秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1b7411N798?p=8" },
+                                { "name": "2.2.1_顺序表的定义", "duration": "23分23秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1b7411N798?p=9" },
+                                { "name": "3.1.1_栈的基本概念", "duration": "9分42秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1b7411N798?p=20" },
+                                { "name": "3.2.1_队列的基本概念", "duration": "4分9秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1b7411N798?p=23" },
+                                { "name": "5.1.1+5.1.2_树的定义和基本术语", "duration": "15分17秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1b7411N798?p=41" },
+                                { "name": "6.1.1_图的基本概念", "duration": "30分39秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1b7411N798?p=58" }
+                            ]
+                        },
+                        {
+                            "id": 7,
+                            "name": "操作系统",
+                            "desc": "原理与实战",
+                            "icon": "fas fa-microchip",
+                            "color": "#eab308",
+                            "chapters": [
+                                { "name": "1.1.1+1.1.2 操作系统的概念、功能", "duration": "20分18秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1YE411D7nH?p=2" },
+                                { "name": "2.1.1+2.1.2_进程的概念、组成、特征", "duration": "19分5秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1YE411D7nH?p=12" },
+                                { "name": "2.1.6_1 线程的概念与特点", "duration": "10分34秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1YE411D7nH?p=17" },
+                                { "name": "2.2.1 调度的概念、层次", "duration": "12分48秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1YE411D7nH?p=20" },
+                                { "name": "2.3.1 同步与互斥的基本概念", "duration": "12分51秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1YE411D7nH?p=28" },
+                                { "name": "2.4.1 死锁的概念", "duration": "17分3秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1YE411D7nH?p=39" },
+                                { "name": "3.1.1_1 内存的基础知识", "duration": "32分31秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1YE411D7nH?p=43" }
+                            ]
+                        },
+                        {
+                            "id": 8,
+                            "name": "计算机网络",
+                            "desc": "协议、层次、实践",
+                            "icon": "fas fa-network-wired",
+                            "color": "#f43f5e",
+                            "chapters": [
+                                { "name": "1.1_1 计算机网络的概念（咸鱼版）", "duration": "22分11秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19E411D78Q?p=2" },
+                                { "name": "1.2.1 计算机网络分层结构（上）（咸鱼版）", "duration": "21分30秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19E411D78Q?p=9" },
+                                { "name": "2.1.1 通信基础的基本概念(咸鱼版）", "duration": "19分7秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19E411D78Q?p=13" },
+                                { "name": "3.1 数据链路层的功能（咸鱼版）", "duration": "11分26秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19E411D78Q?p=19" },
+                                { "name": "4.1 网络层的功能（咸鱼版）", "duration": "16分47秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19E411D78Q?p=43" },
+                                { "name": "5.1 传输层提供的服务（咸鱼版）", "duration": "30分21秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV19E411D78Q?p=56" }
+                            ]
+                        },
+                        {
+                            "id": 9,
+                            "name": "计算机组成原理",
+                            "desc": "硬件逻辑结构",
+                            "icon": "fas fa-cogs",
+                            "color": "#0ea5e9",
+                            "chapters": [
+                                { "name": "1.0_你好，我是计算机组成原理", "duration": "10分27秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1ps4y1d73V?p=2" },
+                                { "name": "1.2.1+1.2.2_计算机硬件的基本组成", "duration": "15分33秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1ps4y1d73V?p=4" },
+                                { "name": "2.1.1_进位计数制", "duration": "40分3秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1ps4y1d73V?p=10" },
+                                { "name": "3.1_存储系统基本概念", "duration": "28分14秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1ps4y1d73V?p=33" },
+                                { "name": "5.1_CPU的功能和基本结构", "duration": "33分20秒", "difficulty": "中等", "completed": false, "url": "https://www.bilibili.com/video/BV1ps4y1d73V?p=62" }
+                            ]
+                        }
+                    ];
+                },
+
+                setupSubjects() {
+                    console.log('开始设置科目数据...');
+                    console.log('原始课程数据:', this.coursesData);
+
+                    // 设置公共课（id: 1-5：高数、线代、概率论、英语、政治）
+                    const publicCourseIds = [1, 2, 3, 4, 5];
+                    this.publicSubjects = this.coursesData
+                        .filter(course => publicCourseIds.includes(course.id))
+                        .map(course => this.transformCourseData(course));
+
+                    console.log('公共课数量:', this.publicSubjects.length);
+                    console.log('公共课科目:', this.publicSubjects.map(s => `${s.id}: ${s.name}`));
+
+                    // 设置专业课（id: 6-9：数据结构、操作系统、计算机网络、计算机组成原理）
+                    const professionalCourseIds = [6, 7, 8, 9];
+                    this.professionalSubjects = this.coursesData
+                        .filter(course => professionalCourseIds.includes(course.id))
+                        .map(course => this.transformCourseData(course));
+
+                    console.log('专业课数量:', this.professionalSubjects.length);
+                    console.log('专业课科目:', this.professionalSubjects.map(s => `${s.id}: ${s.name}`));
+
+                    // 如果外部数据加载失败或不完整，补充内置数据
+                    if (this.publicSubjects.length < 5 || this.professionalSubjects.length < 4) {
+                        console.log('外部数据不完整，使用内置数据补充...');
+                        this.setupDefaultSubjects();
+                    }
+                },
+
+                transformCourseData(course) {
+                    const bgColorMap = {
+                        1: 'from-blue-500 to-blue-600',        // 高等数学
+                        2: 'from-cyan-500 to-cyan-600',        // 线性代数
+                        3: 'from-orange-500 to-orange-600',    // 概率论与数理统计
+                        4: 'from-green-500 to-green-600',      // 英语二
+                        5: 'from-red-500 to-red-600',          // 政治
+                        6: 'from-purple-500 to-purple-600',    // 数据结构
+                        7: 'from-yellow-500 to-yellow-600',    // 操作系统
+                        8: 'from-pink-500 to-pink-600',        // 计算机网络
+                        9: 'from-indigo-500 to-indigo-600'     // 计算机组成原理
+                    };
+
+                    const completedChapters = course.chapters ? course.chapters.filter(ch => ch.completed).length : 0;
+                    const totalChapters = course.chapters ? course.chapters.length : 0;
+                    const progress = totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
+
+                    return {
+                        id: course.id,
+                        name: course.name,
+                        description: course.desc,
+                        icon: course.icon,
+                        bgColor: bgColorMap[course.id] || 'from-gray-500 to-gray-600',
+                        progress: progress,
+                        completedChapters: completedChapters,
+                        chapters: course.chapters || []
+                    };
+                },
+
+                setupDefaultSubjects() {
+                    console.log('设置默认科目数据...');
+                    // 如果加载失败，使用默认的公共课数据
+                    this.publicSubjects = [
+                        {
+                            id: 1,
+                            name: '高等数学',
+                            description: '数学一/数学二',
+                            icon: 'fas fa-square-root-alt',
+                            bgColor: 'from-blue-500 to-blue-600',
+                            progress: 65,
+                            completedChapters: 8,
+                            chapters: [
+                                { name: '函数与极限', duration: '3小时', difficulty: '中等', completed: true },
+                                { name: '导数与微分', duration: '2.5小时', difficulty: '简单', completed: true },
+                                { name: '积分学', duration: '4小时', difficulty: '困难', completed: true },
+                                { name: '多元函数微分学', duration: '3.5小时', difficulty: '困难', completed: false },
+                                { name: '重积分', duration: '3小时', difficulty: '困难', completed: false },
+                                { name: '级数', duration: '2小时', difficulty: '中等', completed: false },
+                                { name: '常微分方程', duration: '2.5小时', difficulty: '中等', completed: false },
+                                { name: '线性代数', duration: '4小时', difficulty: '中等', completed: true },
+                                { name: '概率论', duration: '3小时', difficulty: '中等', completed: true },
+                                { name: '数理统计', duration: '2小时', difficulty: '简单', completed: true },
+                                { name: '随机变量', duration: '3小时', difficulty: '中等', completed: true },
+                                { name: '数字特征', duration: '2小时', difficulty: '简单', completed: true }
+                            ]
+                        },
+                        {
+                            id: 2,
+                            name: '线性代数',
+                            description: '数学必修课程',
+                            icon: 'fas fa-calculator',
+                            bgColor: 'from-cyan-500 to-cyan-600',
+                            progress: 40,
+                            completedChapters: 3,
+                            chapters: [
+                                { name: '行列式', duration: '2小时', difficulty: '中等', completed: true },
+                                { name: '矩阵', duration: '3小时', difficulty: '中等', completed: true },
+                                { name: '向量组的线性相关性', duration: '2.5小时', difficulty: '困难', completed: true },
+                                { name: '线性方程组', duration: '3小时', difficulty: '困难', completed: false },
+                                { name: '矩阵的特征值', duration: '2.5小时', difficulty: '困难', completed: false },
+                                { name: '二次型', duration: '2小时', difficulty: '中等', completed: false }
+                            ]
+                        },
+                        {
+                            id: 3,
+                            name: '概率论与数理统计',
+                            description: '数学一/三必修',
+                            icon: 'fas fa-chart-bar',
+                            bgColor: 'from-orange-500 to-orange-600',
+                            progress: 30,
+                            completedChapters: 2,
+                            chapters: [
+                                { name: '随机事件与概率', duration: '2.5小时', difficulty: '中等', completed: true },
+                                { name: '随机变量及其分布', duration: '3小时', difficulty: '困难', completed: true },
+                                { name: '多维随机变量', duration: '3.5小时', difficulty: '困难', completed: false },
+                                { name: '数字特征', duration: '2小时', difficulty: '中等', completed: false },
+                                { name: '大数定律与中心极限定理', duration: '2小时', difficulty: '中等', completed: false },
+                                { name: '参数估计', duration: '2.5小时', difficulty: '困难', completed: false }
+                            ]
+                        },
+                        {
+                            id: 4,
+                            name: '政治',
+                            description: '思想政治理论',
+                            icon: 'fas fa-flag',
+                            bgColor: 'from-red-500 to-red-600',
+                            progress: 40,
+                            completedChapters: 6,
+                            chapters: [
+                                { name: '马克思主义基本原理', duration: '4小时', difficulty: '中等', completed: true },
+                                { name: '毛泽东思想概论', duration: '3小时', difficulty: '简单', completed: true },
+                                { name: '邓小平理论', duration: '2.5小时', difficulty: '简单', completed: true },
+                                { name: '三个代表重要思想', duration: '2小时', difficulty: '简单', completed: false },
+                                { name: '科学发展观', duration: '2小时', difficulty: '简单', completed: false },
+                                { name: '习近平新时代理论', duration: '3小时', difficulty: '中等', completed: false },
+                                { name: '中国近现代史纲要', duration: '4小时', difficulty: '中等', completed: true },
+                                { name: '思想道德修养', duration: '2小时', difficulty: '简单', completed: true },
+                                { name: '法律基础', duration: '3小时', difficulty: '中等', completed: true },
+                                { name: '形势与政策', duration: '1.5小时', difficulty: '简单', completed: false },
+                                { name: '当代世界经济', duration: '2小时', difficulty: '中等', completed: false },
+                                { name: '国际关系', duration: '1.5小时', difficulty: '简单', completed: false },
+                                { name: '时政热点', duration: '2小时', difficulty: '中等', completed: false },
+                                { name: '分析题技巧', duration: '2小时', difficulty: '困难', completed: false },
+                                { name: '选择题技巧', duration: '1.5小时', difficulty: '中等', completed: false }
+                            ]
+                        },
+                        {
+                            id: 5,
+                            name: '英语',
+                            description: '英语一/二',
+                            icon: 'fas fa-language',
+                            bgColor: 'from-green-500 to-green-600',
+                            progress: 55,
+                            completedChapters: 5,
+                            chapters: [
+                                { name: '词汇基础', duration: '6小时', difficulty: '中等', completed: true },
+                                { name: '语法精讲', duration: '4小时', difficulty: '中等', completed: true },
+                                { name: '阅读理解技巧', duration: '3小时', difficulty: '困难', completed: true },
+                                { name: '完型填空', duration: '2小时', difficulty: '中等', completed: false },
+                                { name: '新题型', duration: '2小时', difficulty: '中等', completed: false },
+                                { name: '翻译技巧', duration: '2.5小时', difficulty: '困难', completed: true },
+                                { name: '小作文', duration: '2小时', difficulty: '简单', completed: true },
+                                { name: '大作文', duration: '3小时', difficulty: '中等', completed: false },
+                                { name: '长难句分析', duration: '3小时', difficulty: '困难', completed: false }
+                            ]
+                        }
+                    ];
+
+                    // 添加默认的专业课数据
+                    this.professionalSubjects = [
+                        {
+                            id: 6,
+                            name: '数据结构',
+                            description: '线性表、树、图、查找排序',
+                            icon: 'fas fa-sitemap',
+                            bgColor: 'from-purple-500 to-purple-600',
+                            progress: 80,
+                            completedChapters: 7,
+                            chapters: [
+                                { name: '线性表', duration: '3小时', difficulty: '简单', completed: true, url: 'https://www.bilibili.com/video/BV1b7411N798?p=8' },
+                                { name: '栈和队列', duration: '2.5小时', difficulty: '中等', completed: true, url: 'https://www.bilibili.com/video/BV1b7411N798?p=20' },
+                                { name: '串', duration: '2小时', difficulty: '简单', completed: true, url: 'https://www.bilibili.com/video/BV1b7411N798?p=33' },
+                                { name: '数组与广义表', duration: '2小时', difficulty: '中等', completed: true },
+                                { name: '树和二叉树', duration: '4小时', difficulty: '困难', completed: true, url: 'https://www.bilibili.com/video/BV1b7411N798?p=41' },
+                                { name: '图', duration: '4小时', difficulty: '困难', completed: true, url: 'https://www.bilibili.com/video/BV1b7411N798?p=58' },
+                                { name: '查找', duration: '3小时', difficulty: '中等', completed: true, url: 'https://www.bilibili.com/video/BV1b7411N798?p=72' },
+                                { name: '内部排序', duration: '3.5小时', difficulty: '中等', completed: false, url: 'https://www.bilibili.com/video/BV1b7411N798?p=90' },
+                                { name: '外部排序', duration: '2小时', difficulty: '中等', completed: false, url: 'https://www.bilibili.com/video/BV1b7411N798?p=101' }
+                            ]
+                        },
+                        {
+                            id: 7,
+                            name: '操作系统',
+                            description: '进程、内存、文件系统',
+                            icon: 'fas fa-desktop',
+                            bgColor: 'from-orange-500 to-orange-600',
+                            progress: 60,
+                            completedChapters: 5,
+                            chapters: [
+                                { name: '操作系统概述', duration: '2小时', difficulty: '简单', completed: true, url: 'https://www.bilibili.com/video/BV1YE411D7nH?p=2' },
+                                { name: '进程管理', duration: '4小时', difficulty: '困难', completed: true, url: 'https://www.bilibili.com/video/BV1YE411D7nH?p=12' },
+                                { name: '线程', duration: '2小时', difficulty: '中等', completed: true, url: 'https://www.bilibili.com/video/BV1YE411D7nH?p=17' },
+                                { name: '处理机调度', duration: '3小时', difficulty: '中等', completed: true, url: 'https://www.bilibili.com/video/BV1YE411D7nH?p=20' },
+                                { name: '同步与通信', duration: '4小时', difficulty: '困难', completed: true, url: 'https://www.bilibili.com/video/BV1YE411D7nH?p=28' },
+                                { name: '死锁', duration: '2.5小时', difficulty: '中等', completed: false, url: 'https://www.bilibili.com/video/BV1YE411D7nH?p=39' },
+                                { name: '内存管理', duration: '4小时', difficulty: '困难', completed: false, url: 'https://www.bilibili.com/video/BV1YE411D7nH?p=43' },
+                                { name: '虚拟内存', duration: '3小时', difficulty: '困难', completed: false, url: 'https://www.bilibili.com/video/BV1YE411D7nH?p=55' },
+                                { name: '文件系统', duration: '3小时', difficulty: '中等', completed: false, url: 'https://www.bilibili.com/video/BV1YE411D7nH?p=60' }
+                            ]
+                        }
+                    ];
+
+                    console.log('默认数据设置完成 - 公共课:', this.publicSubjects.length, '专业课:', this.professionalSubjects.length);
+                },
+
+                get currentSubjects() {
+                    return this.currentSubjectType === 'public' ? this.publicSubjects : this.professionalSubjects;
+                },
+
+                get totalChapters() {
+                    return this.currentSubjects.reduce((total, subject) => total + subject.chapters.length, 0);
+                },
+
+                get completedChapters() {
+                    return this.currentSubjects.reduce((total, subject) =>
+                        total + subject.chapters.filter(ch => ch.completed).length, 0);
+                },
+
+                get overallProgress() {
+                    if (this.totalChapters === 0) return 0;
+                    return Math.round((this.completedChapters / this.totalChapters) * 100);
+                },
+
+                toggleChapter(subjectId, chapterIndex, { auto = false } = {}) {
+                    const subject = this.currentSubjects.find(s => s.id === subjectId);
+                    if (!subject || !subject.chapters[chapterIndex]) return;
+
+                    const chapter = subject.chapters[chapterIndex];
+
+                    if (auto && chapter.url) {
+                        // 自动跳转播放
+                        window.open(chapter.url, '_blank');
+                        this.showToast(`🎥 正在打开视频: ${chapter.name}`, 'info');
+                    }
+
+                    // 切换完成状态
+                    chapter.completed = !chapter.completed;
+
+                    // 更新进度
+                    const completed = subject.chapters.filter(ch => ch.completed).length;
+                    subject.progress = Math.round((completed / subject.chapters.length) * 100);
+                    subject.completedChapters = completed;
+
+                    this.showToast(chapter.completed ? '✅ 已标记完成' : '📝 取消完成状态', chapter.completed ? 'success' : 'info');
+
+                    this.saveProgress();
+                },
+
+
+                getDifficultyColor(difficulty) {
+                    switch (difficulty) {
+                        case '简单': return 'bg-green-100 text-green-800';
+                        case '中等': return 'bg-yellow-100 text-yellow-800';
+                        case '困难': return 'bg-red-100 text-red-800';
+                        default: return 'bg-gray-100 text-gray-800';
+                    }
+                },
+
+                startStudy(subjectId) {
+                    // 找到下一个未完成的章节
+                    const subject = this.currentSubjects.find(s => s.id === subjectId);
+                    if (subject) {
+                        const nextChapter = subject.chapters.find(ch => !ch.completed);
+                        if (nextChapter) {
+                            this.showToast(`🎯 开始学习: ${subject.name} - ${nextChapter.name}`, 'info');
+
+                            // 启动学习统计会话
+                            if (window.studyStats) {
+                                window.studyStats.startStudySession(subject.name, nextChapter.name);
+                                console.log('📊 已启动学习统计追踪:', { subject: subject.name, chapter: nextChapter.name });
+                            }
+
+                            // 如果有视频链接，打开视频
+                            if (nextChapter.url) {
+                                window.open(nextChapter.url, '_blank');
+                                this.showToast(`🎥 正在打开视频: ${nextChapter.name}`, 'info');
+
+                                // 标记为已完成
+                                nextChapter.completed = true;
+
+                                // 重新计算进度
+                                const completed = subject.chapters.filter(ch => ch.completed).length;
+                                subject.progress = Math.round((completed / subject.chapters.length) * 100);
+                                subject.completedChapters = completed;
+
+                                this.saveProgress();
+                            }
+                        } else {
+                            this.showToast('🎉 该科目所有章节已完成！', 'success');
+                        }
+                    }
+                },
+                goToChapterVideo(subjectId, chapterIndex) {
+                    const subject = this.currentSubjects.find(s => s.id === subjectId);
+                    const chapter = subject?.chapters?.[chapterIndex];
+                    if (!chapter || !chapter.url) return;
+
+                    const redirectUrl = `redirect.html?subjectId=${subjectId}&chapterIndex=${chapterIndex}&url=${encodeURIComponent(chapter.url)}`;
+                    window.open(redirectUrl, '_blank');
+
+                    this.showToast(`🎥 正在跳转至 ${chapter.name}`, 'info');
+                },
+
+                saveProgress() {
+                    try {
+                        const progressData = {
+                            publicSubjects: this.publicSubjects,
+                            professionalSubjects: this.professionalSubjects,
+                            lastUpdated: new Date().toISOString()
+                        };
+                        localStorage.setItem('study_progress', JSON.stringify(progressData));
+                    } catch (error) {
+                        console.error('保存进度失败:', error);
+                    }
+                },
+
+                loadProgress() {
+                    try {
+                        const saved = localStorage.getItem('study_progress');
+                        if (saved) {
+                            const progressData = JSON.parse(saved);
+                            // 恢复进度数据
+                            if (progressData.publicSubjects) {
+                                this.publicSubjects.forEach(subject => {
+                                    const savedSubject = progressData.publicSubjects.find(s => s.id === subject.id);
+                                    if (savedSubject) {
+                                        subject.chapters.forEach((chapter, index) => {
+                                            if (savedSubject.chapters[index]) {
+                                                chapter.completed = savedSubject.chapters[index].completed || false;
+                                            }
+                                        });
+                                        // 重新计算进度
+                                        const completed = subject.chapters.filter(ch => ch.completed).length;
+                                        subject.progress = Math.round((completed / subject.chapters.length) * 100);
+                                        subject.completedChapters = completed;
+                                    }
+                                });
+                            }
+                            if (progressData.professionalSubjects) {
+                                this.professionalSubjects.forEach(subject => {
+                                    const savedSubject = progressData.professionalSubjects.find(s => s.id === subject.id);
+                                    if (savedSubject) {
+                                        subject.chapters.forEach((chapter, index) => {
+                                            if (savedSubject.chapters[index]) {
+                                                chapter.completed = savedSubject.chapters[index].completed || false;
+                                            }
+                                        });
+                                        // 重新计算进度
+                                        const completed = subject.chapters.filter(ch => ch.completed).length;
+                                        subject.progress = Math.round((completed / subject.chapters.length) * 100);
+                                        subject.completedChapters = completed;
+                                    }
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        console.error('加载进度失败:', error);
+                    }
+                },
+
+                showNotes(subjectId) {
+                    // 设置当前科目
+                    this.currentNoteSubject = this.currentSubjects.find(s => s.id === subjectId);
+                    this.noteFilterSubject = subjectId;
+
+                    // 显示笔记弹窗
+                    this.showNotesModal = true;
+
+                    // 刷新笔记数据
+                    this.loadNotesData();
+                    this.filterNotes();
+                },
+
+                showStats(subjectId) {
+                    this.showToast('📊 统计功能开发中...', 'info');
+                },
+
+                showToast(message, type = 'info') {
+                    // 创建临时提示框
+                    const toast = document.createElement('div');
+                    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 transition-all duration-300 ${type === 'success' ? 'bg-green-500' :
+                            type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                        }`;
+                    toast.textContent = message;
+                    document.body.appendChild(toast);
+
+                    // 3秒后自动移除
+                    setTimeout(() => {
+                        toast.style.opacity = '0';
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
+                },
+
+                // 计算属性：获取所有科目
+                get allSubjects() {
+                    return [...this.publicSubjects, ...this.professionalSubjects];
+                },
+
+                // ==================== 笔记功能方法 ====================
+
+                // 加载笔记数据
+                loadNotesData() {
+                    if (!this.notesManager) return;
+
+                    const notes = this.notesManager.getAllNotes();
+                    console.log('加载笔记数据，总数:', notes.length);
+
+                    // 更新笔记的科目和章节名称，使用更准确的匹配
+                    this.filteredNotes = notes.map(note => {
+                        const subject = this.allSubjects.find(s => s.id == note.subjectId);
+                        let chapter = null;
+
+                        if (subject && subject.chapters) {
+                            // 优先使用章节名称匹配
+                            chapter = subject.chapters.find(c =>
+                                c.name === note.chapterId
+                            );
+                        }
+
+                        return {
+                            ...note,
+                            subjectName: subject?.name || '未知科目',
+                            chapterName: chapter?.name || note.chapterId || '未选择章节'
+                        };
+                    });
+
+                    console.log('处理后的笔记数据:', this.filteredNotes.map(n => ({
+                        id: n.id,
+                        title: n.title,
+                        subjectName: n.subjectName,
+                        chapterName: n.chapterName
+                    })));
+
+                    // 更新标签列表
+                    this.allNoteTags = this.notesManager.getAllTags();
+                },
+
+                // 创建新笔记
+                createNewNote() {
+                    const subjectId = this.currentNoteSubject?.id || this.allSubjects[0]?.id || '';
+                    const subject = this.allSubjects.find(s => s.id == subjectId);
+
+                    const newNote = this.notesManager.createNote(
+                        '新建笔记',
+                        '',
+                        subjectId,
+                        '',
+                        []
+                    );
+
+                    // 更新笔记信息
+                    newNote.subjectName = subject?.name || '未知科目';
+                    newNote.chapterName = '未选择章节';
+
+                    // 选中新笔记
+                    this.selectedNote = newNote;
+
+                    // 刷新笔记列表
+                    this.loadNotesData();
+                    this.filterNotes();
+                },
+
+                // 选择笔记
+                selectNote(note) {
+                    this.selectedNote = { ...note };
+                },
+
+                // 更新选中的笔记
+                updateSelectedNote() {
+                    if (!this.selectedNote || !this.notesManager) {
+                        console.warn('updateSelectedNote: 缺少必要的对象', {
+                            hasSelectedNote: !!this.selectedNote,
+                            hasNotesManager: !!this.notesManager
+                        });
+                        return;
+                    }
+
+                    // 更新科目和章节名称
+                    const subject = this.allSubjects.find(s => s.id == this.selectedNote.subjectId);
+                    let chapter = null;
+
+                    if (subject && subject.chapters) {
+                        // 优先使用章节名称匹配
+                        chapter = subject.chapters.find(c =>
+                            c.name === this.selectedNote.chapterId
+                        );
+                    }
+
+                    this.selectedNote.subjectName = subject?.name || '未知科目';
+                    this.selectedNote.chapterName = chapter?.name || this.selectedNote.chapterId || '未选择章节';
+
+                    console.log('更新笔记信息:', {
+                        noteId: this.selectedNote.id,
+                        title: this.selectedNote.title,
+                        subjectId: this.selectedNote.subjectId,
+                        subjectName: this.selectedNote.subjectName,
+                        chapterId: this.selectedNote.chapterId,
+                        chapterName: this.selectedNote.chapterName
+                    });
+
+                    // 保存到管理器
+                    try {
+                        this.notesManager.updateNote(this.selectedNote.id, this.selectedNote);
+                        console.log('笔记更新成功');
+                    } catch (error) {
+                        console.error('保存笔记失败:', error);
+                        this.showToast('保存笔记失败: ' + error.message, 'error');
+                    }
+
+                    // 刷新列表
+                    this.loadNotesData();
+                    this.filterNotes();
+                },
+
+                // 删除笔记
+                deleteNote(noteId) {
+                    if (confirm('确定要删除这个笔记吗？')) {
+                        this.notesManager.deleteNote(noteId);
+
+                        // 如果删除的是当前选中的笔记，清空选中状态
+                        if (this.selectedNote && this.selectedNote.id === noteId) {
+                            this.selectedNote = null;
+                        }
+
+                        // 刷新列表
+                        this.loadNotesData();
+                        this.filterNotes();
+
+                        this.showToast('笔记已删除', 'success');
+                    }
+                },
+
+                // 搜索笔记
+                searchNotes() {
+                    this.filterNotes();
+                },
+
+                // 筛选笔记
+                filterNotes() {
+                    if (!this.notesManager) return;
+
+                    let notes = this.notesManager.getAllNotes();
+
+                    // 按科目筛选
+                    if (this.noteFilterSubject) {
+                        notes = notes.filter(note => note.subjectId == this.noteFilterSubject);
+                    }
+
+                    // 按标签筛选
+                    if (this.selectedTagFilters.length > 0) {
+                        notes = notes.filter(note =>
+                            this.selectedTagFilters.some(tag => note.tags.includes(tag))
+                        );
+                    }
+
+                    // 按搜索词筛选
+                    if (this.noteSearchQuery.trim()) {
+                        const query = this.noteSearchQuery.toLowerCase();
+                        notes = notes.filter(note =>
+                            note.title.toLowerCase().includes(query) ||
+                            note.content.toLowerCase().includes(query) ||
+                            note.tags.some(tag => tag.toLowerCase().includes(query))
+                        );
+                    }
+
+                    // 更新显示名称
+                    this.filteredNotes = notes.map(note => {
+                        const subject = this.allSubjects.find(s => s.id == note.subjectId);
+                        const chapter = subject?.chapters?.find(c => c.name === note.chapterId);
+
+                        return {
+                            ...note,
+                            subjectName: subject?.name || '未知科目',
+                            chapterName: chapter?.name || note.chapterId || '未选择章节'
+                        };
+                    });
+                },
+
+                // 切换标签筛选
+                toggleTagFilter(tag) {
+                    const index = this.selectedTagFilters.indexOf(tag);
+                    if (index > -1) {
+                        this.selectedTagFilters.splice(index, 1);
+                    } else {
+                        this.selectedTagFilters.push(tag);
+                    }
+                    this.filterNotes();
+                },
+
+                // 添加标签
+                addNoteTag() {
+                    if (!this.selectedNote || !this.newNoteTag.trim()) return;
+
+                    const tag = this.newNoteTag.trim();
+                    if (!this.selectedNote.tags.includes(tag)) {
+                        this.selectedNote.tags.push(tag);
+                        this.updateSelectedNote();
+                        this.loadNotesData(); // 更新全局标签列表
+                    }
+
+                    this.newNoteTag = '';
+                },
+
+                // 移除标签
+                removeNoteTag(tag) {
+                    if (!this.selectedNote) return;
+
+                    const index = this.selectedNote.tags.indexOf(tag);
+                    if (index > -1) {
+                        this.selectedNote.tags.splice(index, 1);
+                        this.updateSelectedNote();
+                    }
+                },
+                // 获取指定科目的章节
+                getChaptersBySubject(subjectId) {
+                    if (!subjectId) {
+                        console.warn('getChaptersBySubject: 未提供科目ID');
+                        return [];
+                    }
+
+                    // 核心修正：ID都转为字符串比较
+                    const subject = this.allSubjects.find(s => String(s.id) === String(subjectId));
+                    if (!subject) {
+                        console.warn(`getChaptersBySubject: 未找到科目ID ${subjectId}`, this.allSubjects.map(s => s.id));
+                        return [];
+                    }
+
+                    const chapters = Array.isArray(subject.chapters) ? subject.chapters : [];
+
+                    console.log(`获取科目 ${subjectId} (${subject.name}) 的章节:`, {
+                        subjectName: subject.name,
+                        chapterCount: chapters.length,
+                        chapters: chapters.slice(0, 3).map(c => ({
+                            name: c.name,
+                            hasUrl: !!c.url
+                        }))
+                    });
+
+                    return chapters;
+                },
+
+
+                // 格式化笔记日期
+                formatNoteDate(dateString) {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('zh-CN', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                },
+
+                // 导出选中的笔记
+                exportSelectedNote() {
+                    if (!this.selectedNote || !this.notesManager) return;
+
+                    const markdown = this.notesManager.exportNoteAsMarkdown(this.selectedNote.id);
+                    if (markdown) {
+                        this.downloadText(markdown, `${this.selectedNote.title}.md`);
+                        this.showToast('笔记已导出', 'success');
+                    }
+                },
+
+                // 导出所有笔记为JSON文件
+                exportAllNotesAsFile() {
+                    if (!this.notesManager) return;
+
+                    if (this.notesManager.exportNotesToFile()) {
+                        this.showToast('✅ 所有笔记已导出为备份文件', 'success');
+                    } else {
+                        this.showToast('❌ 导出失败，请重试', 'error');
+                    }
+                },
+
+                // 导入笔记文件
+                async importNotesFromFile() {
+                    if (!this.notesManager) return;
+
+                    try {
+                        const result = await this.notesManager.triggerImportDialog();
+
+                        // 刷新笔记数据
+                        this.loadNotesData();
+                        this.filterNotes();
+                        this.selectedNote = null;
+
+                        this.showToast(
+                            `✅ 成功导入 ${result.imported} 条笔记，当前总计 ${result.total} 条`,
+                            'success'
+                        );
+                    } catch (error) {
+                        if (error.message !== '用户取消') {
+                            console.error('导入笔记失败:', error);
+                            this.showToast('❌ 导入失败: ' + error.message, 'error');
+                        }
+                    }
+                },
+
+                // 下载文本文件
+                downloadText(content, filename) {
+                    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
+                },
+
+                // 插入Markdown格式
+                insertMarkdown(before, after) {
+                    const textarea = this.$refs.noteTextarea;
+                    if (!textarea || !this.selectedNote) return;
+
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const selectedText = this.selectedNote.content.substring(start, end);
+
+                    const newText = before + selectedText + after;
+                    this.selectedNote.content =
+                        this.selectedNote.content.substring(0, start) +
+                        newText +
+                        this.selectedNote.content.substring(end);
+
+                    this.updateSelectedNote();
+
+                    // 重新设置光标位置
+                    this.$nextTick(() => {
+                        textarea.focus();
+                        textarea.setSelectionRange(start + before.length, start + before.length + selectedText.length);
+                    });
+                },
+
+                // 切换预览模式
+                togglePreview() {
+                    this.showPreview = !this.showPreview;
+                },
+
+                // 渲染Markdown
+                renderMarkdown(content) {
+                    if (!content) return '';
+                    return SimpleMarkdownRenderer.render(content);
+                },
+
+                // 调节笔记窗口大小
+                resizeModal(size) {
+                    this.modalSize = size;
+                    switch (size) {
+                        case 'small':
+                            this.modalWidth = 800;
+                            this.modalHeight = 600;
+                            break;
+                        case 'medium':
+                            this.modalWidth = 1024;
+                            this.modalHeight = 700;
+                            break;
+                        case 'large':
+                            this.modalWidth = 1400;
+                            this.modalHeight = 800;
+                            break;
+                    }
+
+                    // 保存用户偏好
+                    try {
+                        localStorage.setItem('notes_modal_size', JSON.stringify({
+                            size: this.modalSize,
+                            width: this.modalWidth,
+                            height: this.modalHeight
+                        }));
+                    } catch (error) {
+                        console.warn('保存窗口大小偏好失败:', error);
+                    }
+                },
+
+                // 加载窗口大小偏好
+                loadModalSizePreference() {
+                    try {
+                        const saved = localStorage.getItem('notes_modal_size');
+                        if (saved) {
+                            const preference = JSON.parse(saved);
+                            this.modalSize = preference.size || 'medium';
+                            this.modalWidth = preference.width || 1024;
+                            this.modalHeight = preference.height || 700;
+                        }
+                    } catch (error) {
+                        console.warn('加载窗口大小偏好失败:', error);
+                    }
+                },
+
+                // ==================== 学习建议功能 ====================
+
+                // 初始化学习建议
+                initializeStudySuggestions() {
+                    this.studySuggestions = this.generateStudySuggestions();
+                    this.currentSuggestionIndex = 0;
+                },
+
+                // 生成学习建议
+                generateStudySuggestions() {
+                    const suggestions = [];
+                    const currentSubjects = this.currentSubjects;
+
+                    if (!currentSubjects || currentSubjects.length === 0) {
+                        return this.getDefaultSuggestions();
+                    }
+
+                    // 基于当前进度生成建议
+                    currentSubjects.forEach(subject => {
+                        const nextChapter = subject.chapters.find(ch => !ch.completed);
+                        const completedCount = subject.chapters.filter(ch => ch.completed).length;
+
+                        if (nextChapter) {
+                            suggestions.push({
+                                type: 'today',
+                                icon: 'fas fa-lightbulb',
+                                color: 'yellow-500',
+                                title: '今日推荐',
+                                content: `建议学习${subject.name}的"${nextChapter.name}"`,
+                                detail: `预计用时 ${nextChapter.duration || '1小时'}`,
+                                subjectId: subject.id,
+                                chapterName: nextChapter.name
+                            });
+                        }
+
+                        if (subject.progress < 30) {
+                            suggestions.push({
+                                type: 'weak',
+                                icon: 'fas fa-target',
+                                color: 'red-500',
+                                title: '薄弱环节',
+                                content: `${subject.name}进度较慢，需要加强学习`,
+                                detail: `当前进度 ${subject.progress}%`,
+                                subjectId: subject.id
+                            });
+                        }
+
+                        if (subject.progress >= 70) {
+                            suggestions.push({
+                                type: 'achievement',
+                                icon: 'fas fa-trophy',
+                                color: 'green-500',
+                                title: '学习成果',
+                                content: `${subject.name}学习进展良好！已完成${completedCount}个章节`,
+                                detail: `继续保持，争取全部完成`,
+                                subjectId: subject.id
+                            });
+                        }
+                    });
+
+                    // 生成综合建议
+                    const overallProgress = this.overallProgress;
+                    if (overallProgress >= 50) {
+                        suggestions.push({
+                            type: 'motivation',
+                            icon: 'fas fa-rocket',
+                            color: 'blue-500',
+                            title: '学习动力',
+                            content: `总体进度已达到${overallProgress}%，学习状态很好！`,
+                            detail: '保持这个节奏，胜利在望'
+                        });
+                    }
+
+                    // 添加一些通用建议
+                    const genericSuggestions = [
+                        {
+                            type: 'schedule',
+                            icon: 'fas fa-calendar-alt',
+                            color: 'purple-500',
+                            title: '学习计划',
+                            content: '建议制定每日学习计划，保持规律性',
+                            detail: '每天固定时间学习效果更佳'
+                        },
+                        {
+                            type: 'review',
+                            icon: 'fas fa-redo',
+                            color: 'orange-500',
+                            title: '复习巩固',
+                            content: '定期回顾已学内容，加深记忆',
+                            detail: '建议每周复习一次'
+                        },
+                        {
+                            type: 'practice',
+                            icon: 'fas fa-dumbbell',
+                            color: 'indigo-500',
+                            title: '练习强化',
+                            content: '多做练习题，提升解题能力',
+                            detail: '理论与实践相结合'
+                        }
+                    ];
+
+                    // 随机添加一些通用建议
+                    const randomGeneric = this.shuffleArray(genericSuggestions).slice(0, 2);
+                    suggestions.push(...randomGeneric);
+
+                    // 随机排序并返回
+                    return this.shuffleArray(suggestions);
+                },
+
+                // 获取默认建议（当没有科目数据时）
+                getDefaultSuggestions() {
+                    return [
+                        {
+                            type: 'welcome',
+                            icon: 'fas fa-star',
+                            color: 'blue-500',
+                            title: '欢迎学习',
+                            content: '开始你的考研学习之旅！',
+                            detail: '制定合理的学习计划'
+                        },
+                        {
+                            type: 'explore',
+                            icon: 'fas fa-compass',
+                            color: 'green-500',
+                            title: '探索课程',
+                            content: '浏览各个科目，了解学习内容',
+                            detail: '选择感兴趣的科目开始学习'
+                        },
+                        {
+                            type: 'goal',
+                            icon: 'fas fa-bullseye',
+                            color: 'red-500',
+                            title: '设定目标',
+                            content: '为自己设定明确的学习目标',
+                            detail: '有目标才有动力'
+                        }
+                    ];
+                },
+
+                // 数组随机排序
+                shuffleArray(array) {
+                    const newArray = [...array];
+                    for (let i = newArray.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+                    }
+                    return newArray;
+                },
+
+                // 获取当前显示的建议
+                get currentSuggestions() {
+                    return this.studySuggestions.slice(
+                        this.currentSuggestionIndex,
+                        this.currentSuggestionIndex + this.maxVisibleSuggestions
+                    );
+                },
+
+                // 换一换建议
+                refreshSuggestions() {
+                    // 移动到下一组建议
+                    const nextIndex = this.currentSuggestionIndex + this.maxVisibleSuggestions;
+                    if (nextIndex >= this.studySuggestions.length) {
+                        // 如果到达末尾，重新生成建议
+                        this.studySuggestions = this.generateStudySuggestions();
+                        this.currentSuggestionIndex = 0;
+                    } else {
+                        this.currentSuggestionIndex = nextIndex;
+                    }
+
+                    this.showToast('🔄 建议已更新', 'info');
+                },
+
+                // 执行建议的行动
+                applySuggestion(suggestion) {
+                    if (suggestion.subjectId && suggestion.chapterName) {
+                        // 如果是具体的章节建议，跳转到该章节
+                        const subject = this.currentSubjects.find(s => s.id === suggestion.subjectId);
+                        if (subject) {
+                            const chapter = subject.chapters.find(ch => ch.name === suggestion.chapterName);
+                            if (chapter && chapter.url) {
+                                window.open(chapter.url, '_blank');
+                                this.showToast(`🎥 正在打开: ${suggestion.chapterName}`, 'info');
+                            }
+                        }
+                    } else if (suggestion.subjectId) {
+                        // 如果是科目建议，开始学习该科目
+                        this.startStudy(suggestion.subjectId);
+                    } else {
+                        // 通用建议的处理
+                        this.showToast(`💡 ${suggestion.content}`, 'info');
+                    }
+                }
+            };
+        }
+    </script>
+
+    <!-- 笔记管理器 -->
+    <script src="assets/js/notes-manager.js"></script>
+    <!-- 章节选择器 -->
+    <script src="assets/js/chapter-selector.js"></script>
+    
+    <!-- 快捷导航栏 -->
+    <script src="assets/js/quick-nav.js"></script>
+</body>
+
+</html>

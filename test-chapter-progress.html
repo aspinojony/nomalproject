@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>章节进度测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .log { background: #f5f5f5; padding: 10px; font-family: monospace; max-height: 400px; overflow-y: auto; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .progress-item { margin: 5px 0; padding: 8px; background: #f8f9fa; border-left: 3px solid #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>章节进度数据测试</h1>
+        
+        <div class="section">
+            <h2>测试控制</h2>
+            <button onclick="testLocalStorageData()">检查localStorage数据</button>
+            <button onclick="testStatsManager()">测试StatsManager获取</button>
+            <button onclick="clearLogs()">清空日志</button>
+        </div>
+
+        <div class="section">
+            <h2>测试日志</h2>
+            <div id="log" class="log">测试准备就绪...\n</div>
+        </div>
+
+        <div class="section">
+            <h2>章节进度结果</h2>
+            <div id="results">
+                <p>点击测试按钮开始...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入必要的JS文件 -->
+    <script src="assets/js/stats-manager.js"></script>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('log').textContent = '日志已清空...\n';
+        }
+
+        function testLocalStorageData() {
+            log('=== 开始检查localStorage数据 ===');
+            
+            // 检查study_progress
+            const studyProgress = localStorage.getItem('study_progress');
+            if (studyProgress) {
+                try {
+                    const parsed = JSON.parse(studyProgress);
+                    log(`✅ 找到study_progress数据，大小: ${studyProgress.length} 字符`);
+                    log(`📊 公共科目数量: ${parsed.publicSubjects ? parsed.publicSubjects.length : 0}`);
+                    log(`📊 专业科目数量: ${parsed.professionalSubjects ? parsed.professionalSubjects.length : 0}`);
+                    
+                    // 显示详细信息
+                    let totalChapters = 0;
+                    let completedChapters = 0;
+                    
+                    const allSubjects = [
+                        ...(parsed.publicSubjects || []),
+                        ...(parsed.professionalSubjects || [])
+                    ];
+                    
+                    let resultsHTML = '<h3>LocalStorage数据解析结果:</h3>';
+                    
+                    allSubjects.forEach(subject => {
+                        if (subject.chapters && Array.isArray(subject.chapters)) {
+                            const subjectCompleted = subject.chapters.filter(ch => ch.completed).length;
+                            totalChapters += subject.chapters.length;
+                            completedChapters += subjectCompleted;
+                            
+                            resultsHTML += `
+                                <div class="progress-item">
+                                    <strong>${subject.name}</strong>: ${subjectCompleted}/${subject.chapters.length} 章节完成
+                                    <br><small>ID: ${subject.id}</small>
+                                </div>
+                            `;
+                            
+                            log(`📚 ${subject.name}: ${subjectCompleted}/${subject.chapters.length} 章节完成`);
+                        }
+                    });
+                    
+                    resultsHTML += `
+                        <div class="progress-item" style="border-left-color: #28a745; background: #d4edda;">
+                            <strong>总计</strong>: ${completedChapters}/${totalChapters} 章节完成 
+                            (${totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0}%)
+                        </div>
+                    `;
+                    
+                    document.getElementById('results').innerHTML = resultsHTML;
+                    log(`✅ 总计: ${completedChapters}/${totalChapters} 章节完成`);
+                    
+                } catch (error) {
+                    log(`❌ 解析study_progress失败: ${error.message}`);
+                }
+            } else {
+                log('⚠️ 未找到study_progress数据');
+            }
+
+            // 检查其他相关数据
+            const statsData = localStorage.getItem('study_statistics');
+            if (statsData) {
+                log(`✅ 找到study_statistics数据，大小: ${statsData.length} 字符`);
+            } else {
+                log('⚠️ 未找到study_statistics数据');
+            }
+            
+            log('=== localStorage检查完成 ===');
+        }
+
+        async function testStatsManager() {
+            log('=== 开始测试StatsManager ===');
+            
+            if (!window.studyStats) {
+                log('❌ StudyStatsManager未初始化');
+                return;
+            }
+            
+            try {
+                log('🔄 调用getAllChapterProgress()...');
+                const chapterProgress = await window.studyStats.getAllChapterProgress();
+                
+                log(`✅ 获取章节进度成功:`);
+                log(`📊 总章节数: ${chapterProgress.totalChapters}`);
+                log(`📊 已完成章节: ${chapterProgress.completedChapters}`);
+                log(`📊 总观看时长: ${chapterProgress.totalWatchedSeconds}秒`);
+                
+                let resultsHTML = '<h3>StatsManager获取结果:</h3>';
+                
+                if (chapterProgress.courseProgress && typeof chapterProgress.courseProgress === 'object') {
+                    Object.values(chapterProgress.courseProgress).forEach(course => {
+                        const completionRate = course.chapters && course.chapters.length > 0 ? 
+                            Math.round((course.completedCount / course.chapters.length) * 100) : 0;
+                        
+                        resultsHTML += `
+                            <div class="progress-item">
+                                <strong>${course.courseName}</strong>: ${course.completedCount}/${course.chapters ? course.chapters.length : 0} 章节完成 (${completionRate}%)
+                                <br><small>ID: ${course.courseId}, 观看: ${Math.round(course.totalWatchedSeconds / 60)}分钟</small>
+                            </div>
+                        `;
+                        
+                        log(`📚 ${course.courseName}: ${course.completedCount}/${course.chapters ? course.chapters.length : 0} (${completionRate}%)`);
+                    });
+                }
+                
+                const overallRate = chapterProgress.totalChapters > 0 ? 
+                    Math.round((chapterProgress.completedChapters / chapterProgress.totalChapters) * 100) : 0;
+                
+                resultsHTML += `
+                    <div class="progress-item" style="border-left-color: #28a745; background: #d4edda;">
+                        <strong>总计</strong>: ${chapterProgress.completedChapters}/${chapterProgress.totalChapters} 章节完成 (${overallRate}%)
+                        <br><small>总观看时长: ${Math.round(chapterProgress.totalWatchedSeconds / 60)}分钟</small>
+                    </div>
+                `;
+                
+                document.getElementById('results').innerHTML = resultsHTML;
+                
+            } catch (error) {
+                log(`❌ StatsManager测试失败: ${error.message}`);
+                console.error('StatsManager测试错误:', error);
+            }
+            
+            log('=== StatsManager测试完成 ===');
+        }
+
+        // 页面加载时自动运行测试
+        window.addEventListener('load', () => {
+            log('📄 页面加载完成');
+            if (window.studyStats) {
+                log('✅ StudyStatsManager已初始化');
+            } else {
+                log('⚠️ StudyStatsManager未找到');
+            }
+        });
+    </script>
+</body>
+</html>

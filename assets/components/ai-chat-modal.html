@@ -1,0 +1,260 @@
+<!-- AI考研助手聊天组件 -->
+<div x-show="showAiChat" 
+     x-cloak
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+     @click.self="showAiChat = false">
+    <div class="bg-white dark:bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <!-- 头部 -->
+        <div class="flex justify-between items-center p-6 border-b dark:border-gray-700 bg-gradient-to-r from-indigo-600 to-purple-600">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white bg-opacity-20 p-2 rounded-lg">
+                    <i class="fas fa-robot text-white text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white">AI考研助手</h3>
+                    <p class="text-indigo-100 text-sm">专业考研问题解答 · 学习规划建议</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <!-- AI服务切换 -->
+                <select x-model="currentAiService" 
+                        @change="switchAiService()"
+                        class="bg-white bg-opacity-20 text-white text-sm rounded-lg px-3 py-1 border-0 focus:ring-2 focus:ring-white">
+                    <option value="spark">讯飞星火</option>
+                    <option value="kimi">Kimi AI</option>
+                    <option value="doubao">豆包AI</option>
+                </select>
+                <button @click="clearChatHistory()" 
+                        class="text-indigo-100 hover:text-white" title="清空对话">
+                    <i class="fas fa-trash text-sm"></i>
+                </button>
+                <button @click="showAiChat = false" class="text-indigo-100 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex flex-1 overflow-hidden">
+            <!-- 左侧：快捷功能区 -->
+            <div class="w-1/4 border-r dark:border-gray-700 bg-gray-50 dark:bg-gray-900 overflow-y-auto">
+                <!-- 快捷提问模板 -->
+                <div class="p-4">
+                    <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center">
+                        <i class="fas fa-lightning text-yellow-500 mr-2"></i>快捷提问
+                    </h4>
+                    
+                    <!-- 考研科目分类 -->
+                    <div class="space-y-3">
+                        <!-- 数学 -->
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">数学</h5>
+                            <div class="space-y-1">
+                                <template x-for="template in mathTemplates" :key="template.id">
+                                    <button @click="useTemplate(template.prompt)"
+                                            class="w-full text-left text-xs bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-gray-700 p-2 rounded border text-gray-700 dark:text-gray-300 hover:text-indigo-700 transition">
+                                        <span x-text="template.title"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- 英语 -->
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">英语</h5>
+                            <div class="space-y-1">
+                                <template x-for="template in englishTemplates" :key="template.id">
+                                    <button @click="useTemplate(template.prompt)"
+                                            class="w-full text-left text-xs bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-gray-700 p-2 rounded border text-gray-700 dark:text-gray-300 hover:text-indigo-700 transition">
+                                        <span x-text="template.title"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- 政治 -->
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">政治</h5>
+                            <div class="space-y-1">
+                                <template x-for="template in politicsTemplates" :key="template.id">
+                                    <button @click="useTemplate(template.prompt)"
+                                            class="w-full text-left text-xs bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-gray-700 p-2 rounded border text-gray-700 dark:text-gray-300 hover:text-indigo-700 transition">
+                                        <span x-text="template.title"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- 专业课 -->
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">专业课</h5>
+                            <div class="space-y-1">
+                                <template x-for="template in csTemplates" :key="template.id">
+                                    <button @click="useTemplate(template.prompt)"
+                                            class="w-full text-left text-xs bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-gray-700 p-2 rounded border text-gray-700 dark:text-gray-300 hover:text-indigo-700 transition">
+                                        <span x-text="template.title"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 对话历史管理 -->
+                <div class="p-4 border-t dark:border-gray-700">
+                    <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center">
+                        <i class="fas fa-history text-blue-500 mr-2"></i>对话记录
+                    </h4>
+                    <div class="space-y-2">
+                        <template x-for="session in chatSessions" :key="session.id">
+                            <div @click="loadChatSession(session)"
+                                 :class="currentSession?.id === session.id ? 'bg-indigo-100 dark:bg-indigo-900' : 'bg-white dark:bg-gray-800'"
+                                 class="p-2 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 border">
+                                <div class="text-xs font-medium text-gray-800 dark:text-gray-200" x-text="session.title"></div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400" x-text="formatDate(session.updatedAt)"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：聊天区域 -->
+            <div class="flex-1 flex flex-col">
+                <!-- 聊天消息区 -->
+                <div class="flex-1 p-4 overflow-y-auto space-y-4" x-ref="chatMessages">
+                    <template x-for="message in currentChatMessages" :key="message.id">
+                        <div :class="message.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
+                            <div :class="message.role === 'user' ? 
+                                         'bg-indigo-600 text-white' : 
+                                         'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'"
+                                 class="max-w-[75%] p-3 rounded-2xl">
+                                
+                                <!-- 用户消息 -->
+                                <div x-show="message.role === 'user'">
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-user-circle mr-2"></i>
+                                        <span class="text-sm opacity-80">你</span>
+                                    </div>
+                                    <div class="text-sm" x-text="message.content"></div>
+                                </div>
+                                
+                                <!-- AI回复 -->
+                                <div x-show="message.role === 'assistant'">
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-robot text-indigo-600 mr-2"></i>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">AI助手</span>
+                                        <span x-show="message.loading" class="ml-2">
+                                            <i class="fas fa-spinner fa-spin text-xs"></i>
+                                        </span>
+                                    </div>
+                                    <div class="text-sm prose prose-sm max-w-none dark:prose-invert" 
+                                         x-html="formatMarkdown(message.content)"></div>
+                                    
+                                    <!-- 操作按钮 -->
+                                    <div x-show="!message.loading && message.content" 
+                                         class="mt-3 flex items-center space-x-2">
+                                        <button @click="copyMessage(message.content)" 
+                                                class="text-xs text-gray-500 hover:text-indigo-600 flex items-center">
+                                            <i class="fas fa-copy mr-1"></i>复制
+                                        </button>
+                                        <button @click="regenerateResponse(message)" 
+                                                class="text-xs text-gray-500 hover:text-indigo-600 flex items-center">
+                                            <i class="fas fa-redo mr-1"></i>重新生成
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-xs opacity-60 mt-2" x-text="formatTime(message.timestamp)"></div>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <!-- 空状态 -->
+                    <div x-show="currentChatMessages.length === 0" class="text-center py-12">
+                        <i class="fas fa-comments text-4xl text-gray-300 dark:text-gray-600 mb-4"></i>
+                        <h3 class="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">开始与AI助手对话</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-500">选择左侧快捷提问，或直接输入你的考研问题</p>
+                    </div>
+                </div>
+
+                <!-- 输入区域 -->
+                <div class="border-t dark:border-gray-700 p-4">
+                    <!-- 当前学习上下文提示 -->
+                    <div x-show="currentContext" 
+                         class="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm">
+                        <div class="flex items-center text-blue-700 dark:text-blue-300">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <span>当前学习：</span>
+                            <span x-text="currentContext" class="font-medium ml-1"></span>
+                            <button @click="clearContext()" class="ml-2 text-blue-500 hover:text-blue-700">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <div class="flex-1">
+                            <textarea x-model="userInput" 
+                                      @keydown.ctrl.enter="sendMessage()"
+                                      @input="adjustTextareaHeight()"
+                                      x-ref="userInputTextarea"
+                                      placeholder="输入你的考研问题... (Ctrl+Enter发送)"
+                                      class="w-full p-3 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none dark:bg-gray-700 dark:text-white"
+                                      rows="1"></textarea>
+                        </div>
+                        <button @click="sendMessage()" 
+                                :disabled="!userInput.trim() || isLoading"
+                                :class="!userInput.trim() || isLoading ? 
+                                        'bg-gray-300 dark:bg-gray-600' : 
+                                        'bg-indigo-600 hover:bg-indigo-700'"
+                                class="px-6 py-3 text-white rounded-lg transition flex items-center">
+                            <i :class="isLoading ? 'fas fa-spinner fa-spin' : 'fas fa-paper-plane'"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- 功能提示 -->
+                    <div class="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between">
+                        <span>支持考研各科目专业问答、学习建议、解题思路等</span>
+                        <div class="flex items-center space-x-2">
+                            <span>Token消耗: <span x-text="tokenUsage.current"></span>/<span x-text="tokenUsage.limit"></span></span>
+                            <div :class="getTokenUsageColor()" class="w-2 h-2 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+[x-cloak] {
+    display: none !important;
+}
+
+.prose code {
+    background: #f3f4f6;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.dark .prose code {
+    background: #374151;
+    color: #f3f4f6;
+}
+
+.prose pre {
+    background: #1f2937;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.prose pre code {
+    background: transparent;
+    padding: 0;
+}
+
+.dark .prose pre {
+    background: #111827;
+}
+</style>

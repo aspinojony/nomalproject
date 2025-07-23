@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>题目管理工具测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .test-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .test-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <h1>题目管理工具测试页面</h1>
+    
+    <div class="test-section">
+        <h2>基础功能测试</h2>
+        <button onclick="testBasicFunctions()">测试基础功能</button>
+        <button onclick="testAddQuestion()">测试添加题目</button>
+        <button onclick="testSearch()">测试搜索功能</button>
+        <button onclick="testExport()">测试导出功能</button>
+        <div id="basic-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>数据导入测试</h2>
+        <button onclick="generateTestCSV()">生成测试CSV文件</button>
+        <button onclick="generateTestJSON()">生成测试JSON文件</button>
+        <div id="import-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>数据管理测试</h2>
+        <button onclick="showStats()">显示统计信息</button>
+        <button onclick="testBatchOperations()">测试批量操作</button>
+        <button onclick="clearAllData()" class="btn-danger">清空所有数据</button>
+        <div id="management-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>实际题目管理界面</h2>
+        <p>点击下面的链接访问完整的题目管理界面：</p>
+        <a href="question-manager.html" target="_blank" style="color: #007bff; text-decoration: none; font-weight: bold;">
+            ► 打开题目管理工具
+        </a>
+    </div>
+
+    <!-- 加载题库管理器 -->
+    <script src="assets/js/question-bank-manager.js"></script>
+    
+    <script>
+        function showResult(containerId, message, isSuccess = true) {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `test-result ${isSuccess ? 'test-success' : 'test-error'}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        function testBasicFunctions() {
+            clearResults('basic-results');
+            
+            try {
+                // 测试题库管理器是否正常加载
+                if (typeof window.questionBank === 'undefined') {
+                    throw new Error('题库管理器未正确加载');
+                }
+                
+                showResult('basic-results', '✓ 题库管理器加载成功');
+                
+                // 获取统计信息
+                const stats = window.questionBank.getStatistics();
+                showResult('basic-results', `✓ 当前题目总数: ${stats.total}`);
+                showResult('basic-results', `✓ 科目数量: ${Object.keys(stats.by_subject).length}`);
+                
+                // 测试筛选功能
+                const filtered = window.questionBank.getFilteredQuestions({ subject: '数据结构' });
+                showResult('basic-results', `✓ 数据结构题目数量: ${filtered.length}`);
+                
+            } catch (error) {
+                showResult('basic-results', `✗ 基础功能测试失败: ${error.message}`, false);
+            }
+        }
+
+        function testAddQuestion() {
+            clearResults('basic-results');
+            
+            try {
+                const testQuestion = {
+                    subject: '测试科目',
+                    chapter: '测试章节',
+                    year: 2024,
+                    difficulty: '中等',
+                    points: 3,
+                    question: '这是一道测试题目，用于验证题目添加功能是否正常工作？',
+                    options: ['选项A', '选项B', '选项C', '选项D'],
+                    correct_answer: 1,
+                    explanation: '这是测试题目的解析说明。',
+                    tags: ['测试', '验证', '功能']
+                };
+                
+                const result = window.questionBank.addQuestion(testQuestion);
+                showResult('basic-results', `✓ 题目添加成功，ID: ${result.id}`);
+                
+                // 验证题目是否真的添加了
+                const added = window.questionBank.getQuestion(result.id);
+                if (added) {
+                    showResult('basic-results', '✓ 题目数据验证成功');
+                } else {
+                    throw new Error('添加的题目无法找到');
+                }
+                
+            } catch (error) {
+                showResult('basic-results', `✗ 添加题目测试失败: ${error.message}`, false);
+            }
+        }
+
+        function testSearch() {
+            clearResults('basic-results');
+            
+            try {
+                // 搜索测试
+                const searchResults = window.questionBank.searchQuestions('线性表');
+                showResult('basic-results', `✓ 搜索"线性表"找到 ${searchResults.length} 个结果`);
+                
+                // 标签搜索
+                const tagResults = window.questionBank.searchQuestions('算法');
+                showResult('basic-results', `✓ 搜索"算法"找到 ${tagResults.length} 个结果`);
+                
+                // 空搜索（应该返回所有）
+                const allResults = window.questionBank.searchQuestions('');
+                showResult('basic-results', `✓ 空搜索返回 ${allResults.length} 个结果`);
+                
+            } catch (error) {
+                showResult('basic-results', `✗ 搜索功能测试失败: ${error.message}`, false);
+            }
+        }
+
+        function testExport() {
+            clearResults('basic-results');
+            
+            try {
+                // 测试JSON导出
+                const jsonData = window.questionBank.exportQuestions('json');
+                const jsonObj = JSON.parse(jsonData);
+                showResult('basic-results', `✓ JSON导出成功，包含 ${jsonObj.questions.length} 道题目`);
+                
+                // 测试CSV导出
+                const csvData = window.questionBank.exportQuestions('csv');
+                const lines = csvData.split('\\n').filter(line => line.trim());
+                showResult('basic-results', `✓ CSV导出成功，包含 ${lines.length - 1} 条数据记录（不含标题行）`);
+                
+            } catch (error) {
+                showResult('basic-results', `✗ 导出功能测试失败: ${error.message}`, false);
+            }
+        }
+
+        function generateTestCSV() {
+            clearResults('import-results');
+            
+            const csvContent = `subject,chapter,year,difficulty,points,question,options,correct_answer,explanation,tags
+计算机网络,网络协议,2024,简单,2,"HTTP协议默认使用哪个端口？","80|443|21|23",0,"HTTP协议默认使用80端口进行通信","HTTP|端口|协议
+数据库,关系模型,2024,中等,3,"下列哪项不是关系数据库的特点？","数据独立性|数据一致性|层次结构|完整性约束",2,"关系数据库是基于关系模型的，不使用层次结构","数据库|关系模型|特点"
+算法设计,排序算法,2024,困难,4,"快速排序的平均时间复杂度是？","O(n)|O(n log n)|O(n²)|O(log n)",1,"快速排序的平均时间复杂度是O(n log n)","快速排序|时间复杂度|算法分析"`;
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'test-questions.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showResult('import-results', '✓ 测试CSV文件已生成并下载');
+        }
+
+        function generateTestJSON() {
+            clearResults('import-results');
+            
+            const jsonData = {
+                metadata: {
+                    version: "2.0",
+                    description: "测试题目数据",
+                    total_questions: 2
+                },
+                questions: [
+                    {
+                        subject: "操作系统",
+                        chapter: "内存管理",
+                        year: 2024,
+                        difficulty: "中等",
+                        points: 3,
+                        question: "虚拟内存的主要作用是什么？",
+                        options: [
+                            "提高CPU速度",
+                            "扩大内存容量",
+                            "减少内存访问时间",
+                            "提高磁盘速度"
+                        ],
+                        correct_answer: 1,
+                        explanation: "虚拟内存技术可以使程序看起来拥有比物理内存更大的内存空间。",
+                        tags: ["虚拟内存", "内存管理", "操作系统"]
+                    },
+                    {
+                        subject: "编译原理",
+                        chapter: "词法分析",
+                        year: 2024,
+                        difficulty: "困难",
+                        points: 4,
+                        question: "编译器的词法分析器主要功能是？",
+                        options: [
+                            "语法检查",
+                            "生成目标代码",
+                            "识别单词符号",
+                            "优化代码"
+                        ],
+                        correct_answer: 2,
+                        explanation: "词法分析器负责将源程序的字符序列转换为单词符号序列。",
+                        tags: ["词法分析", "编译器", "单词符号"]
+                    }
+                ]
+            };
+
+            const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'test-questions.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showResult('import-results', '✓ 测试JSON文件已生成并下载');
+        }
+
+        function showStats() {
+            clearResults('management-results');
+            
+            try {
+                const stats = window.questionBank.getStatistics();
+                
+                showResult('management-results', `📊 <strong>题目统计信息</strong>`);
+                showResult('management-results', `总题目数：${stats.total}`);
+                
+                if (Object.keys(stats.by_subject).length > 0) {
+                    let subjectStats = '按科目统计：<br>';
+                    Object.entries(stats.by_subject).forEach(([subject, count]) => {
+                        subjectStats += `&nbsp;&nbsp;• ${subject}: ${count} 题<br>`;
+                    });
+                    showResult('management-results', subjectStats);
+                }
+                
+                if (Object.keys(stats.by_year).length > 0) {
+                    let yearStats = '按年份统计：<br>';
+                    Object.entries(stats.by_year)
+                        .sort((a, b) => b[0] - a[0])
+                        .forEach(([year, count]) => {
+                            yearStats += `&nbsp;&nbsp;• ${year}年: ${count} 题<br>`;
+                        });
+                    showResult('management-results', yearStats);
+                }
+                
+                if (Object.keys(stats.by_difficulty).length > 0) {
+                    let difficultyStats = '按难度统计：<br>';
+                    Object.entries(stats.by_difficulty).forEach(([difficulty, count]) => {
+                        difficultyStats += `&nbsp;&nbsp;• ${difficulty}: ${count} 题<br>`;
+                    });
+                    showResult('management-results', difficultyStats);
+                }
+                
+            } catch (error) {
+                showResult('management-results', `✗ 获取统计信息失败: ${error.message}`, false);
+            }
+        }
+
+        function testBatchOperations() {
+            clearResults('management-results');
+            
+            try {
+                // 添加几道测试题目用于批量操作
+                const testQuestions = [];
+                for (let i = 1; i <= 3; i++) {
+                    const question = window.questionBank.addQuestion({
+                        subject: '批量测试',
+                        chapter: '测试章节',
+                        year: 2024,
+                        difficulty: '简单',
+                        points: 1,
+                        question: `批量测试题目${i}？`,
+                        options: ['选项A', '选项B', '选项C', '选项D'],
+                        correct_answer: 0,
+                        explanation: `这是批量测试题目${i}的解析。`,
+                        tags: ['批量测试', `题目${i}`]
+                    });
+                    testQuestions.push(question.id);
+                }
+                
+                showResult('management-results', `✓ 成功添加 ${testQuestions.length} 道测试题目`);
+                
+                // 测试复制功能
+                const duplicated = window.questionBank.duplicateQuestion(testQuestions[0]);
+                if (duplicated) {
+                    showResult('management-results', `✓ 复制题目成功，新ID: ${duplicated.id}`);
+                    testQuestions.push(duplicated.id);
+                }
+                
+                // 测试批量删除
+                const deleteResult = window.questionBank.batchDeleteQuestions(testQuestions);
+                showResult('management-results', `✓ 批量删除完成：成功删除 ${deleteResult.deleted.length} 道题目，失败 ${deleteResult.failed.length} 道`);
+                
+            } catch (error) {
+                showResult('management-results', `✗ 批量操作测试失败: ${error.message}`, false);
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('确认要清空所有题目数据吗？这个操作不可恢复！')) {
+                try {
+                    localStorage.removeItem('question_bank');
+                    location.reload();
+                } catch (error) {
+                    showResult('management-results', `✗ 清空数据失败: ${error.message}`, false);
+                }
+            }
+        }
+
+        // 页面加载完成后运行基础测试
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                testBasicFunctions();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

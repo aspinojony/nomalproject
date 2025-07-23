@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建测试数据</title>
+</head>
+<body>
+    <h1>创建测试数据</h1>
+    <button onclick="createTestData()">创建测试数据</button>
+    <button onclick="checkData()">检查数据</button>
+    <div id="output"></div>
+
+    <script>
+        function createTestData() {
+            const testData = {
+                publicSubjects: [
+                    {
+                        id: "mathematics",
+                        name: "数学",
+                        chapters: [
+                            { name: "高等数学基础", duration: "2小时30分钟", difficulty: "简单", completed: true },
+                            { name: "线性代数", duration: "1小时45分钟", difficulty: "中等", completed: true },
+                            { name: "概率统计", duration: "3小时15分钟", difficulty: "困难", completed: false },
+                            { name: "数学分析", duration: "2小时", difficulty: "困难", completed: false }
+                        ]
+                    },
+                    {
+                        id: "english",
+                        name: "英语",
+                        chapters: [
+                            { name: "词汇基础", duration: "1小时30分钟", difficulty: "简单", completed: true },
+                            { name: "阅读理解", duration: "2小时", difficulty: "中等", completed: false },
+                            { name: "写作技巧", duration: "1小时15分钟", difficulty: "中等", completed: false }
+                        ]
+                    }
+                ],
+                professionalSubjects: [
+                    {
+                        id: "data_structure",
+                        name: "数据结构",
+                        chapters: [
+                            { name: "线性表", duration: "3小时", difficulty: "中等", completed: true },
+                            { name: "栈和队列", duration: "2小时30分钟", difficulty: "中等", completed: true },
+                            { name: "树和二叉树", duration: "4小时", difficulty: "困难", completed: false },
+                            { name: "图论基础", duration: "3小时30分钟", difficulty: "困难", completed: false }
+                        ]
+                    },
+                    {
+                        id: "operating_system",
+                        name: "操作系统",
+                        chapters: [
+                            { name: "进程管理", duration: "2小时45分钟", difficulty: "中等", completed: true },
+                            { name: "内存管理", duration: "3小时", difficulty: "困难", completed: false },
+                            { name: "文件系统", duration: "2小时15分钟", difficulty: "中等", completed: false }
+                        ]
+                    }
+                ]
+            };
+
+            localStorage.setItem('study_progress', JSON.stringify(testData));
+            document.getElementById('output').innerHTML = '<p style="color: green;">✅ 测试数据已创建</p>';
+            console.log('测试数据已保存到localStorage');
+        }
+
+        function checkData() {
+            const data = localStorage.getItem('study_progress');
+            if (data) {
+                const parsed = JSON.parse(data);
+                let output = '<h3>当前数据:</h3><pre>' + JSON.stringify(parsed, null, 2) + '</pre>';
+                document.getElementById('output').innerHTML = output;
+            } else {
+                document.getElementById('output').innerHTML = '<p style="color: red;">❌ 未找到数据</p>';
+            }
+        }
+    </script>
+</body>
+</html>

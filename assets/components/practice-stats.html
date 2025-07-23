@@ -1,0 +1,79 @@
+<!-- 练习统计组件 -->
+<template id="practice-stats-template">
+    <section class="hero-bg-green text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">📋 历年真题练习</h2>
+            <p class="text-lg opacity-90 mb-8">1280+ 道真题，10年完整覆盖，智能评测系统</p>
+            <div class="flex justify-center items-center space-x-8">
+                <div class="text-center">
+                    <div class="text-2xl font-bold" id="total-questions">1280+</div>
+                    <div class="text-sm opacity-75">题目总数</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold" id="total-completed">0</div>
+                    <div class="text-sm opacity-75">已完成</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold" id="accuracy-rate">0%</div>
+                    <div class="text-sm opacity-75">正确率</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold" id="daily-completed">0</div>
+                    <div class="text-sm opacity-75">今日完成</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</template>
+
+<script>
+class PracticeStatsComponent {
+    constructor(container, options = {}) {
+        this.container = container;
+        this.options = {
+            totalQuestions: 1280,
+            totalCompleted: 0,
+            accuracyRate: 0,
+            dailyCompleted: 0,
+            ...options
+        };
+        this.init();
+    }
+
+    init() {
+        this.render();
+        this.updateStats(this.options);
+    }
+
+    render() {
+        const template = document.getElementById('practice-stats-template');
+        const clone = template.content.cloneNode(true);
+        this.container.appendChild(clone);
+    }
+
+    updateStats(stats) {
+        const elements = {
+            totalQuestions: this.container.querySelector('#total-questions'),
+            totalCompleted: this.container.querySelector('#total-completed'),
+            accuracyRate: this.container.querySelector('#accuracy-rate'),
+            dailyCompleted: this.container.querySelector('#daily-completed')
+        };
+
+        if (elements.totalQuestions && stats.totalQuestions !== undefined) {
+            elements.totalQuestions.textContent = stats.totalQuestions + '+';
+        }
+        if (elements.totalCompleted && stats.totalCompleted !== undefined) {
+            elements.totalCompleted.textContent = stats.totalCompleted;
+        }
+        if (elements.accuracyRate && stats.accuracyRate !== undefined) {
+            elements.accuracyRate.textContent = stats.accuracyRate + '%';
+        }
+        if (elements.dailyCompleted && stats.dailyCompleted !== undefined) {
+            elements.dailyCompleted.textContent = stats.dailyCompleted;
+        }
+    }
+}
+
+// 导出组件类
+window.PracticeStatsComponent = PracticeStatsComponent;
+</script>

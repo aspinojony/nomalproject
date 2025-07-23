@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习记录管理 - 计算机考研学习平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- 头部 -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-database text-blue-500 mr-3"></i>
+                        学习记录管理
+                    </h1>
+                    <p class="text-gray-600 mt-2">导入导出学习数据，方便在不同设备间同步学习记录</p>
+                </div>
+                <a href="index.html" class="text-blue-500 hover:text-blue-600 flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    返回首页
+                </a>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-6">
+            <!-- 左侧：数据概览 -->
+            <div class="space-y-6">
+                <!-- 数据概览卡片 -->
+                <div class="bg-white rounded-xl shadow-sm p-6" x-data="dataOverview">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-chart-pie text-green-500 mr-3"></i>
+                        数据概览
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <div class="text-2xl font-bold text-blue-600" x-text="formatTime(totalStudyTime)"></div>
+                                <div class="text-sm text-blue-500">总学习时长</div>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <div class="text-2xl font-bold text-green-600" x-text="totalSessions"></div>
+                                <div class="text-sm text-green-500">学习会话</div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <div class="text-2xl font-bold text-purple-600" x-text="totalQuestions"></div>
+                                <div class="text-sm text-purple-500">答题总数</div>
+                            </div>
+                            <div class="bg-orange-50 p-4 rounded-lg">
+                                <div class="text-2xl font-bold text-orange-600" x-text="dailyStatsCount + '天'"></div>
+                                <div class="text-sm text-orange-500">学习天数</div>
+                            </div>
+                        </div>
+
+                        <!-- 章节进度统计 -->
+                        <div class="border-t pt-4">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                                <i class="fas fa-list-check text-indigo-500 mr-2"></i>
+                                章节进度统计
+                            </h3>
+                            
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="bg-indigo-50 p-4 rounded-lg">
+                                    <div class="text-2xl font-bold text-indigo-600" x-text="completedChapters + '/' + totalChapters"></div>
+                                    <div class="text-sm text-indigo-500">章节完成度</div>
+                                </div>
+                                <div class="bg-teal-50 p-4 rounded-lg">
+                                    <div class="text-2xl font-bold text-teal-600" x-text="Math.round(completionPercentage) + '%'"></div>
+                                    <div class="text-sm text-teal-500">完成百分比</div>
+                                </div>
+                            </div>
+
+                            <!-- 进度条 -->
+                            <div class="mb-4">
+                                <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+                                    <span>总体进度</span>
+                                    <span x-text="completedChapters + '/' + totalChapters + '章节'"></span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full transition-all duration-500"
+                                         :style="`width: ${completionPercentage}%`"></div>
+                                </div>
+                            </div>
+
+                            <!-- 课程进度详情 -->
+                            <div class="space-y-2" x-show="courseProgressDetails.length > 0">
+                                <template x-for="course in courseProgressDetails" :key="course.courseId">
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-gray-700" x-text="course.courseName"></span>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-gray-500" x-text="course.completedCount + '/' + course.totalChapters"></span>
+                                            <div class="w-20 bg-gray-200 rounded-full h-2">
+                                                <div class="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                                     :style="`width: ${course.completionRate}%`"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t pt-4">
+                            <div class="flex justify-between items-center text-sm text-gray-600">
+                                <span>数据完整性:</span>
+                                <span class="font-mono" x-text="dataIntegrity"></span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm text-gray-600 mt-1">
+                                <span>最后更新:</span>
+                                <span x-text="formatDate(lastUpdated)"></span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm text-gray-600 mt-1">
+                                <span>存储大小:</span>
+                                <span x-text="formatSize(storageSize)"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- 刷新按钮 -->
+                        <button @click="refreshData" 
+                                class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                            <i class="fas fa-sync-alt mr-2" :class="{ 'fa-spin': refreshing }"></i>
+                            刷新数据
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 数据备份状态 -->
+                <div class="bg-white rounded-xl shadow-sm p-6" x-data="backupStatus">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-shield-alt text-yellow-500 mr-3"></i>
+                        备份状态
+                    </h2>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">本地备份:</span>
+                            <span class="flex items-center" :class="hasBackup ? 'text-green-600' : 'text-gray-400'">
+                                <i :class="hasBackup ? 'fas fa-check-circle' : 'fas fa-times-circle'" class="mr-2"></i>
+                                <span x-text="hasBackup ? '已备份' : '无备份'"></span>
+                            </span>
+                        </div>
+                        
+                        <template x-if="hasBackup">
+                            <div class="bg-yellow-50 p-3 rounded-lg">
+                                <div class="text-sm text-yellow-800 mb-2">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    检测到导入前备份数据
+                                </div>
+                                <button @click="restoreBackup"
+                                        :disabled="restoring"
+                                        class="bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-300 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center">
+                                    <i class="fas fa-undo mr-2" :class="{ 'fa-spin': restoring }"></i>
+                                    恢复备份数据
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：导入导出操作 -->
+            <div class="space-y-6">
+                <!-- 导出数据 -->
+                <div class="bg-white rounded-xl shadow-sm p-6" x-data="exportData">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-download text-blue-500 mr-3"></i>
+                        导出学习记录
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">选择导出格式</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button @click="selectedFormat = 'json'"
+                                        :class="selectedFormat === 'json' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                        class="p-3 rounded-lg transition-colors flex items-center justify-center">
+                                    <i class="fab fa-js-square mr-2"></i>
+                                    JSON格式
+                                </button>
+                                <button @click="selectedFormat = 'csv'"
+                                        :class="selectedFormat === 'csv' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                        class="p-3 rounded-lg transition-colors flex items-center justify-center">
+                                    <i class="fas fa-table mr-2"></i>
+                                    CSV格式
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-medium text-gray-900 mb-2">格式说明</h4>
+                            <div class="text-sm text-gray-600 space-y-1">
+                                <template x-if="selectedFormat === 'json'">
+                                    <div>
+                                        <p>• 完整保存所有学习数据和配置</p>
+                                        <p>• 包含章节完成度和观看进度</p>
+                                        <p>• 支持完整导入恢复</p>
+                                        <p>• 推荐用于设备间迁移</p>
+                                    </div>
+                                </template>
+                                <template x-if="selectedFormat === 'csv'">
+                                    <div>
+                                        <p>• 表格格式，易于查看和分析</p>
+                                        <p>• 包含每日统计、科目统计、章节进度</p>
+                                        <p>• 可用Excel等软件打开</p>
+                                        <p>• 推荐用于数据分析</p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        
+                        <button @click="exportData"
+                                :disabled="exporting"
+                                class="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center">
+                            <i class="fas fa-download mr-2" :class="{ 'fa-spin': exporting }"></i>
+                            <span x-text="exporting ? '导出中...' : `导出${selectedFormat.toUpperCase()}文件`"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 导入数据 -->
+                <div class="bg-white rounded-xl shadow-sm p-6" x-data="importData">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-upload text-green-500 mr-3"></i>
+                        导入学习记录
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">选择JSON文件</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors"
+                                 @click="$refs.fileInput.click()"
+                                 @dragover.prevent
+                                 @drop.prevent="handleDrop">
+                                <input type="file" 
+                                       x-ref="fileInput" 
+                                       @change="handleFileSelect"
+                                       accept=".json"
+                                       class="hidden">
+                                <div class="space-y-2">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
+                                    <div class="text-gray-600">
+                                        <p class="font-medium">点击选择文件或拖拽到此处</p>
+                                        <p class="text-sm">支持 .json 格式</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <template x-if="selectedFile">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-file-code text-blue-500 mr-3"></i>
+                                        <div>
+                                            <div class="font-medium text-blue-900" x-text="selectedFile.name"></div>
+                                            <div class="text-sm text-blue-600" x-text="formatFileSize(selectedFile.size)"></div>
+                                        </div>
+                                    </div>
+                                    <button @click="clearFile" class="text-blue-500 hover:text-blue-700">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 mr-3 mt-0.5"></i>
+                                <div class="text-sm text-yellow-800">
+                                    <p class="font-medium mb-1">导入注意事项</p>
+                                    <ul class="space-y-1 text-xs">
+                                        <li>• 导入前会自动备份当前数据和章节进度</li>
+                                        <li>• 支持合并导入和替换导入</li>
+                                        <li>• 章节进度将智能合并或替换</li>
+                                        <li>• 如出现问题可恢复备份</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button @click="importData"
+                                :disabled="!selectedFile || importing"
+                                class="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center">
+                            <i class="fas fa-upload mr-2" :class="{ 'fa-spin': importing }"></i>
+                            <span x-text="importing ? '导入中...' : '导入学习记录'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作结果提示 -->
+        <div x-data="notification" 
+             x-show="show" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform translate-y-2"
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform translate-y-0"
+             x-transition:leave-end="opacity-0 transform translate-y-2"
+             class="fixed bottom-4 right-4 max-w-sm bg-white rounded-lg shadow-lg border p-4 z-50">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i :class="icon" class="text-xl"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-900" x-text="title"></p>
+                    <p class="text-sm text-gray-600 mt-1" x-text="message"></p>
+                </div>
+                <button @click="hide" class="ml-4 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入必要JS文件 -->
+    <script src="assets/js/stats-manager.js"></script>
+    
+    <!-- 页面逻辑 -->
+    <script>
+        // 全局通知组件
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('notification', () => ({
+                show: false,
+                title: '',
+                message: '',
+                icon: '',
+                
+                showSuccess(title, message) {
+                    this.show = true;
+                    this.title = title;
+                    this.message = message;
+                    this.icon = 'fas fa-check-circle text-green-500';
+                    setTimeout(() => this.hide(), 5000);
+                },
+                
+                showError(title, message) {
+                    this.show = true;
+                    this.title = title;
+                    this.message = message;
+                    this.icon = 'fas fa-times-circle text-red-500';
+                    setTimeout(() => this.hide(), 5000);
+                },
+                
+                showInfo(title, message) {
+                    this.show = true;
+                    this.title = title;
+                    this.message = message;
+                    this.icon = 'fas fa-info-circle text-blue-500';
+                    setTimeout(() => this.hide(), 5000);
+                },
+                
+                hide() {
+                    this.show = false;
+                }
+            }));
+
+            // 数据概览组件
+            Alpine.data('dataOverview', () => ({
+                totalStudyTime: 0,
+                totalSessions: 0,
+                totalQuestions: 0,
+                dailyStatsCount: 0,
+                storageSize: 0,
+                lastUpdated: '',
+                dataIntegrity: '',
+                refreshing: false,
+                // 章节进度相关
+                totalChapters: 0,
+                completedChapters: 0,
+                completionPercentage: 0,
+                courseProgressDetails: [],
+
+                init() {
+                    this.refreshData();
+                },
+
+                async refreshData() {
+                    this.refreshing = true;
+                    try {
+                        // 获取基础统计信息
+                        const info = window.studyStats.getStorageInfo();
+                        this.totalStudyTime = info.totalStudyTime || 0;
+                        this.totalSessions = info.totalSessions || 0;
+                        this.totalQuestions = window.studyStats.stats.totalQuestionsAnswered || 0;
+                        this.dailyStatsCount = info.dailyStatsCount || 0;
+                        this.storageSize = info.storageSize || 0;
+                        this.lastUpdated = info.lastUpdated || '';
+                        this.dataIntegrity = info.dataIntegrity || 'unknown';
+
+                        // 获取章节进度信息（使用新的兼容方法）
+                        await this.loadChapterProgress();
+                        
+                        console.log('📊 数据概览刷新完成:', {
+                            totalChapters: this.totalChapters,
+                            completedChapters: this.completedChapters,
+                            completionPercentage: this.completionPercentage,
+                            courseCount: this.courseProgressDetails.length
+                        });
+                    } catch (error) {
+                        console.error('刷新数据失败:', error);
+                        // 显示错误但不阻止界面
+                        this.totalChapters = 0;
+                        this.completedChapters = 0;
+                        this.completionPercentage = 0;
+                        this.courseProgressDetails = [];
+                    } finally {
+                        this.refreshing = false;
+                    }
+                },
+
+                async loadChapterProgress() {
+                    try {
+                        console.log('🔄 开始加载章节进度数据...');
+                        
+                        // 检查StudyStatsManager是否存在
+                        if (!window.studyStats || typeof window.studyStats.getAllChapterProgress !== 'function') {
+                            console.error('❌ StudyStatsManager未正确初始化');
+                            this.setDefaultChapterData();
+                            return;
+                        }
+                        
+                        // 使用更新后的getAllChapterProgress方法
+                        const chapterProgress = await window.studyStats.getAllChapterProgress();
+                        
+                        console.log('📥 获取到章节进度数据:', chapterProgress);
+                        
+                        // 验证数据结构
+                        if (!chapterProgress || typeof chapterProgress !== 'object') {
+                            console.error('❌ 章节进度数据格式无效:', chapterProgress);
+                            this.setDefaultChapterData();
+                            return;
+                        }
+                        
+                        this.totalChapters = chapterProgress.totalChapters || 0;
+                        this.completedChapters = chapterProgress.completedChapters || 0;
+                        this.completionPercentage = this.totalChapters > 0 ? 
+                            (this.completedChapters / this.totalChapters) * 100 : 0;
+
+                        // 构建课程进度详情
+                        this.courseProgressDetails = [];
+                        
+                        if (chapterProgress.courseProgress && typeof chapterProgress.courseProgress === 'object') {
+                            Object.values(chapterProgress.courseProgress).forEach(course => {
+                                if (!course || typeof course !== 'object') {
+                                    console.warn('⚠️ 无效的课程数据:', course);
+                                    return;
+                                }
+                                
+                                const totalChapters = course.chapters ? course.chapters.length : 0;
+                                const completedCount = course.completedCount || 0;
+                                const completionRate = totalChapters > 0 ? (completedCount / totalChapters) * 100 : 0;
+
+                                this.courseProgressDetails.push({
+                                    courseId: course.courseId || 'unknown',
+                                    courseName: course.courseName || '未知课程',
+                                    totalChapters: totalChapters,
+                                    completedCount: completedCount,
+                                    completionRate: Math.round(completionRate)
+                                });
+                            });
+
+                            // 按完成率排序
+                            this.courseProgressDetails.sort((a, b) => b.completionRate - a.completionRate);
+                        }
+
+                        console.log('✅ 章节进度加载完成:', {
+                            totalChapters: this.totalChapters,
+                            completedChapters: this.completedChapters,
+                            completionPercentage: Math.round(this.completionPercentage),
+                            coursesCount: this.courseProgressDetails.length,
+                            courses: this.courseProgressDetails.map(c => ({
+                                name: c.courseName,
+                                rate: c.completionRate + '%'
+                            }))
+                        });
+
+                    } catch (error) {
+                        console.error('加载章节进度失败:', error);
+                        // 设置默认值，避免UI显示异常
+                        this.setDefaultChapterData();
+                        
+                        // 可以选择显示错误提示给用户
+                        // this.showError('章节进度加载失败: ' + error.message);
+                    }
+                },
+
+                setDefaultChapterData() {
+                    this.totalChapters = 0;
+                    this.completedChapters = 0;
+                    this.completionPercentage = 0;
+                    this.courseProgressDetails = [];
+                    console.log('⚠️ 使用默认章节进度数据');
+                },
+
+                formatTime(minutes) {
+                    if (minutes < 60) return minutes + '分钟';
+                    const hours = Math.floor(minutes / 60);
+                    const mins = minutes % 60;
+                    return hours + '小时' + (mins > 0 ? mins + '分钟' : '');
+                },
+
+                formatDate(dateStr) {
+                    if (!dateStr) return '未知';
+                    return new Date(dateStr).toLocaleString('zh-CN');
+                },
+
+                formatSize(bytes) {
+                    if (bytes < 1024) return bytes + ' B';
+                    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+                    return Math.round(bytes / 1024 / 1024 * 10) / 10 + ' MB';
+                }
+            }));
+
+            // 备份状态组件
+            Alpine.data('backupStatus', () => ({
+                hasBackup: false,
+                restoring: false,
+
+                init() {
+                    this.checkBackup();
+                },
+
+                checkBackup() {
+                    const info = window.studyStats.getStorageInfo();
+                    this.hasBackup = info.hasBackup || false;
+                },
+
+                async restoreBackup() {
+                    this.restoring = true;
+                    try {
+                        const result = window.studyStats.restoreBackupData();
+                        if (result.success) {
+                            this.$dispatch('notify-success', {
+                                title: '恢复成功',
+                                message: '已恢复到导入前的数据状态'
+                            });
+                            this.hasBackup = false;
+                            // 刷新数据概览
+                            this.$dispatch('refresh-overview');
+                        } else {
+                            throw new Error(result.message);
+                        }
+                    } catch (error) {
+                        this.$dispatch('notify-error', {
+                            title: '恢复失败',
+                            message: error.message
+                        });
+                    } finally {
+                        this.restoring = false;
+                    }
+                }
+            }));
+
+            // 导出数据组件
+            Alpine.data('exportData', () => ({
+                selectedFormat: 'json',
+                exporting: false,
+
+                async exportData() {
+                    this.exporting = true;
+                    try {
+                        const result = window.studyStats.exportStudyData(this.selectedFormat);
+                        if (result.success) {
+                            this.$dispatch('notify-success', {
+                                title: '导出成功',
+                                message: `${this.selectedFormat.toUpperCase()}文件已下载到本地`
+                            });
+                        } else {
+                            throw new Error(result.message);
+                        }
+                    } catch (error) {
+                        this.$dispatch('notify-error', {
+                            title: '导出失败',
+                            message: error.message
+                        });
+                    } finally {
+                        this.exporting = false;
+                    }
+                }
+            }));
+
+            // 导入数据组件
+            Alpine.data('importData', () => ({
+                selectedFile: null,
+                importing: false,
+
+                handleFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (file && file.type === 'application/json') {
+                        this.selectedFile = file;
+                    } else {
+                        this.$dispatch('notify-error', {
+                            title: '文件格式错误',
+                            message: '请选择有效的JSON文件'
+                        });
+                    }
+                },
+
+                handleDrop(event) {
+                    const files = event.dataTransfer.files;
+                    if (files.length > 0) {
+                        const file = files[0];
+                        if (file.type === 'application/json') {
+                            this.selectedFile = file;
+                        } else {
+                            this.$dispatch('notify-error', {
+                                title: '文件格式错误',
+                                message: '请拖拽有效的JSON文件'
+                            });
+                        }
+                    }
+                },
+
+                clearFile() {
+                    this.selectedFile = null;
+                    this.$refs.fileInput.value = '';
+                },
+
+                async importData() {
+                    if (!this.selectedFile) return;
+                    
+                    this.importing = true;
+                    try {
+                        const result = await window.studyStats.importStudyData(this.selectedFile);
+                        if (result.success) {
+                            this.$dispatch('notify-success', {
+                                title: '导入成功',
+                                message: `数据已成功${result.strategy === 'merge' ? '合并' : '替换'}导入`
+                            });
+                            this.clearFile();
+                            // 刷新页面数据
+                            setTimeout(() => {
+                                this.$dispatch('refresh-overview');
+                                this.$dispatch('refresh-backup');
+                            }, 1000);
+                        } else {
+                            throw new Error(result.message);
+                        }
+                    } catch (error) {
+                        this.$dispatch('notify-error', {
+                            title: '导入失败',
+                            message: error.message
+                        });
+                    } finally {
+                        this.importing = false;
+                    }
+                },
+
+                formatFileSize(bytes) {
+                    if (bytes < 1024) return bytes + ' B';
+                    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+                    return Math.round(bytes / 1024 / 1024 * 10) / 10 + ' MB';
+                }
+            }));
+        });
+
+        // 监听自定义事件
+        document.addEventListener('notify-success', (e) => {
+            Alpine.store('notification').showSuccess(e.detail.title, e.detail.message);
+        });
+
+        document.addEventListener('notify-error', (e) => {
+            Alpine.store('notification').showError(e.detail.title, e.detail.message);
+        });
+
+        document.addEventListener('notify-info', (e) => {
+            Alpine.store('notification').showInfo(e.detail.title, e.detail.message);
+        });
+
+        document.addEventListener('refresh-overview', () => {
+            // 触发数据概览刷新
+            const overviewComponent = document.querySelector('[x-data="dataOverview"]');
+            if (overviewComponent) {
+                overviewComponent._x_dataStack[0].refreshData();
+            }
+        });
+
+        document.addEventListener('refresh-backup', () => {
+            // 触发备份状态刷新
+            const backupComponent = document.querySelector('[x-data="backupStatus"]');
+            if (backupComponent) {
+                backupComponent._x_dataStack[0].checkBackup();
+            }
+        });
+
+        // 创建全局通知store
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('notification', {
+                show: false,
+                title: '',
+                message: '',
+                icon: '',
+                
+                showSuccess(title, message) {
+                    const event = new CustomEvent('notify-success', {
+                        detail: { title, message }
+                    });
+                    document.dispatchEvent(event);
+                },
+                
+                showError(title, message) {
+                    const event = new CustomEvent('notify-error', {
+                        detail: { title, message }
+                    });
+                    document.dispatchEvent(event);
+                },
+                
+                showInfo(title, message) {
+                    const event = new CustomEvent('notify-info', {
+                        detail: { title, message }
+                    });
+                    document.dispatchEvent(event);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI助手集成测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- AI助手加载器 -->
+    <script src="../assets/js/ai-assistant-loader.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="max-w-4xl mx-auto p-8">
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">🤖 AI学习助手集成测试</h1>
+        
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- 状态检查 -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">📊 系统状态</h2>
+                <div id="system-status" class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>HTTP服务器:</span>
+                        <span class="text-green-600">✅ 已启动</span>
+                    </div>
+                    <div id="status-items"></div>
+                </div>
+                <button onclick="checkStatus()" 
+                        class="mt-4 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                    🔍 刷新状态
+                </button>
+            </div>
+
+            <!-- 功能测试 -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">🧪 功能测试</h2>
+                <div class="space-y-3">
+                    <button onclick="showAI()" 
+                            class="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">
+                        🚀 显示AI助手
+                    </button>
+                    <button onclick="hideAI()" 
+                            class="w-full bg-yellow-500 text-white py-2 rounded hover:bg-yellow-600">
+                        🙈 隐藏AI助手
+                    </button>
+                    <button onclick="toggleAI()" 
+                            class="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600">
+                        🔄 切换显示状态
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 日志输出 -->
+        <div class="mt-8 bg-gray-900 rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gray-800 px-4 py-2">
+                <h3 class="text-white font-medium">📝 测试日志</h3>
+            </div>
+            <div id="test-log" class="p-4 h-64 overflow-y-auto text-green-400 font-mono text-sm bg-gray-900">
+                等待测试开始...
+            </div>
+        </div>
+
+        <!-- 测试说明 -->
+        <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-blue-800 mb-3">📋 测试说明</h3>
+            <ul class="text-blue-700 space-y-2 text-sm">
+                <li>✅ <strong>CORS问题已修复:</strong> 不再使用fetch加载HTML组件，直接使用内嵌HTML</li>
+                <li>✅ <strong>脚本加载:</strong> 按顺序加载讯飞API、API管理器和悬浮窗脚本</li>
+                <li>✅ <strong>事件绑定:</strong> 优化了事件绑定机制，支持重试和错误处理</li>
+                <li>✅ <strong>触发按钮:</strong> 右下角脉冲按钮可以打开AI助手</li>
+                <li>⚙️ <strong>API配置:</strong> 首次使用需要配置讯飞星火X1的API密钥</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('test-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : '📝';
+            const color = type === 'error' ? 'text-red-400' : type === 'success' ? 'text-green-400' : 'text-blue-400';
+            
+            logDiv.innerHTML += `<div class="${color}">[${timestamp}] ${prefix} ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function checkStatus() {
+            log('检查系统状态...', 'info');
+            
+            const checks = [
+                { name: 'AI助手实例', value: !!window.aiAssistant },
+                { name: 'API管理器', value: !!window.aiAPIManager },
+                { name: 'Show方法', value: !!window.aiAssistant?.show },
+                { name: '触发按钮', value: !!document.getElementById('ai-assistant-trigger') },
+                { name: 'CSS样式', value: !!document.querySelector('link[href*="ai-assistant-float.css"]') },
+                { name: '悬浮窗DOM', value: !!document.getElementById('ai-assistant-float') }
+            ];
+
+            const statusContainer = document.getElementById('status-items');
+            statusContainer.innerHTML = '';
+            
+            checks.forEach(check => {
+                const status = check.value ? '✅' : '❌';
+                const color = check.value ? 'text-green-600' : 'text-red-600';
+                statusContainer.innerHTML += `
+                    <div class="flex justify-between">
+                        <span>${check.name}:</span>
+                        <span class="${color}">${status} ${check.value ? '正常' : '异常'}</span>
+                    </div>
+                `;
+                log(`${check.name}: ${check.value ? '✅ 正常' : '❌ 异常'}`, check.value ? 'success' : 'error');
+            });
+        }
+
+        function showAI() {
+            log('尝试显示AI助手...', 'info');
+            
+            if (window.aiAssistant && typeof window.aiAssistant.show === 'function') {
+                try {
+                    window.aiAssistant.show();
+                    log('AI助手显示成功！', 'success');
+                } catch (error) {
+                    log(`显示失败: ${error.message}`, 'error');
+                }
+            } else {
+                log('AI助手未正确初始化', 'error');
+                // 尝试重新初始化
+                setTimeout(() => {
+                    if (window.AIAssistantFloat && !window.aiAssistant) {
+                        try {
+                            window.aiAssistant = new AIAssistantFloat();
+                            log('重新初始化成功，尝试显示...', 'info');
+                            window.aiAssistant.show();
+                            log('延迟显示成功！', 'success');
+                        } catch (error) {
+                            log(`重新初始化失败: ${error.message}`, 'error');
+                        }
+                    }
+                }, 1000);
+            }
+        }
+
+        function hideAI() {
+            log('尝试隐藏AI助手...', 'info');
+            
+            if (window.aiAssistant && typeof window.aiAssistant.hide === 'function') {
+                try {
+                    window.aiAssistant.hide();
+                    log('AI助手已隐藏', 'success');
+                } catch (error) {
+                    log(`隐藏失败: ${error.message}`, 'error');
+                }
+            } else {
+                log('AI助手未初始化或hide方法不存在', 'error');
+            }
+        }
+
+        function toggleAI() {
+            log('切换AI助手显示状态...', 'info');
+            
+            if (window.aiAssistant && typeof window.aiAssistant.toggle === 'function') {
+                try {
+                    window.aiAssistant.toggle();
+                    log('切换成功', 'success');
+                } catch (error) {
+                    log(`切换失败: ${error.message}`, 'error');
+                }
+            } else {
+                log('AI助手未初始化或toggle方法不存在', 'error');
+            }
+        }
+
+        // 页面加载完成后自动检查
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                log('页面加载完成，开始自动检查...', 'info');
+                checkStatus();
+            }, 2000);
+        });
+
+        // 监听AI助手加载完成事件
+        window.addEventListener('ai-loaded', function() {
+            log('接收到AI助手加载完成事件', 'success');
+            checkStatus();
+        });
+
+        // 捕获错误
+        window.addEventListener('error', function(event) {
+            const message = event.error?.message || event.message || '未知错误';
+            if (message.includes('CORS')) {
+                log('CORS错误已解决！如看到此消息说明有新问题: ' + message, 'error');
+            } else {
+                log('捕获到错误: ' + message, 'error');
+            }
+        });
+
+        // 启动时的欢迎信息
+        setTimeout(() => {
+            log('🎉 AI助手集成测试启动', 'success');
+            log('等待组件加载完成...', 'info');
+        }, 100);
+    </script>
+</body>
+</html>

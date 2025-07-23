@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>外部文件加载测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../assets/css/common.css" rel="stylesheet">
+    <script src="../assets/js/course-data.js"></script>
+    <script src="../assets/js/fallback-data.js"></script>
+    <script src="../assets/js/resource-loader.js"></script>
+</head>
+<body class="bg-gray-50" x-data="testApp()">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8 fade-in-up">外部文件加载测试</h1>
+        
+        <!-- 加载状态显示 -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 card-hover fade-in-up stagger-1">
+                <i class="fas fa-file-alt text-4xl text-blue-500 mb-4"></i>
+                <h3 class="text-xl font-semibold mb-2">CSS文件</h3>
+                <p class="text-gray-600" x-text="cssStatus"></p>
+                <div class="mt-2">
+                    <span class="text-sm" :class="cssLoaded ? 'text-green-600' : 'text-orange-600'" 
+                          x-text="cssLoaded ? '✅ 已加载' : '⏳ 加载中'"></span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 card-hover fade-in-up stagger-2">
+                <i class="fas fa-database text-4xl text-green-500 mb-4"></i>
+                <h3 class="text-xl font-semibold mb-2">JSON数据</h3>
+                <p class="text-gray-600" x-text="jsonStatus"></p>
+                <div class="mt-2">
+                    <span class="text-sm" :class="jsonLoaded ? 'text-green-600' : 'text-orange-600'" 
+                          x-text="jsonLoaded ? '✅ 已加载' : '⏳ 加载中'"></span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 card-hover fade-in-up stagger-3">
+                <i class="fas fa-code text-4xl text-purple-500 mb-4"></i>
+                <h3 class="text-xl font-semibold mb-2">JavaScript</h3>
+                <p class="text-gray-600" x-text="jsStatus"></p>
+                <div class="mt-2">
+                    <span class="text-sm" :class="jsLoaded ? 'text-green-600' : 'text-orange-600'" 
+                          x-text="jsLoaded ? '✅ 已加载' : '⏳ 加载中'"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 测试按钮 -->
+        <div class="text-center mb-8">
+            <button @click="testLoad()" 
+                    class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 button-press">
+                <i class="fas fa-sync-alt mr-2"></i>
+                重新测试加载
+            </button>
+        </div>
+
+        <!-- 数据预览 -->
+        <div class="bg-white rounded-lg shadow-lg p-6" x-show="courseData.length > 0">
+            <h3 class="text-xl font-semibold mb-4">
+                <i class="fas fa-eye text-blue-500 mr-2"></i>
+                数据预览
+            </h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <template x-for="course in courseData.slice(0, 6)" :key="course.id">
+                    <div class="border rounded-lg p-4 hover:shadow-md transition">
+                        <h4 class="font-semibold" x-text="course.name"></h4>
+                        <p class="text-sm text-gray-600" x-text="course.desc"></p>
+                        <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded mt-2 inline-block">
+                            <span x-text="course.chapters ? course.chapters.length : 0"></span> 章节
+                        </span>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- 网络状态 -->
+        <div class="mt-8 text-center">
+            <div class="inline-flex items-center px-4 py-2 rounded-lg" 
+                 :class="navigator.onLine ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                <i :class="navigator.onLine ? 'fas fa-wifi' : 'fas fa-wifi-slash'" class="mr-2"></i>
+                <span x-text="navigator.onLine ? '网络连接正常' : '网络连接断开'"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function testApp() {
+            return {
+                cssStatus: '检查CSS样式是否正确应用',
+                cssLoaded: true,
+                jsonStatus: '测试JSON数据加载',
+                jsonLoaded: false,
+                jsStatus: '测试JavaScript模块加载',
+                jsLoaded: true,
+                courseData: [],
+
+                async init() {
+                    console.log('🚀 开始测试资源加载...');
+                    
+                    // 检查CSS是否加载
+                    this.checkCSS();
+                    
+                    // 测试JSON加载
+                    await this.testJSONLoad();
+                    
+                    // 检查JavaScript模块
+                    this.checkJS();
+                },
+
+                checkCSS() {
+                    try {
+                        // 检查是否有自定义CSS类
+                        const testEl = document.createElement('div');
+                        testEl.className = 'card-hover';
+                        document.body.appendChild(testEl);
+                        
+                        const styles = window.getComputedStyle(testEl);
+                        const hasTransition = styles.transition !== 'all 0s ease 0s';
+                        
+                        document.body.removeChild(testEl);
+                        
+                        if (hasTransition) {
+                            this.cssStatus = 'CSS文件加载成功，动画效果正常';
+                            this.cssLoaded = true;
+                        } else {
+                            this.cssStatus = 'CSS文件可能未正确加载';
+                            this.cssLoaded = false;
+                        }
+                    } catch (error) {
+                        this.cssStatus = 'CSS检查出错: ' + error.message;
+                        this.cssLoaded = false;
+                    }
+                },
+
+                async testJSONLoad() {
+                    try {
+                        const loader = window.resourceLoader;
+                        this.jsonStatus = '正在测试多策略加载...';
+                        
+                        // 测试多策略加载
+                        const data = await loader.loadJSON(
+                            'bilibilicatgorybydifficulty.json', 
+                            window.fallbackCourseData,
+                            { useJSFallback: true }
+                        );
+                        
+                        this.courseData = data;
+                        this.jsonStatus = `多策略加载成功！共 ${data.length} 门课程`;
+                        this.jsonLoaded = true;
+                        
+                        // 显示使用的数据源
+                        if (window.courseDataMain && data === window.courseDataMain) {
+                            this.jsonStatus += ' (来源: JavaScript数据文件)';
+                        } else if (data === window.fallbackCourseData) {
+                            this.jsonStatus += ' (来源: 备用数据)';
+                        } else {
+                            this.jsonStatus += ' (来源: JSON文件)';
+                        }
+                        
+                    } catch (error) {
+                        this.jsonStatus = 'JSON加载失败: ' + error.message;
+                        this.jsonLoaded = false;
+                        
+                        // 最后的备用策略
+                        if (window.fallbackCourseData) {
+                            this.courseData = window.fallbackCourseData;
+                            this.jsonStatus = '使用最终备用数据，共 ' + this.courseData.length + ' 门课程';
+                            this.jsonLoaded = true;
+                        }
+                    }
+                },
+
+                checkJS() {
+                    try {
+                        const checks = [];
+                        
+                        if (window.resourceLoader) {
+                            checks.push('✅ 资源加载器');
+                        } else {
+                            checks.push('❌ 资源加载器');
+                        }
+                        
+                        if (window.courseDataMain) {
+                            checks.push('✅ 主数据文件');
+                        } else {
+                            checks.push('❌ 主数据文件');
+                        }
+                        
+                        if (window.fallbackCourseData) {
+                            checks.push('✅ 备用数据');
+                        } else {
+                            checks.push('❌ 备用数据');
+                        }
+                        
+                        this.jsStatus = checks.join(' | ');
+                        this.jsLoaded = !this.jsStatus.includes('❌');
+                    } catch (error) {
+                        this.jsStatus = 'JavaScript检查出错: ' + error.message;
+                        this.jsLoaded = false;
+                    }
+                },
+
+                async testLoad() {
+                    // 重置状态
+                    this.cssLoaded = false;
+                    this.jsonLoaded = false;
+                    this.jsLoaded = false;
+                    this.courseData = [];
+                    
+                    // 重新测试
+                    await this.init();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "description": "考研题目导入模板 - JSON格式",
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "instructions": "请按照以下格式填写题目数据，然后导入到题目管理工具中"
+  },
+  "questions": [
+    {
+      "subject": "高等数学",
+      "chapter": "极限与连续", 
+      "year": 2024,
+      "difficulty": "中等",
+      "points": 4,
+      "question": "函数f(x) = ln(x)的导数是（）",
+      "options": ["1/x", "x", "ln(x)", "e^x"],
+      "correct_answer": 0,
+      "explanation": "ln(x)的导数是1/x。这是对数函数求导的基本公式。",
+      "tags": ["导数", "对数函数", "基本公式"]
+    },
+    {
+      "subject": "线性代数", 
+      "chapter": "矩阵运算",
+      "year": 2024,
+      "difficulty": "简单",
+      "points": 3,
+      "question": "单位矩阵的行列式值为（）",
+      "options": ["0", "1", "-1", "不确定"],
+      "correct_answer": 1,
+      "explanation": "单位矩阵的行列式值恒为1，因为单位矩阵主对角线上都是1，其余位置都是0。",
+      "tags": ["单位矩阵", "行列式", "基础概念"]
+    },
+    {
+      "subject": "概率论与数理统计",
+      "chapter": "随机变量",
+      "year": 2024, 
+      "difficulty": "困难",
+      "points": 5,
+      "question": "设随机变量X服从标准正态分布N(0,1)，则P(-1 < X < 1)约等于（）",
+      "options": ["0.5", "0.68", "0.95", "0.99"],
+      "correct_answer": 1,
+      "explanation": "根据3σ原则，标准正态分布中约68%的值落在均值±1σ范围内，即P(-1 < X < 1) ≈ 0.68。",
+      "tags": ["正态分布", "3σ原则", "概率计算"]
+    },
+    {
+      "subject": "政治",
+      "chapter": "中国特色社会主义",
+      "year": 2024,
+      "difficulty": "中等", 
+      "points": 2,
+      "question": "中国特色社会主义的根本任务是（）",
+      "options": ["解放生产力，发展生产力", "实现共同富裕", "坚持党的领导", "建设社会主义现代化强国"],
+      "correct_answer": 0,
+      "explanation": "解放生产力、发展生产力是社会主义的根本任务。这是邓小平理论的重要内容。",
+      "tags": ["中国特色社会主义", "根本任务", "生产力"]
+    },
+    {
+      "subject": "英语",
+      "chapter": "阅读理解",
+      "year": 2024,
+      "difficulty": "中等",
+      "points": 2,
+      "question": "According to the passage, the main reason for climate change is ______.",
+      "options": ["natural variation", "human activities", "solar radiation", "volcanic eruptions"],
+      "correct_answer": 1,
+      "explanation": "根据文章内容，气候变化的主要原因是人类活动。这是当代科学界的主流观点。",
+      "tags": ["阅读理解", "气候变化", "主旨题"]
+    }
+  ]
+}
