@@ -9,6 +9,8 @@
 - 📝 **智能题库** - 1280+历年真题，支持多种练习模式
 - 📖 **笔记管理** - 富文本编辑，分类管理，云端同步
 - 📊 **学习统计** - 详细的学习数据分析和进度跟踪
+- 🔐 **用户认证系统** - JWT认证，安全登录，数据隔离
+- ☁️ **云端同步** - 实时数据同步，跨设备学习
 - 🎨 **现代界面** - 基于现代设计规范的美观界面
 - 📱 **响应式设计** - 完美支持PC、平板、手机
 - 🧪 **测试管理** - 完整的开发测试工具集
@@ -46,16 +48,34 @@ npx serve .
 ├── assets/                   # 资源文件
 │   ├── js/                  # JavaScript文件
 │   │   ├── core/           # 核心模块系统
+│   │   │   ├── module-system.js    # 模块系统
+│   │   │   ├── state-manager.js    # 状态管理
+│   │   │   └── event-bus.js        # 事件总线
+│   │   ├── auth-manager.js         # 用户认证管理
+│   │   ├── cloud-sync-storage.js   # 云端同步存储
+│   │   ├── realtime-sync-manager.js # 实时同步管理
 │   │   ├── ai-*.js         # AI相关功能
 │   │   └── stats-*.js      # 统计相关功能  
 │   ├── css/                # 样式文件
 │   ├── components/         # HTML组件
+│   │   ├── user-auth.html          # 用户认证组件
+│   │   ├── cloud-sync-*.html       # 云端同步组件
+│   │   └── *.html                  # 其他UI组件
 │   └── data/              # 数据文件
 ├── test/                   # 测试文件目录
 │   ├── index.html         # 🧪 测试管理中心
 │   └── *.html            # 各类功能测试页面
 ├── server/                # 后端服务（可选）
-└── docs/                  # 文档文件
+│   ├── app.js            # Express服务器
+│   ├── models/           # MongoDB数据模型
+│   ├── routes/           # API路由
+│   │   ├── auth.js       # 认证路由
+│   │   ├── sync.js       # 同步路由
+│   │   └── conversations.js # 对话路由
+│   └── services/         # 业务逻辑服务
+├── CLAUDE.md             # Claude Code开发指南
+├── USER_GUIDE.md         # 用户使用指南
+└── docs/                 # 文档文件
 ```
 
 ## 🧪 测试管理中心
@@ -111,6 +131,11 @@ const AI_CONFIG = {
    - 学习建议和路径规划  
    - 代码分析和优化建议
 
+4. **用户认证与云端同步**
+   - JWT认证系统，确保数据安全
+   - 跨设备实时数据同步
+   - 用户学习数据隔离和备份
+
 ### 📊 数据分析功能
 
 1. **学习统计**
@@ -162,10 +187,22 @@ npm install
 
 # 配置环境变量
 cp .env.example .env
+# 编辑 .env 文件，配置以下变量：
+# MONGODB_URI=mongodb://localhost:27017/nomalproject
+# JWT_SECRET=your-jwt-secret-key
+# PORT=3000
 
 # 启动服务
 npm start
+
+# 开发模式（自动重启）
+npm run dev
 ```
+
+**环境要求**：
+- Node.js 14+
+- MongoDB 4.4+
+- 支持WebSocket的服务器环境
 
 ## 📱 移动端支持
 
@@ -203,12 +240,14 @@ npm start
 
 ## 📈 项目统计
 
-- 🎯 **核心功能**: 15+ 主要功能模块
+- 🎯 **核心功能**: 20+ 主要功能模块
 - 📝 **题库容量**: 1280+ 历年真题
-- 🧪 **测试覆盖**: 15+ 测试页面
+- 🧪 **测试覆盖**: 25+ 测试页面
 - 📚 **文档完整度**: 详细的使用和开发文档
 - 🎨 **界面现代化**: 基于现代设计规范
 - 🛠️ **开发工具**: 完整的测试管理系统
+- 🔐 **安全认证**: JWT用户认证系统
+- ☁️ **云端功能**: 实时数据同步和备份
 
 ---
 
