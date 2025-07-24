@@ -190,7 +190,7 @@ npm start
 
 ## 👨‍💻 作者信息
 
-- **开发者**: ouyangzhiheng
+- **开发者**: aspinojony
 - **邮箱**: aspinojony@gmail.com  
 - **GitHub**: [@aspinojony](https://github.com/aspinojony)
 
