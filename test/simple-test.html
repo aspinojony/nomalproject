@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简化AI助手测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">🧪 简化AI助手测试</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">手动加载步骤</h2>
+            <div class="space-y-3">
+                <button onclick="step1()" class="w-full bg-blue-500 text-white p-3 rounded">
+                    1️⃣ 加载CSS样式
+                </button>
+                <button onclick="step2()" class="w-full bg-green-500 text-white p-3 rounded">
+                    2️⃣ 加载讯飞API
+                </button>
+                <button onclick="step3()" class="w-full bg-purple-500 text-white p-3 rounded">
+                    3️⃣ 加载API管理器
+                </button>
+                <button onclick="step4()" class="w-full bg-orange-500 text-white p-3 rounded">
+                    4️⃣ 加载悬浮窗
+                </button>
+                <button onclick="step5()" class="w-full bg-red-500 text-white p-3 rounded">
+                    5️⃣ 初始化并显示
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold mb-4">状态显示</h2>
+            <div id="status" class="bg-gray-100 p-4 rounded font-mono text-sm whitespace-pre-wrap"></div>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(message) {
+            const status = document.getElementById('status');
+            const timestamp = new Date().toLocaleTimeString();
+            status.textContent += `[${timestamp}] ${message}\n`;
+        }
+
+        async function step1() {
+            updateStatus('加载CSS样式...');
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '../assets/css/ai-assistant-float.css';
+            link.onload = () => updateStatus('✅ CSS加载成功');
+            link.onerror = () => updateStatus('❌ CSS加载失败');
+            document.head.appendChild(link);
+        }
+
+        async function step2() {
+            updateStatus('加载讯飞API...');
+            try {
+                await loadScript('../assets/js/xunfei-spark-api.js');
+                updateStatus('✅ 讯飞API加载成功');
+            } catch (error) {
+                updateStatus('❌ 讯飞API加载失败: ' + error.message);
+            }
+        }
+
+        async function step3() {
+            updateStatus('加载API管理器...');
+            try {
+                await loadScript('../assets/js/ai-api-manager.js');
+                updateStatus('✅ API管理器加载成功');
+            } catch (error) {
+                updateStatus('❌ API管理器加载失败: ' + error.message);
+            }
+        }
+
+        async function step4() {
+            updateStatus('加载悬浮窗...');
+            try {
+                await loadScript('../assets/js/ai-assistant-float.js');
+                updateStatus('✅ 悬浮窗加载成功');
+            } catch (error) {
+                updateStatus('❌ 悬浮窗加载失败: ' + error.message);
+            }
+        }
+
+        async function step5() {
+            updateStatus('初始化AI助手...');
+            try {
+                // 初始化API管理器
+                if (!window.aiAPIManager && window.AIAPIManager) {
+                    window.aiAPIManager = new AIAPIManager();
+                    updateStatus('✅ API管理器初始化完成');
+                }
+
+                // 初始化AI助手
+                if (!window.aiAssistant && window.AIAssistantFloat) {
+                    window.aiAssistant = new AIAssistantFloat();
+                    updateStatus('✅ AI助手初始化完成');
+                    
+                    // 等待一会儿再显示
+                    setTimeout(() => {
+                        if (window.aiAssistant.show) {
+                            window.aiAssistant.show();
+                            updateStatus('✅ AI助手窗口已显示');
+                        } else {
+                            updateStatus('❌ AI助手show方法不存在');
+                        }
+                    }, 1000);
+                } else {
+                    updateStatus('❌ AI助手类不可用');
+                }
+
+                // 添加触发按钮
+                addTriggerButton();
+                
+            } catch (error) {
+                updateStatus('❌ 初始化失败: ' + error.message);
+            }
+        }
+
+        function addTriggerButton() {
+            if (document.getElementById('manual-trigger')) return;
+            
+            const button = document.createElement('button');
+            button.id = 'manual-trigger';
+            button.innerHTML = '🤖';
+            button.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            
+            button.addEventListener('click', function() {
+                updateStatus('手动触发按钮被点击');
+                if (window.aiAssistant) {
+                    try {
+                        window.aiAssistant.show();
+                        updateStatus('✅ AI助手已显示');
+                    } catch (error) {
+                        updateStatus('❌ 显示失败: ' + error.message);
+                    }
+                } else {
+                    updateStatus('❌ AI助手未初始化');
+                }
+            });
+            
+            document.body.appendChild(button);
+            updateStatus('✅ 手动触发按钮已添加');
+        }
+
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                if (document.querySelector(`script[src="${src}"]`)) {
+                    resolve();
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // 捕获错误
+        window.addEventListener('error', function(event) {
+            updateStatus('❌ 全局错误: ' + (event.error?.message || event.message));
+        });
+
+        updateStatus('页面加载完成，请依次点击按钮进行测试');
+    </script>
+</body>
+</html>

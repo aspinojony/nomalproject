@@ -1,0 +1,17 @@
+{
+  "name": "kaoyan-platform",
+  "version": "1.0.0",
+  "description": "计算机考研学习平台",
+  "scripts": {
+    "start": "serve -s . -l 3000",
+    "dev": "serve -s . -l 3000",
+    "build": "echo 'No build process needed for static site'",
+    "deploy": "vercel --prod"
+  },
+  "devDependencies": {
+    "serve": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

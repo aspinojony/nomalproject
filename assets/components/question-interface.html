@@ -1,0 +1,351 @@
+<!-- 答题界面组件 -->
+<template id="question-interface-template">
+    <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+        <!-- 答题头部 -->
+        <div class="bg-white shadow-sm border-b sticky top-16 z-40">
+            <div class="max-w-4xl mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-4">
+                        <button id="exit-practice" class="flex items-center space-x-2 text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>退出练习</span>
+                        </button>
+                        <div class="text-sm text-gray-600">
+                            <span id="current-index">1</span> / <span id="total-count">10</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- 计时器 -->
+                        <div class="timer text-white px-4 py-2 rounded-full text-sm font-medium">
+                            <i class="fas fa-clock mr-2"></i>
+                            <span id="timer-display">30:00</span>
+                        </div>
+                        <!-- 进度条 -->
+                        <div class="w-32 bg-gray-200 rounded-full h-2">
+                            <div class="bg-indigo-500 h-2 rounded-full transition-all duration-300" id="progress-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 答题区域 -->
+        <div class="max-w-4xl mx-auto px-4 py-8">
+            <div class="question-card rounded-xl shadow-lg p-8">
+                <!-- 题目信息 -->
+                <div class="flex justify-between items-start mb-6">
+                    <div class="flex items-center space-x-3" id="question-meta">
+                        <!-- 题目元信息将在这里动态生成 -->
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button id="favorite-btn" class="p-2 rounded-lg hover:bg-gray-100 transition text-gray-400">
+                            <i class="fas fa-star text-lg"></i>
+                        </button>
+                        <div class="text-sm text-gray-500">
+                            分值: <span id="question-points">2</span>分
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 题目内容 -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-medium text-gray-800 leading-relaxed" id="question-content"></h3>
+                </div>
+
+                <!-- 选项 -->
+                <div class="space-y-3 mb-8" id="options-container">
+                    <!-- 选项将在这里动态生成 -->
+                </div>
+
+                <!-- 答案解析 -->
+                <div id="answer-explanation" class="bg-gray-50 rounded-lg p-6 mb-6 hidden">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <i class="fas fa-lightbulb text-yellow-500"></i>
+                        <h4 class="font-medium text-gray-800">答案解析</h4>
+                    </div>
+                    <div class="mb-3">
+                        <span class="text-sm text-gray-600">正确答案: </span>
+                        <span class="font-medium text-green-600" id="correct-answer-display"></span>
+                    </div>
+                    <p class="text-gray-700 leading-relaxed" id="explanation-text"></p>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="flex justify-between items-center">
+                    <button id="prev-btn" class="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition hidden">
+                        <i class="fas fa-chevron-left"></i>
+                        <span>上一题</span>
+                    </button>
+                    <div></div>
+                    
+                    <div class="flex space-x-3">
+                        <button id="submit-btn" class="bg-indigo-500 text-white px-8 py-3 rounded-lg hover:bg-indigo-600 transition font-medium hidden">
+                            提交答案
+                        </button>
+                        
+                        <button id="next-btn" class="flex items-center space-x-2 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition hidden">
+                            <span>下一题</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        
+                        <button id="finish-btn" class="bg-purple-500 text-white px-8 py-3 rounded-lg hover:bg-purple-600 transition font-medium hidden">
+                            完成练习
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+class QuestionInterfaceComponent {
+    constructor(container, options = {}) {
+        this.container = container;
+        this.options = {
+            onExit: null,
+            onSubmit: null,
+            onNext: null,
+            onPrevious: null,
+            onFinish: null,
+            onFavorite: null,
+            ...options
+        };
+        this.currentQuestion = null;
+        this.selectedAnswer = null;
+        this.showAnswer = false;
+        this.isAnswered = false;
+        this.isFavorite = false;
+        this.init();
+    }
+
+    init() {
+        this.render();
+        this.bindEvents();
+    }
+
+    render() {
+        const template = document.getElementById('question-interface-template');
+        const clone = template.content.cloneNode(true);
+        this.container.appendChild(clone);
+    }
+
+    bindEvents() {
+        const exitBtn = this.container.querySelector('#exit-practice');
+        const submitBtn = this.container.querySelector('#submit-btn');
+        const nextBtn = this.container.querySelector('#next-btn');
+        const prevBtn = this.container.querySelector('#prev-btn');
+        const finishBtn = this.container.querySelector('#finish-btn');
+        const favoriteBtn = this.container.querySelector('#favorite-btn');
+
+        if (exitBtn) exitBtn.addEventListener('click', () => this.handleExit());
+        if (submitBtn) submitBtn.addEventListener('click', () => this.handleSubmit());
+        if (nextBtn) nextBtn.addEventListener('click', () => this.handleNext());
+        if (prevBtn) prevBtn.addEventListener('click', () => this.handlePrevious());
+        if (finishBtn) finishBtn.addEventListener('click', () => this.handleFinish());
+        if (favoriteBtn) favoriteBtn.addEventListener('click', () => this.handleFavorite());
+    }
+
+    loadQuestion(question, questionIndex, totalQuestions, timeRemaining) {
+        this.currentQuestion = question;
+        this.selectedAnswer = null;
+        this.showAnswer = false;
+        this.isAnswered = false;
+
+        // 更新题目信息
+        this.updateQuestionMeta(question);
+        this.updateProgress(questionIndex, totalQuestions);
+        this.updateTimer(timeRemaining);
+        this.updateQuestionContent(question);
+        this.updateOptions(question.options);
+        this.updateButtons(questionIndex, totalQuestions);
+        this.hideExplanation();
+    }
+
+    updateQuestionMeta(question) {
+        const metaContainer = this.container.querySelector('#question-meta');
+        metaContainer.innerHTML = `
+            <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">${question.subject}</span>
+            <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">${question.year}年真题</span>
+            <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">${question.difficulty}</span>
+        `;
+
+        const pointsElement = this.container.querySelector('#question-points');
+        if (pointsElement) pointsElement.textContent = question.points || 2;
+    }
+
+    updateProgress(current, total) {
+        const currentElement = this.container.querySelector('#current-index');
+        const totalElement = this.container.querySelector('#total-count');
+        const progressBar = this.container.querySelector('#progress-bar');
+
+        if (currentElement) currentElement.textContent = current + 1;
+        if (totalElement) totalElement.textContent = total;
+        if (progressBar) {
+            const percentage = ((current + 1) / total) * 100;
+            progressBar.style.width = `${percentage}%`;
+        }
+    }
+
+    updateTimer(timeRemaining) {
+        const timerElement = this.container.querySelector('#timer-display');
+        if (timerElement) {
+            timerElement.textContent = Utils.formatTime(timeRemaining);
+        }
+    }
+
+    updateQuestionContent(question) {
+        const contentElement = this.container.querySelector('#question-content');
+        if (contentElement) {
+            contentElement.innerHTML = question.question;
+        }
+    }
+
+    updateOptions(options) {
+        const optionsContainer = this.container.querySelector('#options-container');
+        optionsContainer.innerHTML = '';
+
+        options.forEach((option, index) => {
+            const optionElement = document.createElement('button');
+            optionElement.className = 'option-button w-full text-left p-4 border-2 rounded-lg border-gray-200 hover:border-indigo-300';
+            optionElement.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center text-sm font-medium border-current">
+                        <span>${String.fromCharCode(65 + index)}</span>
+                    </div>
+                    <span>${option}</span>
+                </div>
+            `;
+
+            optionElement.addEventListener('click', () => this.selectOption(index));
+            optionsContainer.appendChild(optionElement);
+        });
+    }
+
+    selectOption(index) {
+        if (this.showAnswer) return;
+
+        this.selectedAnswer = index;
+        this.updateOptionStyles();
+        this.updateButtons();
+    }
+
+    updateOptionStyles() {
+        const options = this.container.querySelectorAll('.option-button');
+        
+        options.forEach((option, index) => {
+            option.className = 'option-button w-full text-left p-4 border-2 rounded-lg';
+            
+            if (!this.showAnswer) {
+                if (index === this.selectedAnswer) {
+                    option.className += ' option-selected border-indigo-500';
+                } else {
+                    option.className += ' border-gray-200 hover:border-indigo-300';
+                }
+            } else {
+                if (index === this.currentQuestion.correctAnswer) {
+                    option.className += ' option-correct border-green-500';
+                } else if (index === this.selectedAnswer && index !== this.currentQuestion.correctAnswer) {
+                    option.className += ' option-wrong border-red-500';
+                } else {
+                    option.className += ' border-gray-200';
+                }
+            }
+        });
+    }
+
+    updateButtons(questionIndex = 0, totalQuestions = 1) {
+        const submitBtn = this.container.querySelector('#submit-btn');
+        const nextBtn = this.container.querySelector('#next-btn');
+        const prevBtn = this.container.querySelector('#prev-btn');
+        const finishBtn = this.container.querySelector('#finish-btn');
+
+        // 显示/隐藏上一题按钮
+        if (prevBtn) {
+            prevBtn.classList.toggle('hidden', questionIndex === 0);
+        }
+
+        if (!this.showAnswer) {
+            // 未回答状态
+            submitBtn?.classList.toggle('hidden', this.selectedAnswer === null);
+            nextBtn?.classList.add('hidden');
+            finishBtn?.classList.add('hidden');
+        } else {
+            // 已回答状态
+            submitBtn?.classList.add('hidden');
+            
+            if (questionIndex < totalQuestions - 1) {
+                nextBtn?.classList.remove('hidden');
+                finishBtn?.classList.add('hidden');
+            } else {
+                nextBtn?.classList.add('hidden');
+                finishBtn?.classList.remove('hidden');
+            }
+        }
+    }
+
+    showExplanation() {
+        this.showAnswer = true;
+        this.isAnswered = true;
+        
+        const explanationElement = this.container.querySelector('#answer-explanation');
+        const correctAnswerElement = this.container.querySelector('#correct-answer-display');
+        const explanationText = this.container.querySelector('#explanation-text');
+
+        if (explanationElement) explanationElement.classList.remove('hidden');
+        if (correctAnswerElement) {
+            correctAnswerElement.textContent = String.fromCharCode(65 + this.currentQuestion.correctAnswer);
+        }
+        if (explanationText) {
+            explanationText.textContent = this.currentQuestion.explanation;
+        }
+
+        this.updateOptionStyles();
+        this.updateButtons();
+    }
+
+    hideExplanation() {
+        const explanationElement = this.container.querySelector('#answer-explanation');
+        if (explanationElement) explanationElement.classList.add('hidden');
+    }
+
+    updateFavoriteStatus(isFavorite) {
+        this.isFavorite = isFavorite;
+        const favoriteBtn = this.container.querySelector('#favorite-btn');
+        if (favoriteBtn) {
+            favoriteBtn.className = `p-2 rounded-lg hover:bg-gray-100 transition ${
+                isFavorite ? 'text-yellow-500' : 'text-gray-400'
+            }`;
+        }
+    }
+
+    handleExit() {
+        if (this.options.onExit) this.options.onExit();
+    }
+
+    handleSubmit() {
+        if (this.selectedAnswer !== null && this.options.onSubmit) {
+            this.options.onSubmit(this.selectedAnswer);
+        }
+    }
+
+    handleNext() {
+        if (this.options.onNext) this.options.onNext();
+    }
+
+    handlePrevious() {
+        if (this.options.onPrevious) this.options.onPrevious();
+    }
+
+    handleFinish() {
+        if (this.options.onFinish) this.options.onFinish();
+    }
+
+    handleFavorite() {
+        if (this.options.onFavorite) this.options.onFavorite(this.currentQuestion);
+    }
+}
+
+// 导出组件类
+window.QuestionInterfaceComponent = QuestionInterfaceComponent;
+</script>

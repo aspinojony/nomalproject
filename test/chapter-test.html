@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>章节选择器测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #f8fafc; }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+            <h1 class="text-2xl font-bold text-center mb-6">章节选择器测试</h1>
+            
+            <div class="space-y-4">
+                <button id="test-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                    测试章节选择器
+                </button>
+                
+                <div id="status" class="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                    点击按钮测试章节选择器功能
+                </div>
+                
+                <div id="result" class="text-sm text-green-600 bg-green-50 p-3 rounded" style="display: none;">
+                    <!-- 选择结果将显示在这里 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 课程数据和脚本 -->
+    <script src="../assets/js/course-data.js"></script>
+    <script src="../assets/js/fallback-data.js"></script>
+    <script src="../assets/js/resource-loader.js"></script>
+    <script src="../assets/js/chapter-selector.js"></script>
+    
+    <script>
+        const statusEl = document.getElementById('status');
+        const resultEl = document.getElementById('result');
+        const testBtn = document.getElementById('test-btn');
+        
+        function updateStatus(message) {
+            statusEl.textContent = message;
+            console.log('状态:', message);
+        }
+        
+        // 监听初始化状态
+        setTimeout(() => {
+            if (window.chapterSelector) {
+                updateStatus('✅ 章节选择器已初始化');
+                if (window.chapterSelector.courseData && window.chapterSelector.courseData.length > 0) {
+                    updateStatus(`✅ 课程数据已加载 (${window.chapterSelector.courseData.length}个科目)`);
+                } else {
+                    updateStatus('⚠️ 课程数据未加载');
+                }
+            } else {
+                updateStatus('❌ 章节选择器初始化失败');
+            }
+        }, 2000);
+        
+        testBtn.addEventListener('click', () => {
+            if (!window.chapterSelector) {
+                updateStatus('❌ 章节选择器未初始化');
+                return;
+            }
+            
+            updateStatus('🔍 打开章节选择器...');
+            
+            window.chapterSelector.show((selectedChapter) => {
+                console.log('选择的章节:', selectedChapter);
+                
+                resultEl.style.display = 'block';
+                resultEl.innerHTML = `
+                    <strong>选择成功！</strong><br>
+                    科目: ${selectedChapter.subject.name}<br>
+                    章节: ${selectedChapter.chapter.name}<br>
+                    难度: ${selectedChapter.chapter.difficulty}<br>
+                    时长: ${selectedChapter.chapter.duration}
+                `;
+                
+                updateStatus('✅ 章节选择成功');
+            });
+        });
+    </script>
+</body>
+</html>

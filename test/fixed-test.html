@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修复版AI助手测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 直接加载所有必要脚本 -->
+    <script src="../assets/js/xunfei-spark-api.js"></script>
+    <script src="../assets/js/ai-api-manager.js"></script>
+    <script src="../assets/js/ai-assistant-float.js"></script>
+    <link href="../assets/css/ai-assistant-float.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+        <h1 class="text-2xl font-bold text-center mb-6">🔧 修复版AI助手</h1>
+        
+        <div class="space-y-4">
+            <button onclick="initAI()" 
+                    class="w-full bg-blue-500 text-white py-3 rounded hover:bg-blue-600">
+                🚀 手动初始化AI助手
+            </button>
+            
+            <button onclick="showAI()" 
+                    class="w-full bg-green-500 text-white py-3 rounded hover:bg-green-600">
+                👁️ 显示AI助手
+            </button>
+            
+            <button onclick="checkStatus()" 
+                    class="w-full bg-purple-500 text-white py-3 rounded hover:bg-purple-600">
+                🔍 检查状态
+            </button>
+        </div>
+        
+        <div id="status" class="mt-6 p-4 bg-gray-100 rounded text-sm font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
+            等待操作...
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            const status = document.getElementById('status');
+            const timestamp = new Date().toLocaleTimeString();
+            status.textContent += `[${timestamp}] ${message}\n`;
+            status.scrollTop = status.scrollHeight;
+            console.log(message);
+        }
+
+        function initAI() {
+            log('🚀 开始初始化AI助手...');
+            
+            try {
+                // 检查类是否可用
+                log(`类检查: XunfeiSparkAPI=${!!window.XunfeiSparkAPI}, AIAPIManager=${!!window.AIAPIManager}, AIAssistantFloat=${!!window.AIAssistantFloat}`);
+                
+                // 初始化API管理器
+                if (!window.aiAPIManager && window.AIAPIManager) {
+                    window.aiAPIManager = new AIAPIManager();
+                    log('✅ API管理器初始化完成');
+                } else {
+                    log('⚠️ API管理器已存在或类不可用');
+                }
+                
+                // 初始化AI助手
+                if (!window.aiAssistant && window.AIAssistantFloat) {
+                    window.aiAssistant = new AIAssistantFloat();
+                    log('✅ AI助手初始化完成');
+                    
+                    // 验证方法
+                    if (typeof window.aiAssistant.show === 'function') {
+                        log('✅ show方法可用');
+                    } else {
+                        log('❌ show方法不可用');
+                    }
+                } else if (window.aiAssistant) {
+                    log('⚠️ AI助手已存在');
+                } else {
+                    log('❌ AIAssistantFloat类不可用');
+                }
+                
+                // 添加触发按钮
+                addFixedTriggerButton();
+                
+            } catch (error) {
+                log(`❌ 初始化失败: ${error.message}`);
+                console.error('初始化错误:', error);
+            }
+        }
+
+        function showAI() {
+            log('👁️ 尝试显示AI助手...');
+            
+            if (window.aiAssistant && typeof window.aiAssistant.show === 'function') {
+                try {
+                    window.aiAssistant.show();
+                    log('✅ AI助手已显示');
+                } catch (error) {
+                    log(`❌ 显示失败: ${error.message}`);
+                }
+            } else {
+                log('❌ AI助手未初始化或方法不可用');
+                
+                // 尝试重新初始化
+                if (window.AIAssistantFloat) {
+                    try {
+                        window.aiAssistant = new AIAssistantFloat();
+                        window.aiAssistant.show();
+                        log('✅ 重新初始化并显示成功');
+                    } catch (error) {
+                        log(`❌ 重新初始化失败: ${error.message}`);
+                    }
+                }
+            }
+        }
+
+        function checkStatus() {
+            log('🔍 检查当前状态...');
+            log(`window.aiAssistant: ${!!window.aiAssistant}`);
+            log(`window.aiAPIManager: ${!!window.aiAPIManager}`);
+            log(`window.AIAssistantFloat: ${!!window.AIAssistantFloat}`);
+            log(`window.XunfeiSparkAPI: ${!!window.XunfeiSparkAPI}`);
+            log(`window.AIAPIManager: ${!!window.AIAPIManager}`);
+            
+            if (window.aiAssistant) {
+                log(`AI助手类型: ${window.aiAssistant.constructor.name}`);
+                log(`show方法: ${typeof window.aiAssistant.show}`);
+                log(`isVisible: ${window.aiAssistant.isVisible}`);
+                log(`isMinimized: ${window.aiAssistant.isMinimized}`);
+            }
+            
+            // 检查DOM元素
+            const elements = ['ai-assistant-float', 'ai-float-window', 'ai-float-bubble'];
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                log(`DOM ${id}: ${!!el} ${el ? `(${el.style.display || 'default'})` : ''}`);
+            });
+        }
+
+        function addFixedTriggerButton() {
+            // 移除现有按钮
+            const existing = document.getElementById('fixed-ai-trigger');
+            if (existing) existing.remove();
+            
+            const button = document.createElement('button');
+            button.id = 'fixed-ai-trigger';
+            button.innerHTML = '🤖';
+            button.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                z-index: 9999;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            
+            button.onclick = function() {
+                log('🖱️ 固定按钮被点击');
+                showAI();
+            };
+            
+            document.body.appendChild(button);
+            log('✅ 固定触发按钮已添加');
+        }
+
+        // 页面加载完成后自动检查
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                log('📄 页面加载完成，自动检查状态');
+                checkStatus();
+            }, 500);
+        });
+
+        // 捕获所有错误
+        window.addEventListener('error', function(event) {
+            log(`❌ 全局错误: ${event.error?.message || event.message}`);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>题库连接测试</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>题库连接测试</h1>
+    <div id="results"></div>
+    
+    <div style="margin-top: 20px;">
+        <h3>操作步骤：</h3>
+        <ol>
+            <li>打开 <a href="question-manager.html" target="_blank">题目管理工具</a></li>
+            <li>导入一些题目数据</li>
+            <li>刷新本页面查看连接状态</li>
+            <li>打开 <a href="practice.html" target="_blank">真题练习页面</a> 验证题目是否显示</li>
+        </ol>
+    </div>
+
+    <script src="assets/js/question-bank-manager.js"></script>
+    <script>
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        function runTests() {
+            addResult('🔍 开始检测题库连接...', 'info');
+            
+            // 检查题库管理器是否加载
+            if (typeof window.questionBank === 'undefined') {
+                addResult('❌ 题库管理器未加载', 'error');
+                return;
+            }
+            
+            addResult('✅ 题库管理器已加载', 'success');
+            
+            // 检查题目数量
+            const questionCount = window.questionBank.questions.length;
+            addResult(`📊 当前题库包含 ${questionCount} 道题目`, questionCount > 0 ? 'success' : 'info');
+            
+            if (questionCount > 0) {
+                // 显示题目统计
+                const stats = window.questionBank.getStatistics();
+                addResult(`📚 科目分布：${Object.keys(stats.by_subject).length} 个科目`, 'info');
+                
+                let subjectInfo = '科目详情：<br>';
+                Object.entries(stats.by_subject).forEach(([subject, count]) => {
+                    subjectInfo += `&nbsp;&nbsp;• ${subject}: ${count} 题<br>`;
+                });
+                addResult(subjectInfo, 'info');
+                
+                addResult('✅ 题库数据连接正常，practice.html 应该能够显示这些题目', 'success');
+            } else {
+                addResult('ℹ️ 题库为空，请先在题目管理工具中添加题目', 'info');
+            }
+            
+            // 测试搜索功能
+            const searchResults = window.questionBank.searchQuestions('');
+            addResult(`🔍 搜索功能测试：找到 ${searchResults.length} 道题目`, 'info');
+        }
+
+        // 页面加载后运行测试
+        setTimeout(runTests, 500);
+        
+        // 每10秒自动刷新一次
+        setInterval(() => {
+            document.getElementById('results').innerHTML = '';
+            runTests();
+        }, 10000);
+    </script>
+</body>
+</html>

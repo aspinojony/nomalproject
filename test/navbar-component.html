@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导航栏组件设计</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏示例 -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- 左侧品牌区域 -->
+                <div class="flex items-center space-x-2">
+                    <a href="../index.html" class="flex items-center space-x-2">
+                        <i class="fas fa-graduation-cap text-2xl text-indigo-600"></i>
+                        <h1 class="text-xl font-bold text-gray-800">计算机考研平台</h1>
+                    </a>
+                </div>
+
+                <!-- 桌面端导航菜单 -->
+                <div class="hidden md:flex space-x-6">
+                    <a href="../index.html" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">首页</a>
+                    <a href="../subjects.html" class="text-indigo-600 font-semibold">课程导航</a>
+                    <a href="../practice.html" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">真题练习</a>
+                    <a href="../resources.html" class="text-gray-600 hover:text-indigo-600 transition-colors duration-200">学习资源</a>
+                </div>
+
+                <!-- 右侧功能区域 -->
+                <div class="flex items-center space-x-4">
+                    <!-- 学习进度显示 -->
+                    <div class="hidden md:block text-sm text-gray-600">
+                        学习进度: <span class="text-indigo-600 font-semibold">75%</span>
+                    </div>
+                    
+                    <!-- 移动端汉堡菜单按钮 -->
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" 
+                            class="md:hidden text-gray-600 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset rounded-md p-2">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 移动端菜单 -->
+            <div x-show="mobileMenuOpen" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform -translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform translate-y-0"
+                 x-transition:leave-end="opacity-0 transform -translate-y-2"
+                 class="md:hidden border-t border-gray-200 bg-white">
+                <div class="px-2 pt-2 pb-3 space-y-1">
+                    <a href="../index.html" class="block px-3 py-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition">首页</a>
+                    <a href="../subjects.html" class="block px-3 py-2 text-indigo-600 bg-indigo-50 rounded-md font-semibold">课程导航</a>
+                    <a href="../practice.html" class="block px-3 py-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition">真题练习</a>
+                    <a href="../resources.html" class="block px-3 py-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition">学习资源</a>
+                    
+                    <!-- 移动端进度显示 -->
+                    <div class="px-3 py-2 text-sm text-gray-600 border-t border-gray-200 mt-2">
+                        学习进度: <span class="text-indigo-600 font-semibold">75%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 页面内容示例 -->
+    <div class="container mx-auto px-4 py-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">导航栏设计示例</h2>
+        
+        <!-- 设计特点说明 -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">设计特点</h3>
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>白色背景 (bg-white)</li>
+                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>投影效果 (shadow-lg)</li>
+                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>粘性定位 (sticky top-0)</li>
+                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>高层级 (z-50)</li>
+                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>响应式设计</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">功能组件</h3>
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li class="flex items-center"><i class="fas fa-graduation-cap text-indigo-600 mr-2"></i>品牌标识</li>
+                    <li class="flex items-center"><i class="fas fa-bars text-gray-600 mr-2"></i>移动端菜单</li>
+                    <li class="flex items-center"><i class="fas fa-chart-line text-indigo-600 mr-2"></i>学习进度显示</li>
+                    <li class="flex items-center"><i class="fas fa-link text-gray-600 mr-2"></i>导航链接</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 其他导航栏变体示例 -->
+        <div class="space-y-8">
+            <!-- 简洁版导航栏 -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">简洁版导航栏</h3>
+                <nav class="bg-white shadow-lg sticky top-0 z-50">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="flex justify-between items-center py-3">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-code text-xl text-indigo-600"></i>
+                                <h1 class="text-lg font-bold text-gray-800">开发平台</h1>
+                            </div>
+                            <div class="hidden md:flex space-x-4">
+                                <a href="#" class="text-gray-600 hover:text-indigo-600 text-sm transition">项目</a>
+                                <a href="#" class="text-gray-600 hover:text-indigo-600 text-sm transition">文档</a>
+                                <a href="#" class="text-gray-600 hover:text-indigo-600 text-sm transition">社区</a>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- 带搜索栏的导航栏 -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">带搜索功能导航栏</h3>
+                <nav class="bg-white shadow-lg sticky top-0 z-50">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="flex justify-between items-center py-4">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-search text-xl text-indigo-600"></i>
+                                <h1 class="text-lg font-bold text-gray-800">搜索平台</h1>
+                            </div>
+                            
+                            <!-- 中间搜索栏 -->
+                            <div class="hidden md:flex flex-1 max-w-md mx-8">
+                                <div class="relative w-full">
+                                    <input type="text" 
+                                           placeholder="搜索课程、章节..." 
+                                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none">
+                                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-4">
+                                <button class="text-gray-600 hover:text-indigo-600">
+                                    <i class="fas fa-user"></i>
+                                </button>
+                                <button class="text-gray-600 hover:text-indigo-600">
+                                    <i class="fas fa-bell"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- 深色主题导航栏 -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">深色主题导航栏</h3>
+                <nav class="bg-gray-900 shadow-lg sticky top-0 z-50">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="flex justify-between items-center py-4">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-terminal text-xl text-blue-400"></i>
+                                <h1 class="text-lg font-bold text-white">开发终端</h1>
+                            </div>
+                            <div class="hidden md:flex space-x-6">
+                                <a href="#" class="text-gray-300 hover:text-blue-400 transition">控制台</a>
+                                <a href="#" class="text-blue-400 font-semibold">项目</a>
+                                <a href="#" class="text-gray-300 hover:text-blue-400 transition">设置</a>
+                            </div>
+                            <div class="text-sm text-gray-400">
+                                状态: <span class="text-green-400">在线</span>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+        <!-- 演示内容 -->
+        <div class="mt-16 text-center">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">向下滚动测试粘性效果</h2>
+            <div class="space-y-8">
+                <div class="h-96 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center">
+                    <p class="text-gray-600">内容区域 1</p>
+                </div>
+                <div class="h-96 bg-gradient-to-r from-green-100 to-teal-100 rounded-lg flex items-center justify-center">
+                    <p class="text-gray-600">内容区域 2</p>
+                </div>
+                <div class="h-96 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg flex items-center justify-center">
+                    <p class="text-gray-600">内容区域 3</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 简单的进度显示更新
+        document.addEventListener('DOMContentLoaded', function() {
+            // 模拟进度更新
+            setInterval(() => {
+                const progressElements = document.querySelectorAll('span.text-indigo-600.font-semibold');
+                progressElements.forEach(el => {
+                    if (el.textContent.includes('%')) {
+                        const current = parseInt(el.textContent);
+                        const newProgress = Math.min(current + Math.floor(Math.random() * 3), 100);
+                        el.textContent = `${newProgress}%`;
+                    }
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

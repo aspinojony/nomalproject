@@ -1,0 +1,90 @@
+<!-- 页脚组件 -->
+<template id="footer-template">
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">计算机考研平台</h3>
+                    <p class="text-gray-300 text-sm">专业的计算机考研学习平台，助你高效备考，成功上岸。</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-3">学习资源</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li><a href="#" class="hover:text-white transition">历年真题</a></li>
+                        <li><a href="#" class="hover:text-white transition">视频课程</a></li>
+                        <li><a href="#" class="hover:text-white transition">学习资料</a></li>
+                        <li><a href="#" class="hover:text-white transition">考试大纲</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-3">功能导航</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li><a href="practice.html" class="hover:text-white transition">在线练习</a></li>
+                        <li><a href="subjects_page.html" class="hover:text-white transition">科目学习</a></li>
+                        <li><a href="#" class="hover:text-white transition">学习进度</a></li>
+                        <li><a href="#" class="hover:text-white transition">错题本</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-3">联系我们</h4>
+                    <div class="space-y-2 text-sm text-gray-300">
+                        <p><i class="fas fa-envelope mr-2"></i>support@kaoyan.com</p>
+                        <p><i class="fas fa-phone mr-2"></i>400-123-4567</p>
+                        <div class="flex space-x-3 mt-4">
+                            <a href="#" class="text-gray-300 hover:text-white transition">
+                                <i class="fab fa-wechat text-lg"></i>
+                            </a>
+                            <a href="#" class="text-gray-300 hover:text-white transition">
+                                <i class="fab fa-qq text-lg"></i>
+                            </a>
+                            <a href="#" class="text-gray-300 hover:text-white transition">
+                                <i class="fab fa-weibo text-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-400">
+                <p>&copy; 2024 计算机考研学习平台. 让每一次学习都有价值</p>
+            </div>
+        </div>
+    </footer>
+</template>
+
+<script>
+class FooterComponent {
+    constructor(container, options = {}) {
+        this.container = container;
+        this.options = {
+            showSocialMedia: true,
+            customLinks: [],
+            ...options
+        };
+        this.init();
+    }
+
+    init() {
+        this.render();
+    }
+
+    render() {
+        const template = document.getElementById('footer-template');
+        const clone = template.content.cloneNode(true);
+        
+        // 如果有自定义链接，可以在这里处理
+        if (this.options.customLinks.length > 0) {
+            this.renderCustomLinks(clone);
+        }
+        
+        this.container.appendChild(clone);
+    }
+
+    renderCustomLinks(element) {
+        // 处理自定义链接的逻辑
+        // 这里可以根据需要扩展
+    }
+}
+
+// 导出组件类
+window.FooterComponent = FooterComponent;
+</script>

@@ -1,0 +1,173 @@
+<!-- 参考 subjects.html 的简洁导航栏组件 -->
+<template id="navbar-template">
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo 和品牌 -->
+                <div class="flex items-center space-x-2">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <i class="fas fa-graduation-cap text-2xl text-indigo-600"></i>
+                        <h1 class="text-xl font-bold text-gray-800">计算机考研平台</h1>
+                    </a>
+                </div>
+
+                <!-- 桌面端导航链接 -->
+                <div class="hidden md:flex space-x-6" id="nav-links">
+                    <!-- 导航链接将通过JavaScript动态生成 -->
+                </div>
+
+                <!-- 右侧功能区 -->
+                <div class="flex items-center space-x-4">
+                    <!-- 学习进度显示 -->
+                    <div class="hidden md:block text-sm text-gray-600" id="nav-stats">
+                        学习进度: <span class="text-indigo-600 font-semibold" id="progress-display">0%</span>
+                    </div>
+                    
+                    <!-- 移动端菜单按钮 -->
+                    <button class="md:hidden text-gray-600 hover:text-indigo-600" id="mobile-menu-btn">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 移动端导航菜单 -->
+            <div class="md:hidden border-t border-gray-200 bg-white hidden" id="mobile-menu">
+                <div class="px-2 pt-2 pb-3 space-y-1" id="mobile-nav-links">
+                    <!-- 移动端导航链接 -->
+                </div>
+                <!-- 移动端统计信息 -->
+                <div class="px-4 py-3 border-t border-gray-200" id="mobile-nav-stats">
+                    <div class="text-sm text-gray-600">
+                        学习进度: <span class="text-indigo-600 font-semibold" id="mobile-progress-display">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</template>
+
+<script>
+class NavbarComponent {
+    constructor(container, options = {}) {
+        this.container = container;
+        this.options = {
+            currentPage: '',
+            showStats: true,
+            progress: 0,
+            navLinks: [
+                { href: 'index.html', text: '首页', page: 'home' },
+                { href: 'subjects.html', text: '课程导航', page: 'subjects' },
+                { href: 'practice.html', text: '真题练习', page: 'practice' },
+                { href: 'question-manager.html', text: '题目管理', page: 'question-manager' },
+                { href: 'resources.html', text: '学习资源', page: 'resources' }
+            ],
+            ...options
+        };
+        this.init();
+    }
+
+    init() {
+        this.render();
+        this.bindEvents();
+    }
+
+    render() {
+        const template = document.getElementById('navbar-template');
+        const clone = template.content.cloneNode(true);
+        
+        this.renderNavLinks(clone);
+        this.updateProgress(clone);
+        
+        this.container.appendChild(clone);
+    }
+
+    renderNavLinks(element) {
+        const navLinks = element.querySelector('#nav-links');
+        const mobileNavLinks = element.querySelector('#mobile-nav-links');
+        
+        this.options.navLinks.forEach(link => {
+            const isActive = link.page === this.options.currentPage;
+            
+            // 桌面端链接
+            const desktopLink = document.createElement('a');
+            desktopLink.href = link.href;
+            desktopLink.className = isActive 
+                ? 'text-indigo-600 font-semibold transition' 
+                : 'text-gray-600 hover:text-indigo-600 transition';
+            desktopLink.textContent = link.text;
+            navLinks.appendChild(desktopLink);
+            
+            // 移动端链接
+            const mobileLink = document.createElement('a');
+            mobileLink.href = link.href;
+            mobileLink.className = isActive 
+                ? 'block px-3 py-2 text-indigo-600 bg-indigo-50 rounded-md font-semibold' 
+                : 'block px-3 py-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition';
+            mobileLink.textContent = link.text;
+            mobileNavLinks.appendChild(mobileLink);
+        });
+    }
+
+    updateProgress(element = this.container) {
+        const progressDisplay = element.querySelector('#progress-display');
+        const mobileProgressDisplay = element.querySelector('#mobile-progress-display');
+        
+        if (progressDisplay) {
+            progressDisplay.textContent = `${this.options.progress}%`;
+        }
+        if (mobileProgressDisplay) {
+            mobileProgressDisplay.textContent = `${this.options.progress}%`;
+        }
+    }
+
+    bindEvents() {
+        const mobileMenuBtn = this.container.querySelector('#mobile-menu-btn');
+        const mobileMenu = this.container.querySelector('#mobile-menu');
+        
+        // 移动菜单切换
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mobileMenu.classList.toggle('hidden');
+                const icon = mobileMenuBtn.querySelector('i');
+                icon.className = mobileMenu.classList.contains('hidden') 
+                    ? 'fas fa-bars text-xl' 
+                    : 'fas fa-times text-xl';
+            });
+        }
+        
+        // 点击外部关闭移动菜单
+        document.addEventListener('click', (e) => {
+            if (mobileMenu && !mobileMenu.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                mobileMenu.classList.add('hidden');
+                const icon = mobileMenuBtn.querySelector('i');
+                icon.className = 'fas fa-bars text-xl';
+            }
+        });
+    }
+
+    setProgress(progress) {
+        this.options.progress = progress;
+        this.updateProgress();
+    }
+
+    setActivePage(page) {
+        this.options.currentPage = page;
+        // 重新渲染导航链接
+        const navLinks = this.container.querySelector('#nav-links');
+        const mobileNavLinks = this.container.querySelector('#mobile-nav-links');
+        if (navLinks && mobileNavLinks) {
+            navLinks.innerHTML = '';
+            mobileNavLinks.innerHTML = '';
+            const fakeElement = { querySelector: (selector) => {
+                if (selector === '#nav-links') return navLinks;
+                if (selector === '#mobile-nav-links') return mobileNavLinks;
+            }};
+            this.renderNavLinks(fakeElement);
+        }
+    }
+}
+
+// 导出组件类
+window.NavbarComponent = NavbarComponent;
+</script>

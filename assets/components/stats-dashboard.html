@@ -1,0 +1,448 @@
+<!-- 学习统计组件 -->
+<div class="stats-dashboard" x-data="statsDashboard()">
+        <!-- 学习统计弹窗 -->
+        <div x-show="showStatsModal" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            
+            <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+                 x-transition:enter="transition ease-out duration-300 delay-150"
+                 x-transition:enter-start="opacity-0 scale-90"
+                 x-transition:enter-end="opacity-100 scale-100">
+                
+                <!-- 标题栏 -->
+                <div class="sticky top-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-2xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold flex items-center">
+                                <i class="fas fa-chart-line mr-3"></i>
+                                学习统计分析
+                            </h2>
+                            <p class="text-indigo-100 mt-1">数据驱动的学习进步</p>
+                        </div>
+                        <button @click="closeStatsModal()" 
+                                class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 主要统计卡片 -->
+                <div class="p-6">
+                    <!-- 总览统计 -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <i class="fas fa-clock text-2xl opacity-80"></i>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">今日</span>
+                            </div>
+                            <div class="text-2xl font-bold" x-text="formatTime(todayStats.studyTime)">0h 0m</div>
+                            <div class="text-sm opacity-90">学习时长</div>
+                            <div class="mt-2 bg-white/20 rounded-full h-2">
+                                <div class="bg-white rounded-full h-2 transition-all duration-500" 
+                                     :style="`width: ${Math.min(100, (todayStats.studyTime / 120) * 100)}%`"></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <i class="fas fa-fire text-2xl opacity-80"></i>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">连续</span>
+                            </div>
+                            <div class="text-2xl font-bold" x-text="stats.streakDays || 0">0</div>
+                            <div class="text-sm opacity-90">连续天数</div>
+                            <div class="text-xs mt-1 opacity-75">最高 <span x-text="stats.maxStreakDays || 0">0</span> 天</div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <i class="fas fa-brain text-2xl opacity-80"></i>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">总计</span>
+                            </div>
+                            <div class="text-2xl font-bold" x-text="stats.totalQuestionsAnswered || 0">0</div>
+                            <div class="text-sm opacity-90">已答题目</div>
+                            <div class="text-xs mt-1 opacity-75">正确率 <span x-text="accuracy + '%'">0%</span></div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <i class="fas fa-trophy text-2xl opacity-80"></i>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">累计</span>
+                            </div>
+                            <div class="text-2xl font-bold" x-text="formatTotalTime(stats.totalStudyTime)">0h</div>
+                            <div class="text-sm opacity-90">总学习时长</div>
+                            <div class="text-xs mt-1 opacity-75">共 <span x-text="stats.totalSessions || 0">0</span> 次会话</div>
+                        </div>
+                    </div>
+
+                    <!-- 详细统计面板 -->
+                    <div class="grid lg:grid-cols-3 gap-6 mb-6">
+                        <!-- 今日学习详情 -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-800 dark:text-white">
+                                <i class="fas fa-calendar-day text-blue-500 mr-2"></i>
+                                今日学习概况
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 dark:text-gray-300">学习时长</span>
+                                    <span class="font-semibold text-blue-600" x-text="formatTime(todayStats.studyTime)">0分钟</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 dark:text-gray-300">学习会话</span>
+                                    <span class="font-semibold text-green-600" x-text="todayStats.sessions + ' 次'">0次</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 dark:text-gray-300">答题数量</span>
+                                    <span class="font-semibold text-purple-600" x-text="todayStats.questionsAnswered + ' 题'">0题</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 dark:text-gray-300">正确率</span>
+                                    <span class="font-semibold text-orange-600" 
+                                          x-text="(todayStats.questionsAnswered > 0 ? Math.round((todayStats.correctAnswers / todayStats.questionsAnswered) * 100) : 0) + '%'">0%</span>
+                                </div>
+                            </div>
+
+                            <!-- 目标进度 -->
+                            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm text-gray-600 dark:text-gray-300">今日目标完成度</span>
+                                    <span class="text-sm font-medium" x-text="Math.min(100, Math.round((todayStats.studyTime / 120) * 100)) + '%'">0%</span>
+                                </div>
+                                <div class="bg-gray-200 dark:bg-gray-600 rounded-full h-3">
+                                    <div class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full h-3 transition-all duration-500" 
+                                         :style="`width: ${Math.min(100, Math.round((todayStats.studyTime / 120) * 100))}%`"></div>
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    目标: 2小时/天
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 科目分布 -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-800 dark:text-white">
+                                <i class="fas fa-chart-pie text-purple-500 mr-2"></i>
+                                科目学习分布
+                            </h3>
+                            <div class="space-y-3">
+                                <template x-for="subject in subjectsRanking.slice(0, 5)" :key="subject.key">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center flex-1">
+                                            <div class="w-3 h-3 rounded-full mr-3" 
+                                                 :class="getSubjectColor(subject.key)"></div>
+                                            <span class="text-sm text-gray-700 dark:text-gray-300 flex-1" x-text="subject.name">科目</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-semibold text-gray-800 dark:text-white" x-text="formatTime(subject.time)">0分钟</div>
+                                            <div class="text-xs text-gray-500" x-text="subject.questions + '题'">0题</div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- 科目学习时长占比 -->
+                            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                                <div class="text-sm text-gray-600 dark:text-gray-300 mb-2">学习时长分布</div>
+                                <div class="flex rounded-full h-2 bg-gray-200 dark:bg-gray-600 overflow-hidden">
+                                    <template x-for="subject in subjectsRanking.slice(0, 4)" :key="subject.key">
+                                        <div :class="getSubjectColor(subject.key)" 
+                                             :style="`width: ${(subject.time / Math.max(1, stats.totalStudyTime)) * 100}%`"></div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 学习成就 -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-800 dark:text-white">
+                                <i class="fas fa-medal text-yellow-500 mr-2"></i>
+                                学习成就
+                            </h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="text-center p-3 bg-white dark:bg-gray-800 rounded-lg">
+                                    <i class="fas fa-fire text-2xl text-orange-500 mb-2"></i>
+                                    <div class="text-xs text-gray-600 dark:text-gray-400">连续学习</div>
+                                    <div class="text-sm font-bold text-gray-800 dark:text-white" x-text="stats.streakDays + ' 天'">0天</div>
+                                </div>
+                                <div class="text-center p-3 bg-white dark:bg-gray-800 rounded-lg">
+                                    <i class="fas fa-clock text-2xl text-blue-500 mb-2"></i>
+                                    <div class="text-xs text-gray-600 dark:text-gray-400">总时长</div>
+                                    <div class="text-sm font-bold text-gray-800 dark:text-white" x-text="Math.round((stats.totalStudyTime || 0) / 60) + 'h'">0h</div>
+                                </div>
+                                <div class="text-center p-3 bg-white dark:bg-gray-800 rounded-lg">
+                                    <i class="fas fa-brain text-2xl text-purple-500 mb-2"></i>
+                                    <div class="text-xs text-gray-600 dark:text-gray-400">答题数</div>
+                                    <div class="text-sm font-bold text-gray-800 dark:text-white" x-text="(stats.totalQuestionsAnswered || 0) + ' 题'">0题</div>
+                                </div>
+                                <div class="text-center p-3 bg-white dark:bg-gray-800 rounded-lg">
+                                    <i class="fas fa-target text-2xl text-green-500 mb-2"></i>
+                                    <div class="text-xs text-gray-600 dark:text-gray-400">正确率</div>
+                                    <div class="text-sm font-bold text-gray-800 dark:text-white" x-text="accuracy + '%'">0%</div>
+                                </div>
+                            </div>
+
+                            <!-- 成就徽章 -->
+                            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                                <div class="text-sm text-gray-600 dark:text-gray-300 mb-2">获得徽章</div>
+                                <div class="flex flex-wrap gap-2">
+                                    <div x-show="stats.streakDays >= 7" 
+                                         class="flex items-center text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                                        <i class="fas fa-fire mr-1"></i>
+                                        坚持一周
+                                    </div>
+                                    <div x-show="(stats.totalStudyTime || 0) >= 6000" 
+                                         class="flex items-center text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        百小时学者
+                                    </div>
+                                    <div x-show="accuracy >= 90 && (stats.totalQuestionsAnswered || 0) >= 100" 
+                                         class="flex items-center text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                        <i class="fas fa-bullseye mr-1"></i>
+                                        精准答题
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 周学习趋势图 -->
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-800 dark:text-white">
+                            <i class="fas fa-chart-bar text-green-500 mr-2"></i>
+                            本周学习趋势
+                        </h3>
+                        <div class="grid grid-cols-7 gap-2 h-32">
+                            <template x-for="day in weeklyData" :key="day.date">
+                                <div class="flex flex-col items-center">
+                                    <div class="flex-1 flex items-end w-full">
+                                        <div class="w-full bg-gradient-to-t from-blue-500 to-blue-300 rounded-t-md transition-all duration-500 hover:from-blue-600 hover:to-blue-400" 
+                                             :style="`height: ${Math.max(8, (day.studyTime / Math.max(1, Math.max(...weeklyData.map(d => d.studyTime)))) * 100)}%`"
+                                             :title="`${day.dayName}: ${formatTime(day.studyTime)}`"></div>
+                                    </div>
+                                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-1" x-text="day.dayName">周一</div>
+                                    <div class="text-xs font-medium text-gray-800 dark:text-white" x-text="day.studyTime + 'm'">0m</div>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+                            本周总计：<span x-text="formatTime(weeklyData.reduce((sum, day) => sum + day.studyTime, 0))" class="font-medium">0分钟</span>
+                        </div>
+                    </div>
+
+                    <!-- 操作按钮区 -->
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button @click="exportStats()" 
+                                class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-download mr-2"></i>
+                            导出数据
+                        </button>
+                        <button @click="showGoalSettings = true" 
+                                class="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                            <i class="fas fa-target mr-2"></i>
+                            设置目标
+                        </button>
+                        <button @click="showResetConfirm = true" 
+                                class="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                            <i class="fas fa-trash mr-2"></i>
+                            重置数据
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 目标设置弹窗 -->
+        <div x-show="showGoalSettings" 
+             class="fixed inset-0 bg-black bg-opacity-50 z-60 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6">
+                <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">设置学习目标</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">每日学习时长 (分钟)</label>
+                        <input type="number" x-model="newGoals.dailyStudyTime" min="30" max="480" 
+                               class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">目标正确率 (%)</label>
+                        <input type="number" x-model="newGoals.targetAccuracy" min="60" max="100" 
+                               class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white">
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button @click="showGoalSettings = false" 
+                            class="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                        取消
+                    </button>
+                    <button @click="saveGoals()" 
+                            class="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors">
+                        保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- 学习统计组件脚本 -->
+<script>
+function statsDashboard() {
+    return {
+        showStatsModal: false,
+        showGoalSettings: false,
+        stats: {},
+        todayStats: {},
+        weeklyData: [],
+        subjectsRanking: [],
+        accuracy: 0,
+        newGoals: {
+            dailyStudyTime: 120,
+            targetAccuracy: 85
+        },
+
+        init() {
+            this.loadStatsData();
+            // 监听统计数据更新
+            if (window.studyStats) {
+                window.studyStats.addObserver((event, data) => {
+                    if (event === 'statsUpdated') {
+                        this.loadStatsData();
+                    }
+                });
+            }
+        },
+
+        loadStatsData() {
+            if (window.studyStats) {
+                this.stats = window.studyStats.stats;
+                this.todayStats = window.studyStats.getTodayStats();
+                this.subjectsRanking = window.studyStats.getSubjectsRanking();
+                this.accuracy = window.studyStats.getAccuracy();
+                this.loadWeeklyData();
+                this.newGoals = { ...this.stats.goals };
+            }
+        },
+
+        loadWeeklyData() {
+            const today = new Date();
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay());
+            
+            this.weeklyData = [];
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                const dayStats = this.stats.dailyStats?.[dateStr] || { studyTime: 0 };
+                
+                this.weeklyData.push({
+                    date: dateStr,
+                    dayName: date.toLocaleDateString('zh-CN', { weekday: 'short' }),
+                    studyTime: dayStats.studyTime || 0
+                });
+            }
+        },
+
+        openStatsModal() {
+            this.showStatsModal = true;
+            this.loadStatsData();
+        },
+
+        closeStatsModal() {
+            this.showStatsModal = false;
+        },
+
+        formatTime(minutes) {
+            if (!minutes || minutes === 0) return '0分钟';
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            if (hours > 0) {
+                return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+            }
+            return `${mins}m`;
+        },
+
+        formatTotalTime(minutes) {
+            if (!minutes || minutes === 0) return '0h';
+            const hours = Math.floor(minutes / 60);
+            return `${hours}h`;
+        },
+
+        getSubjectColor(subjectKey) {
+            const colors = {
+                'mathematics': 'bg-blue-500',
+                'english': 'bg-green-500',
+                'politics': 'bg-red-500',
+                'data_structure': 'bg-purple-500',
+                'operating_system': 'bg-orange-500',
+                'computer_network': 'bg-teal-500',
+                'computer_organization': 'bg-indigo-500'
+            };
+            return colors[subjectKey] || 'bg-gray-500';
+        },
+
+        exportStats() {
+            if (window.studyStats) {
+                const data = window.studyStats.exportData();
+                const blob = new Blob([JSON.stringify(data, null, 2)], {
+                    type: 'application/json'
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `study-stats-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                this.showNotification('📊 统计数据已导出', 'success');
+            }
+        },
+
+        saveGoals() {
+            if (window.studyStats) {
+                window.studyStats.setGoals(this.newGoals);
+                this.showGoalSettings = false;
+                this.loadStatsData();
+                this.showNotification('🎯 学习目标已更新', 'success');
+            }
+        },
+
+        showNotification(message, type = 'info') {
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
+            };
+            
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-all duration-300`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+    };
+}
+
+// 全局函数，供外部调用
+window.openStatsModal = function() {
+    const dashboard = document.querySelector('[x-data*="statsDashboard"]');
+    if (dashboard) {
+        Alpine.evaluate(dashboard, 'openStatsModal()');
+    }
+};
+
+console.log('📊 学习统计可视化组件加载完成');
+</script>

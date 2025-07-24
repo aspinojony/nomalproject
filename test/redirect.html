@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>正在跳转至课程视频...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 3rem;
+    }
+    .loading {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎬 正在跳转至 Bilibili 视频</h2>
+  <p class="loading">系统正在记录学习进度，请稍候...</p>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const subjectId = parseInt(params.get("subjectId"));
+    const chapterIndex = parseInt(params.get("chapterIndex"));
+    const videoUrl = decodeURIComponent(params.get("url"));
+
+    const PROGRESS_KEY = "chapterProgress";
+
+    function saveProgressToLocalStorage(subjectId, chapterIndex, data) {
+      const all = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}");
+      if (!all[subjectId]) all[subjectId] = {};
+      all[subjectId][chapterIndex] = {
+        ...all[subjectId][chapterIndex],
+        ...data,
+        lastVisited: new Date().toISOString()
+      };
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+    }
+
+    // 保存初始访问记录
+    if (!isNaN(subjectId) && !isNaN(chapterIndex)) {
+      saveProgressToLocalStorage(subjectId, chapterIndex, {
+        watchedSeconds: 10,
+        completed: false,
+        isAutoCompleted: false
+      });
+    }
+
+    // 延迟跳转
+    setTimeout(() => {
+      window.location.href = videoUrl;
+    }, 1500);
+  </script>
+</body>
+</html>

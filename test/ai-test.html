@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI助手测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- AI助手加载器 -->
+    <script src="../assets/js/ai-assistant-loader.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+        <h1 class="text-2xl font-bold text-center mb-6">AI助手测试页面</h1>
+        <div class="space-y-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 class="font-semibold text-blue-800 mb-2">测试功能</h3>
+                <ul class="text-sm text-blue-700 space-y-1">
+                    <li>✅ 查看右下角是否有脉冲按钮</li>
+                    <li>✅ 点击按钮打开悬浮窗</li>
+                    <li>✅ 测试拖拽功能</li>
+                    <li>✅ 测试最小化和关闭</li>
+                    <li>✅ 点击设置按钮配置API</li>
+                    <li>✅ 测试消息发送和AI回复</li>
+                </ul>
+            </div>
+            
+            <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <h3 class="font-semibold text-orange-800 mb-2">Spark X1 API配置步骤</h3>
+                <ol class="text-sm text-orange-700 space-y-1">
+                    <li>1. 访问 <a href="https://www.xfyun.cn/" target="_blank" class="underline">讯飞开放平台</a></li>
+                    <li>2. 注册登录后进入控制台</li>
+                    <li>3. 创建星火认知大模型X1应用</li>
+                    <li>4. 获取 App ID、API Key、API Secret</li>
+                    <li>5. 点击悬浮窗设置按钮配置密钥</li>
+                </ol>
+                <div class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                    💡 <strong>Spark X1</strong> 是讯飞星火的高性能模型，相比Lite版本提供更优质的对话体验
+                </div>
+            </div>
+            
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 class="font-semibold text-green-800 mb-2">快捷测试</h3>
+                <div class="space-y-2">
+                    <button onclick="testAIAssistant()" 
+                            class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition">
+                        手动打开AI助手
+                    </button>
+                    <button onclick="checkAPIStatus()" 
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
+                        检查API状态
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="debug-info" class="mt-6 p-3 bg-gray-50 rounded text-sm text-gray-600">
+            正在加载AI助手...
+        </div>
+    </div>
+
+    <script>
+        function testAIAssistant() {
+            const debugInfo = document.getElementById('debug-info');
+            
+            if (window.aiAssistant) {
+                debugInfo.innerHTML = '✅ AI助手已加载，正在打开...';
+                window.aiAssistant.show();
+            } else {
+                debugInfo.innerHTML = '❌ AI助手未加载，请检查控制台错误信息';
+                console.log('当前状态:', {
+                    aiAssistant: window.aiAssistant,
+                    aiAPIManager: window.aiAPIManager,
+                    AIAssistantFloat: window.AIAssistantFloat,
+                    XunfeiSparkAPI: window.XunfeiSparkAPI
+                });
+            }
+        }
+
+        function checkAPIStatus() {
+            const debugInfo = document.getElementById('debug-info');
+            
+            if (window.aiAPIManager) {
+                const status = window.aiAPIManager.getConfigStatus();
+                debugInfo.innerHTML = `
+                    <strong>API状态检查：</strong><br>
+                    讯飞星火: ${status.xunfei?.isConfigured ? '✅ 已配置' : '❌ 未配置'}<br>
+                    当前提供商: ${window.aiAPIManager.getCurrentProvider()}
+                `;
+                debugInfo.className = 'mt-6 p-3 bg-blue-50 rounded text-sm text-blue-600';
+            } else {
+                debugInfo.innerHTML = '❌ API管理器未初始化';
+                debugInfo.className = 'mt-6 p-3 bg-red-50 rounded text-sm text-red-600';
+            }
+        }
+        
+        // 监听加载状态
+        setTimeout(() => {
+            const debugInfo = document.getElementById('debug-info');
+            if (window.aiAssistant && window.aiAPIManager) {
+                const status = window.aiAPIManager.getConfigStatus();
+                debugInfo.innerHTML = `
+                    ✅ AI助手加载成功！<br>
+                    📡 API管理器: ${window.aiAPIManager ? '已加载' : '未加载'}<br>
+                    🔧 讯飞星火: ${status.xunfei?.isConfigured ? '已配置' : '需要配置'}
+                `;
+                debugInfo.className = 'mt-6 p-3 bg-green-50 rounded text-sm text-green-600';
+            } else {
+                debugInfo.innerHTML = '❌ 加载失败，请检查控制台';
+                debugInfo.className = 'mt-6 p-3 bg-red-50 rounded text-sm text-red-600';
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

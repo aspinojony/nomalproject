@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>章节学习 · 播放器</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      min-height: 100vh; margin: 0; background: linear-gradient(120deg, #e0e7ff 0%, #fdf2f8 100%);
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    }
+    .card {
+      background: #fff;
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 32px #c7d2fe30;
+      padding: 2.1rem 1.6rem 1.4rem 1.6rem;
+      max-width: 820px;
+      width: 96vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .chapter-title {
+      font-size: 1.26rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #6366f1;
+      text-align: center;
+      letter-spacing: 1px;
+      max-width: 96vw;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .iframe-wrapper {
+      width: 100%;
+      border-radius: 1.2rem;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 4px 16px #e0e7ff60;
+      margin-bottom: 1.3rem;
+      aspect-ratio: 16/9;
+      min-height: 300px;
+      max-width: 800px;
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    iframe#player {
+      width: 100%; height: 100%; min-height: 300px;
+      border: none; background: #000; border-radius: 1.2rem; box-shadow: none;
+    }
+    .progress-row {
+      display: flex; align-items: center;
+      width: 100%; margin: 0.6rem 0 0.5rem 0; font-size: 1rem;
+    }
+    .progress-label { min-width: 82px; }
+    .progress-bar-bg {
+      flex: 1; height: 9px; background: #f1f5f9;
+      border-radius: 5px; overflow: hidden; margin: 0 8px;
+    }
+    .progress-bar {
+      height: 100%; width: 0;
+      border-radius: 5px;
+      background: linear-gradient(90deg,#6366f1,#f472b6 80%);
+      transition: width 0.4s;
+      box-shadow: 0 1px 4px #f472b6a0 inset;
+    }
+    .progress-status {
+      min-width: 18px; font-size: 1.13rem; color: #22c55e; font-weight: bold;
+    }
+    .btn-complete {
+      margin: 1.1rem 0 0.7rem 0;
+      background: linear-gradient(90deg,#6366f1 70%,#f472b6 110%);
+      color: #fff; border: none; border-radius: 999px;
+      padding: 0.6rem 1.6rem; font-size: 1.01rem;
+      font-weight: 500; cursor: pointer; box-shadow: 0 2px 10px #c7d2fe40;
+      transition: background 0.21s, box-shadow 0.15s, transform 0.08s;
+    }
+    .btn-complete[disabled] { opacity: 0.60; cursor: not-allowed; background: #c7d2fe; }
+    .open-bili-btn {
+      display: inline-block;
+      margin: 0.8rem 0 0.3rem 0;
+      background: linear-gradient(90deg,#6366f1 40%,#f472b6 100%);
+      color: #fff;
+      font-weight: 500;
+      padding: 0.50rem 1.2rem;
+      border-radius: 1em;
+      font-size: 1.02rem;
+      text-decoration: none;
+      box-shadow: 0 2px 10px #c7d2fe30;
+      transition: background .21s, box-shadow .13s;
+    }
+    .open-bili-btn:hover {
+      background: linear-gradient(90deg,#a5b4fc 40%,#fb7185 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px #a5b4fc30;
+    }
+    .bili-tip {
+      color: #64748b; font-size: 0.93rem; margin: 2px 0 0 0; text-align: center;
+    }
+    .back-link {
+      margin-top: 1rem;
+      color: #6366f1;
+      font-size: 0.99rem;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .back-link:hover { color: #f472b6; }
+    .badge-finish {
+      display: inline-block;
+      background: #e0ffe6;
+      color: #22c55e;
+      font-size: 0.99rem;
+      border-radius: 1em;
+      padding: 0.28rem 1.1rem;
+      margin: 0.7rem 0 0.35rem 0;
+      font-weight: 500;
+      box-shadow: 0 1px 8px #a7f3d0a0;
+      animation: popin 0.5s;
+    }
+    @keyframes popin { from{opacity:0;transform:scale(0.8);} to{opacity:1;transform:scale(1);} }
+    @media (max-width: 700px) {
+      .card { padding: 1rem 0.1rem 0.7rem 0.1rem; }
+      .iframe-wrapper, iframe#player { min-height: 160px !important; }
+      .chapter-title { font-size: 1.07rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="chapter-title" id="chapter-title">章节标题</div>
+    <div class="iframe-wrapper" id="iframe-container">
+      <iframe id="player" src="" allowfullscreen referrerpolicy="no-referrer"></iframe>
+    </div>
+    <div class="progress-row">
+      <span class="progress-label">已观看 <span id="watched">0</span> 秒</span>
+      <div class="progress-bar-bg"><div class="progress-bar" id="progress-bar"></div></div>
+      <span class="progress-status" id="status"></span>
+    </div>
+    <button class="btn-complete" id="complete-btn">✅ 我已完成</button>
+    <span class="badge-finish" id="completed-badge" style="display:none;">🎉 已完成</span>
+    <a id="bili-link" href="#" target="_blank" class="open-bili-btn">🌐 B站中打开高清/弹幕</a>
+    <div class="bili-tip">* 若需弹幕、高清画质、登录等体验，请在B站中打开观看。</div>
+    <div class="back-link" onclick="window.close()">← 返回目录</div>
+  </div>
+  <script>
+    // 参数解析
+    const params = new URLSearchParams(location.search);
+    const subjectId = parseInt(params.get('subjectId'));
+    const chapterIndex = parseInt(params.get('chapterIndex'));
+    const videoUrl = decodeURIComponent(params.get('url') || '');
+    const chapterTitle = decodeURIComponent(params.get('title') || '章节');
+
+    // 元素
+    const titleEl = document.getElementById("chapter-title");
+    const watchedEl = document.getElementById("watched");
+    const barEl = document.getElementById("progress-bar");
+    const playerEl = document.getElementById("player");
+    const badgeEl = document.getElementById("completed-badge");
+    const statusEl = document.getElementById("status");
+    const btnComplete = document.getElementById("complete-btn");
+    const biliBtn = document.getElementById("bili-link");
+
+    // 配置
+    const PROGRESS_KEY = "chapterProgress";
+    const AUTO_COMPLETE_SECONDS = 60;
+    let watchedSeconds = 0, completed = false;
+    let all = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}");
+
+    // 恢复进度
+    if (all[subjectId] && all[subjectId][chapterIndex]) {
+      watchedSeconds = all[subjectId][chapterIndex].watchedSeconds || 0;
+      completed = all[subjectId][chapterIndex].completed || false;
+    }
+    // 标题和视频
+    titleEl.textContent = chapterTitle || '章节视频';
+    playerEl.src = videoUrl + (videoUrl.includes('?') ? '&' : '?') + 'autoplay=1';
+    biliBtn.href = videoUrl;
+
+    // 计时+进度
+    let timer = setInterval(() => {
+      if (completed) return;
+      watchedSeconds++;
+      updateUI();
+      autoSave();
+      if (!completed && watchedSeconds >= AUTO_COMPLETE_SECONDS) {
+        markComplete(true);
+      }
+    }, 1000);
+
+    // 自动保存
+    function autoSave() {
+      if (!subjectId || chapterIndex < 0) return;
+      if (!all[subjectId]) all[subjectId] = {};
+      all[subjectId][chapterIndex] = {
+        completed: completed,
+        watchedSeconds,
+        isAutoCompleted: completed,
+        lastVisited: new Date().toISOString()
+      };
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+    }
+
+    function updateUI() {
+      watchedEl.textContent = watchedSeconds;
+      let percent = Math.min(100, Math.round((watchedSeconds / AUTO_COMPLETE_SECONDS) * 100));
+      barEl.style.width = percent + "%";
+      if (completed) {
+        badgeEl.style.display = "";
+        statusEl.textContent = "✓";
+        btnComplete.disabled = true;
+        btnComplete.textContent = "已完成";
+      } else if (watchedSeconds >= AUTO_COMPLETE_SECONDS) {
+        statusEl.textContent = "⏰";
+      } else {
+        badgeEl.style.display = "none";
+        statusEl.textContent = "";
+        btnComplete.disabled = false;
+        btnComplete.textContent = "✅ 我已完成";
+      }
+    }
+    btnComplete.onclick = () => markComplete(false);
+    function markComplete(isAuto) {
+      completed = true;
+      updateUI();
+      autoSave();
+      badgeEl.style.display = "";
+      statusEl.textContent = "✓";
+      btnComplete.disabled = true;
+      btnComplete.textContent = "已完成";
+      if (!isAuto) setTimeout(()=>{badgeEl.style.display="none"},1800);
+    }
+    window.addEventListener('beforeunload', autoSave);
+    if (!watchedSeconds) { watchedSeconds = 10; autoSave(); }
+    updateUI();
+  </script>
+</body>
+</html>

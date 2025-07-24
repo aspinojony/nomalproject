@@ -1,0 +1,2669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计算机考研学习平台 | 高效备考，智能学习</title>
+    <meta name="description" content="专业的计算机考研学习平台，提供数学、英语、政治、专业课等全科目学习资源，AI智能辅导，真题练习，助您高效备考">
+    <meta name="keywords" content="计算机考研,考研学习,真题练习,AI辅导,数据结构,操作系统,计算机网络">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- Google Fonts - 优化的 Roboto 字体族 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- 精确引入需要的字重，优化加载性能 -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Condensed:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Material Symbols - 替代 Font Awesome -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link href="assets/css/common.css" rel="stylesheet">
+    
+    <!-- 预加载重要资源 - 性能优化 -->
+    <link rel="preload" href="assets/js/ai-assistant-loader.js" as="script">
+    <link rel="preload" href="assets/js/course-data.js" as="script">
+    <link rel="preload" href="assets/js/fallback-data.js" as="script">
+    <link rel="preload" href="assets/js/resource-loader.js" as="script">
+    <link rel="preload" href="assets/css/common.css" as="style">
+    
+    <!-- 懒加载脚本 -->
+    <script src="assets/js/ai-assistant-loader.js" defer></script>
+    <script src="assets/js/course-data.js" defer></script>
+    <script src="assets/js/fallback-data.js" defer></script>
+    <script src="assets/js/resource-loader.js" defer></script>
+    
+    <style>
+        /* Material Design 3 设计系统 CSS 变量 */
+        :root {
+            /* Material Design 3 浅色模式颜色 - 优化对比度版本 */
+            --md-sys-color-primary: #6750A4;
+            --md-sys-color-primary-container: #EADDFF;
+            --md-sys-color-secondary: #625B71;
+            --md-sys-color-secondary-container: #E8DEF8;
+            --md-sys-color-tertiary: #7D5260;
+            --md-sys-color-tertiary-container: #FFD8E4;
+            --md-sys-color-surface: #FFFBFE;
+            --md-sys-color-surface-variant: #E7E0EC;
+            --md-sys-color-surface-container: #F3EDF7;
+            --md-sys-color-surface-container-high: #ECE6F0;
+            --md-sys-color-surface-container-highest: #E6E0E9;
+            --md-sys-color-background: #FFFBFE;
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-on-primary-container: #21005D;
+            --md-sys-color-on-secondary: #FFFFFF;
+            --md-sys-color-on-secondary-container: #1D192B;
+            --md-sys-color-on-tertiary: #FFFFFF;
+            --md-sys-color-on-tertiary-container: #31111D;
+            --md-sys-color-on-surface: #1C1B1F;
+            --md-sys-color-on-surface-variant: #49454F;
+            --md-sys-color-on-background: #1C1B1F;
+            --md-sys-color-outline: #79747E;
+            --md-sys-color-outline-variant: #CAC4D0;
+            --md-sys-color-shadow: #000000;
+            --md-sys-color-scrim: #000000;
+            
+            /* Material Design 3 增强对比度颜色 - 优化可读性 */
+            --md-sys-color-on-surface-high-contrast: #000000;
+            --md-sys-color-on-surface-medium-contrast: #1A1A1A;
+            --md-sys-color-on-surface-variant-high-contrast: #1F1F1F;
+            --md-sys-color-surface-bright: #FFFFFF;
+            --md-sys-color-surface-dim: #DDD8E0;
+            
+            /* 优化的文本颜色，确保4.5:1对比度 */
+            --md-sys-color-text-primary: #1C1B1F;
+            --md-sys-color-text-secondary: #49454F;
+            --md-sys-color-text-disabled: #979797;
+            
+            /* Material Design 3 形状系统 */
+            --md-sys-shape-corner-none: 0px;
+            --md-sys-shape-corner-extra-small: 4px;
+            --md-sys-shape-corner-small: 8px;
+            --md-sys-shape-corner-medium: 12px;
+            --md-sys-shape-corner-large: 16px;
+            --md-sys-shape-corner-extra-large: 28px;
+            
+            /* Material Design 3 字体系统 */
+            --md-sys-typescale-headline-large-font-family: 'Roboto', sans-serif;
+            --md-sys-typescale-headline-large-font-weight: 400;
+            --md-sys-typescale-headline-large-font-size: 32px;
+            --md-sys-typescale-headline-large-line-height: 40px;
+            --md-sys-typescale-headline-large-letter-spacing: 0px;
+            
+            --md-sys-typescale-headline-medium-font-family: 'Roboto', sans-serif;
+            --md-sys-typescale-headline-medium-font-weight: 400;
+            --md-sys-typescale-headline-medium-font-size: 28px;
+            --md-sys-typescale-headline-medium-line-height: 36px;
+            --md-sys-typescale-headline-medium-letter-spacing: 0px;
+            
+            --md-sys-typescale-headline-small-font-family: 'Roboto', sans-serif;
+            --md-sys-typescale-headline-small-font-weight: 400;
+            --md-sys-typescale-headline-small-font-size: 24px;
+            --md-sys-typescale-headline-small-line-height: 32px;
+            --md-sys-typescale-headline-small-letter-spacing: 0px;
+            
+            --md-sys-typescale-title-large-font-family: 'Roboto', sans-serif;
+            --md-sys-typescale-title-large-font-weight: 500;
+            --md-sys-typescale-title-large-font-size: 22px;
+            --md-sys-typescale-title-large-line-height: 28px;
+            --md-sys-typescale-title-large-letter-spacing: 0px;
+            
+            --md-sys-typescale-title-medium-font-family: 'Roboto', sans-serif;
+            --md-sys-typescale-title-medium-font-weight: 500;
+            --md-sys-typescale-title-medium-font-size: 16px;
+            --md-sys-typescale-title-medium-line-height: 24px;
+            --md-sys-typescale-title-medium-letter-spacing: 0.15px;
+            
+            --md-sys-typescale-body-large-font-family: 'Roboto', sans-serif;
+            --md-sys-typescale-body-large-font-weight: 400;
+            --md-sys-typescale-body-large-font-size: 16px;
+            --md-sys-typescale-body-large-line-height: 24px;
+            --md-sys-typescale-body-large-letter-spacing: 0.5px;
+            
+            --md-sys-typescale-body-medium-font-family: 'Roboto', sans-serif;
+            --md-sys-typescale-body-medium-font-weight: 400;
+            --md-sys-typescale-body-medium-font-size: 14px;
+            --md-sys-typescale-body-medium-line-height: 20px;
+            --md-sys-typescale-body-medium-letter-spacing: 0.25px;
+            
+            --md-sys-typescale-label-large-font-family: 'Roboto', sans-serif;
+            --md-sys-typescale-label-large-font-weight: 500;
+            --md-sys-typescale-label-large-font-size: 14px;
+            --md-sys-typescale-label-large-line-height: 20px;
+            --md-sys-typescale-label-large-letter-spacing: 0.1px;
+            
+            /* Material Design 3 海拔阴影 */
+            --md-sys-elevation-level0: 0px 0px 0px 0px rgba(0, 0, 0, 0.2), 0px 0px 0px 0px rgba(0, 0, 0, 0.14), 0px 0px 0px 0px rgba(0, 0, 0, 0.12);
+            --md-sys-elevation-level1: 0px 2px 1px -1px rgba(0, 0, 0, 0.2), 0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+            --md-sys-elevation-level2: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);
+            --md-sys-elevation-level3: 0px 3px 3px -2px rgba(0, 0, 0, 0.2), 0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12);
+            --md-sys-elevation-level4: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+            --md-sys-elevation-level5: 0px 3px 5px -1px rgba(0, 0, 0, 0.2), 0px 6px 10px 0px rgba(0, 0, 0, 0.14), 0px 1px 18px 0px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Material Design 3 暗色模式 */
+        .dark {
+            --md-sys-color-primary: #D0BCFF;
+            --md-sys-color-primary-container: #4F378B;
+            --md-sys-color-secondary: #CCC2DC;
+            --md-sys-color-secondary-container: #4A4458;
+            --md-sys-color-tertiary: #EFB8C8;
+            --md-sys-color-tertiary-container: #633B48;
+            --md-sys-color-surface: #141218;
+            --md-sys-color-surface-variant: #49454F;
+            --md-sys-color-surface-container: #211F26;
+            --md-sys-color-surface-container-high: #2B2930;
+            --md-sys-color-surface-container-highest: #36343B;
+            --md-sys-color-background: #141218;
+            --md-sys-color-on-primary: #381E72;
+            --md-sys-color-on-primary-container: #EADDFF;
+            --md-sys-color-on-secondary: #332D41;
+            --md-sys-color-on-secondary-container: #E8DEF8;
+            --md-sys-color-on-tertiary: #492532;
+            --md-sys-color-on-tertiary-container: #FFD8E4;
+            --md-sys-color-on-surface: #E6E0E9;
+            --md-sys-color-on-surface-variant: #CAC4D0;
+            --md-sys-color-on-background: #E6E0E9;
+            --md-sys-color-outline: #938F99;
+            --md-sys-color-outline-variant: #49454F;
+            
+            /* 暗色模式增强对比度颜色 - 优化可读性 */
+            --md-sys-color-on-surface-high-contrast: #FFFFFF;
+            --md-sys-color-on-surface-medium-contrast: #F0F0F0;
+            --md-sys-color-on-surface-variant-high-contrast: #E0E0E0;
+            --md-sys-color-surface-bright: #36343B;
+            --md-sys-color-surface-dim: #0F0F0F;
+            
+            /* 暗色模式优化的文本颜色 */
+            --md-sys-color-text-primary: #E6E0E9;
+            --md-sys-color-text-secondary: #CAC4D0;
+            --md-sys-color-text-disabled: #6A6A6A;
+        }
+        
+        /* 高对比度文本样式类 */
+        .text-high-contrast {
+            color: var(--md-sys-color-text-primary) !important;
+        }
+        
+        .text-medium-contrast {
+            color: var(--md-sys-color-text-secondary) !important;
+        }
+        
+        /* 确保链接有足够的对比度 */
+        a {
+            color: var(--md-sys-color-primary);
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        a:focus {
+            outline: 2px solid var(--md-sys-color-primary);
+            outline-offset: 2px;
+        }
+
+        /* Material Design 3 全局基础样式 - 增强字体渲染 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            /* 优化字体渲染性能 */
+            text-rendering: optimizeLegibility;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        body {
+            font-family: var(--md-sys-typescale-body-medium-font-family);
+            font-size: var(--md-sys-typescale-body-medium-font-size);
+            font-weight: var(--md-sys-typescale-body-medium-font-weight);
+            line-height: var(--md-sys-typescale-body-medium-line-height);
+            letter-spacing: var(--md-sys-typescale-body-medium-letter-spacing);
+            background-color: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-background);
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            /* 增强字体渲染和可读性 */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: 'kern' 1, 'liga' 1;
+            text-rendering: optimizeLegibility;
+        }
+        
+        /* Material Design 3 字体样式类 */
+        .md3-headline-large {
+            font-family: var(--md-sys-typescale-headline-large-font-family);
+            font-size: var(--md-sys-typescale-headline-large-font-size);
+            font-weight: var(--md-sys-typescale-headline-large-font-weight);
+            line-height: var(--md-sys-typescale-headline-large-line-height);
+            letter-spacing: var(--md-sys-typescale-headline-large-letter-spacing);
+        }
+        
+        .md3-headline-medium {
+            font-family: var(--md-sys-typescale-headline-medium-font-family);
+            font-size: var(--md-sys-typescale-headline-medium-font-size);
+            font-weight: var(--md-sys-typescale-headline-medium-font-weight);
+            line-height: var(--md-sys-typescale-headline-medium-line-height);
+            letter-spacing: var(--md-sys-typescale-headline-medium-letter-spacing);
+        }
+        
+        .md3-headline-small {
+            font-family: var(--md-sys-typescale-headline-small-font-family);
+            font-size: var(--md-sys-typescale-headline-small-font-size);
+            font-weight: var(--md-sys-typescale-headline-small-font-weight);
+            line-height: var(--md-sys-typescale-headline-small-line-height);
+            letter-spacing: var(--md-sys-typescale-headline-small-letter-spacing);
+        }
+        
+        .md3-title-large {
+            font-family: var(--md-sys-typescale-title-large-font-family);
+            font-size: var(--md-sys-typescale-title-large-font-size);
+            font-weight: var(--md-sys-typescale-title-large-font-weight);
+            line-height: var(--md-sys-typescale-title-large-line-height);
+            letter-spacing: var(--md-sys-typescale-title-large-letter-spacing);
+        }
+        
+        .md3-title-medium {
+            font-family: var(--md-sys-typescale-title-medium-font-family);
+            font-size: var(--md-sys-typescale-title-medium-font-size);
+            font-weight: var(--md-sys-typescale-title-medium-font-weight);
+            line-height: var(--md-sys-typescale-title-medium-line-height);
+            letter-spacing: var(--md-sys-typescale-title-medium-letter-spacing);
+        }
+        
+        .md3-body-large {
+            font-family: var(--md-sys-typescale-body-large-font-family);
+            font-size: var(--md-sys-typescale-body-large-font-size);
+            font-weight: var(--md-sys-typescale-body-large-font-weight);
+            line-height: var(--md-sys-typescale-body-large-line-height);
+            letter-spacing: var(--md-sys-typescale-body-large-letter-spacing);
+        }
+        
+        .md3-body-medium {
+            font-family: var(--md-sys-typescale-body-medium-font-family);
+            font-size: var(--md-sys-typescale-body-medium-font-size);
+            font-weight: var(--md-sys-typescale-body-medium-font-weight);
+            line-height: var(--md-sys-typescale-body-medium-line-height);
+            letter-spacing: var(--md-sys-typescale-body-medium-letter-spacing);
+        }
+        
+        .md3-label-large {
+            font-family: var(--md-sys-typescale-label-large-font-family);
+            font-size: var(--md-sys-typescale-label-large-font-size);
+            font-weight: var(--md-sys-typescale-label-large-font-weight);
+            line-height: var(--md-sys-typescale-label-large-line-height);
+            letter-spacing: var(--md-sys-typescale-label-large-letter-spacing);
+        }
+        
+        /* Material Symbols 图标样式 */
+        .material-symbols-outlined,
+        .material-symbols-rounded {
+            font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24;
+            user-select: none;
+            vertical-align: middle;
+        }
+        
+        .material-symbols-filled {
+            font-variation-settings:
+                'FILL' 1,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24;
+        }
+        
+        /* 图标大小变体 */
+        .md3-icon-small { font-size: 18px; }
+        .md3-icon-medium { font-size: 24px; }
+        .md3-icon-large { font-size: 32px; }
+        .md3-icon-extra-large { font-size: 48px; }
+
+        /* Material Design 3 容器基础类 */
+        .md3-surface {
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            border-radius: var(--md-sys-shape-corner-medium);
+            box-shadow: var(--md-sys-elevation-level1);
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .md3-surface-container {
+            background-color: var(--md-sys-color-surface-container);
+            color: var(--md-sys-color-on-surface);
+            border-radius: var(--md-sys-shape-corner-medium);
+            box-shadow: var(--md-sys-elevation-level0);
+        }
+
+        .md3-card {
+            background-color: var(--md-sys-color-surface-container);
+            color: var(--md-sys-color-on-surface);
+            border-radius: var(--md-sys-shape-corner-large);
+            box-shadow: var(--md-sys-elevation-level1);
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .md3-card:hover {
+            box-shadow: var(--md-sys-elevation-level2);
+            transform: translateY(-1px);
+        }
+
+        .md3-card:active {
+            box-shadow: var(--md-sys-elevation-level1);
+            transform: translateY(0);
+        }
+
+        .md3-card-elevated {
+            background-color: var(--md-sys-color-surface-container-high);
+            box-shadow: var(--md-sys-elevation-level2);
+        }
+
+        .md3-card-elevated:hover {
+            box-shadow: var(--md-sys-elevation-level3);
+        }
+
+        /* Material Design 3 按钮系统 */
+        .md3-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 0 24px;
+            border-radius: var(--md-sys-shape-corner-large);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.1px;
+            line-height: 20px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .md3-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.2s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .md3-btn:hover::before {
+            opacity: 0.08;
+        }
+
+        .md3-btn:focus::before {
+            opacity: 0.12;
+        }
+
+        .md3-btn:active::before {
+            opacity: 0.16;
+        }
+
+        /* Filled Button (Primary) */
+        .md3-btn-filled {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            box-shadow: var(--md-sys-elevation-level0);
+        }
+
+        .md3-btn-filled::before {
+            background-color: var(--md-sys-color-on-primary);
+        }
+
+        .md3-btn-filled:hover {
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+
+        /* Filled Tonal Button */
+        .md3-btn-filled-tonal {
+            background-color: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+
+        .md3-btn-filled-tonal::before {
+            background-color: var(--md-sys-color-on-secondary-container);
+        }
+
+        /* Outlined Button */
+        .md3-btn-outlined {
+            background-color: transparent;
+            color: var(--md-sys-color-primary);
+            border: 1px solid var(--md-sys-color-outline);
+        }
+
+        .md3-btn-outlined::before {
+            background-color: var(--md-sys-color-primary);
+        }
+
+        /* Text Button */
+        .md3-btn-text {
+            background-color: transparent;
+            color: var(--md-sys-color-primary);
+            padding: 0 12px;
+        }
+
+        .md3-btn-text::before {
+            background-color: var(--md-sys-color-primary);
+        }
+
+        /* Hero区域 Material Design 3 设计 */
+        .hero-md3 {
+            background-color: var(--md-sys-color-surface);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            background-color: var(--md-sys-color-surface-container);
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            box-shadow: var(--md-sys-elevation-level1);
+            padding: 3rem;
+            margin: 2rem;
+            position: relative;
+        }
+
+        /* 统计卡片 Material Design 3 设计 */
+        .stat-card {
+            background-color: var(--md-sys-color-surface-container);
+            border-radius: var(--md-sys-shape-corner-large);
+            box-shadow: var(--md-sys-elevation-level1);
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            border: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--md-sys-color-primary);
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* 功能卡片图标容器 Material Design 3 */
+        .icon-container {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--md-sys-shape-corner-large);
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            position: relative;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+
+        .icon-container:hover {
+            box-shadow: var(--md-sys-elevation-level2);
+            transform: translateY(-2px);
+        }
+
+        .icon-container i {
+            font-size: 1.5rem;
+            z-index: 1;
+        }
+
+        /* Material Design 3 主题切换按钮 */
+        .theme-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            width: 56px;
+            height: 56px;
+            border-radius: var(--md-sys-shape-corner-large);
+            background-color: var(--md-sys-color-surface-container-high);
+            color: var(--md-sys-color-on-surface);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            z-index: 1000;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            box-shadow: var(--md-sys-elevation-level2);
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background-color: var(--md-sys-color-on-surface);
+            opacity: 0;
+            transition: opacity 0.2s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .theme-toggle:hover {
+            box-shadow: var(--md-sys-elevation-level3);
+        }
+
+        .theme-toggle:hover::before {
+            opacity: 0.08;
+        }
+
+        .theme-toggle:active::before {
+            opacity: 0.16;
+        }
+
+        /* 导航栏 Material Design 3 设计 */
+        nav {
+            background-color: var(--md-sys-color-surface);
+            box-shadow: var(--md-sys-elevation-level2);
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        /* 页脚 Material Design 3 设计 */
+        footer {
+            background-color: var(--md-sys-color-surface);
+            border-top: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .footer-section {
+            background-color: var(--md-sys-color-surface-container);
+            border-radius: var(--md-sys-shape-corner-large);
+            box-shadow: var(--md-sys-elevation-level1);
+            padding: 2rem;
+        }
+
+        /* Material Design 3 增强动画效果 - 优化性能 */
+        @keyframes md3-fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes md3-scale-in {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes md3-slide-in {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* 流畅的页面转场动画 */
+        @keyframes page-enter {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        @keyframes stagger-fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: md3-fade-in 0.6s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        .animate-scale-in {
+            animation: md3-scale-in 0.4s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        .animate-slide-in {
+            animation: md3-slide-in 0.5s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+        
+        .animate-page-enter {
+            animation: page-enter 0.8s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+        
+        .animate-stagger {
+            animation: stagger-fade-in 0.6s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+        
+        /* 初始状态，防止闪烁 */
+        .animate-on-load {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        /* 高性能动画优化 */
+        .animate-optimized {
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+        
+        /* GPU 加速的变换 */
+        .gpu-accelerated {
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+        }
+        
+        /* 减少重绘的变换 */
+        .reduce-paint {
+            will-change: transform;
+            transform: translateZ(0);
+        }
+        
+        /* 骑排动画延迟 */
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+        .stagger-5 { animation-delay: 0.5s; }
+        .stagger-6 { animation-delay: 0.6s; }
+
+        /* Material Design 3 缓动函数 */
+        .md3-emphasized {
+            transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .md3-standard {
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .md3-emphasized-decelerate {
+            transition-timing-function: cubic-bezier(0.05, 0.7, 0.1, 1);
+        }
+
+        /* Material Design 3 响应式设计 - 增强移动端体验 */
+        @media (max-width: 768px) {
+            .hero-content {
+                margin: 1rem;
+                padding: 2rem;
+                border-radius: var(--md-sys-shape-corner-large);
+            }
+            
+            .theme-toggle {
+                top: 1rem;
+                right: 1rem;
+                width: 48px;
+                height: 48px;
+                font-size: 1.125rem;
+            }
+            
+            .icon-container {
+                width: 64px;
+                height: 64px;
+            }
+            
+            .md3-btn {
+                min-height: 36px;
+                padding: 0 16px;
+                font-size: 13px;
+            }
+            
+            /* 移动端触摸优化 */
+            .md3-btn,
+            .md3-card,
+            .theme-toggle {
+                min-height: 44px; /* iOS建议的最小触摸目标 */
+                min-width: 44px;
+            }
+            
+            /* 移动端字体大小调整 */
+            .md3-headline-large {
+                font-size: 2rem;
+                line-height: 2.5rem;
+            }
+            
+            .stat-number {
+                font-size: 1.5rem;
+            }
+            
+            /* 移动端间距调整 */
+            .hero-md3 {
+                padding: 3rem 0;
+            }
+            
+            section {
+                padding: 3rem 0;
+            }
+            
+            /* 移动端导航优化 */
+            .md3-card {
+                margin-bottom: 1rem;
+            }
+        }
+        
+        /* 平板设备优化 */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .hero-content {
+                padding: 2.5rem;
+                margin: 1.5rem;
+            }
+            
+            .stat-number {
+                font-size: 1.75rem;
+            }
+        }
+        
+        /* 触摸设备通用优化 */
+        @media (hover: none) and (pointer: coarse) {
+            /* 触摸设备去除hover效果，避免粘滞 */
+            .md3-btn:hover,
+            .md3-card:hover,
+            .icon-container:hover,
+            .theme-toggle:hover {
+                transform: none;
+                box-shadow: inherit;
+            }
+            
+            /* 增强触摸反馈 */
+            .md3-btn:active,
+            .md3-card:active {
+                transform: scale(0.98);
+                transition: transform 0.1s ease;
+            }
+            
+            /* 触摸时的状态层 */
+            .md3-btn:active::before,
+            .md3-card:active::before {
+                opacity: 0.2;
+            }
+        }
+        
+        /* 高分辨率屏幕优化 */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            /* 确保图标和边框在高DPI屏幕上清晰 */
+            .material-symbols-outlined,
+            .material-symbols-rounded {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+        }
+        
+        /* 横屏模式优化 */
+        @media (orientation: landscape) and (max-height: 600px) {
+            .hero-md3 {
+                padding: 2rem 0;
+            }
+            
+            .hero-content {
+                padding: 2rem;
+            }
+            
+            .md3-headline-large {
+                font-size: 2.5rem;
+                line-height: 3rem;
+            }
+        }
+        
+        /* 可访问性：减少动画 */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            
+            .animate-fade-in,
+            .animate-scale-in,
+            .animate-slide-in,
+            .animate-page-enter {
+                animation: none !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+        }
+        
+        /* 用户个性化设置样式 */
+        /* 禁用动画 */
+        .no-animations *,
+        .no-animations *::before,
+        .no-animations *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+        
+        /* 紧凑模式 */
+        .compact-mode .hero-content {
+            padding: 1.5rem;
+            margin: 1rem;
+        }
+        
+        .compact-mode .stat-card {
+            padding: 1rem;
+        }
+        
+        .compact-mode .md3-card {
+            padding: 1rem;
+        }
+        
+        .compact-mode section {
+            padding: 2rem 0;
+        }
+        
+        .compact-mode .footer-section {
+            padding: 1rem;
+        }
+        
+        /* 字体大小设置 */
+        .font-small {
+            font-size: 14px;
+        }
+        
+        .font-small .md3-headline-large {
+            font-size: 2rem;
+            line-height: 2.5rem;
+        }
+        
+        .font-small .md3-headline-medium {
+            font-size: 1.75rem;
+            line-height: 2.25rem;
+        }
+        
+        .font-small .stat-number {
+            font-size: 1.5rem;
+        }
+        
+        .font-medium {
+            font-size: 16px;
+        }
+        
+        .font-large {
+            font-size: 18px;
+        }
+        
+        .font-large .md3-headline-large {
+            font-size: 3.5rem;
+            line-height: 4rem;
+        }
+        
+        .font-large .md3-headline-medium {
+            font-size: 2.5rem;
+            line-height: 3rem;
+        }
+        
+        .font-large .stat-number {
+            font-size: 2.5rem;
+        }
+        
+        /* 个性化设置面板样式 */
+        .preferences-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--md-sys-color-surface);
+            border-radius: var(--md-sys-shape-corner-large);
+            box-shadow: var(--md-sys-elevation-level3);
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            z-index: 1000;
+        }
+        
+        .preference-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+        
+        .preference-item:last-child {
+            border-bottom: none;
+        }
+        
+        .preference-toggle {
+            width: 48px;
+            height: 24px;
+            background: var(--md-sys-color-surface-variant);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .preference-toggle.active {
+            background: var(--md-sys-color-primary);
+        }
+        
+        .preference-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+        }
+        
+        .preference-toggle.active::after {
+            transform: translateX(24px);
+        }
+
+        /* Material Design 3 深色主题适配 */
+        @media (prefers-color-scheme: dark) {
+            :root:not(.light) {
+                --md-sys-color-primary: #D0BCFF;
+                --md-sys-color-primary-container: #4F378B;
+                --md-sys-color-secondary: #CCC2DC;
+                --md-sys-color-secondary-container: #4A4458;
+                --md-sys-color-tertiary: #EFB8C8;
+                --md-sys-color-tertiary-container: #633B48;
+                --md-sys-color-surface: #141218;
+                --md-sys-color-surface-variant: #49454F;
+                --md-sys-color-surface-container: #211F26;
+                --md-sys-color-surface-container-high: #2B2930;
+                --md-sys-color-surface-container-highest: #36343B;
+                --md-sys-color-background: #141218;
+                --md-sys-color-on-primary: #381E72;
+                --md-sys-color-on-primary-container: #EADDFF;
+                --md-sys-color-on-secondary: #332D41;
+                --md-sys-color-on-secondary-container: #E8DEF8;
+                --md-sys-color-on-tertiary: #492532;
+                --md-sys-color-on-tertiary-container: #FFD8E4;
+                --md-sys-color-on-surface: #E6E0E9;
+                --md-sys-color-on-surface-variant: #CAC4D0;
+                --md-sys-color-on-background: #E6E0E9;
+                --md-sys-color-outline: #938F99;
+                --md-sys-color-outline-variant: #49454F;
+            }
+        }
+
+        /* Material Design 3 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background-color: var(--md-sys-color-surface-variant);
+            border-radius: var(--md-sys-shape-corner-small);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--md-sys-color-outline);
+            border-radius: var(--md-sys-shape-corner-small);
+            border: 2px solid var(--md-sys-color-surface-variant);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--md-sys-color-on-surface-variant);
+        }
+
+        /* Material Design 3 状态层和涟漪效果增强 */
+        .md3-ripple-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .md3-ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background-color: currentColor;
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-animation {
+            0% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Material Design 3 增强按钮交互 */
+        .md3-btn:not(:disabled) {
+            cursor: pointer;
+        }
+
+        .md3-btn:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
+        }
+
+        .md3-btn:not(:disabled):hover {
+            transform: translateY(-1px);
+        }
+
+        .md3-btn:not(:disabled):active {
+            transform: translateY(0);
+        }
+
+        /* Material Design 3 卡片交互增强 */
+        .md3-card:hover {
+            cursor: pointer;
+        }
+
+        .md3-card:not(.md3-card-disabled):hover {
+            transform: translateY(-2px);
+        }
+
+        .md3-card:not(.md3-card-disabled):active {
+            transform: translateY(-1px);
+        }
+
+        /* Material Design 3 图标容器交互 */
+        .icon-container:hover {
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .icon-container:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        /* Material Design 3 主题切换按钮交互增强 */
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-toggle:active {
+            transform: scale(1.05);
+        }
+
+        /* Material Design 3 焦点状态 */
+        .md3-btn:focus-visible,
+        .md3-card:focus-visible,
+        .theme-toggle:focus-visible {
+            outline: 2px solid var(--md-sys-color-primary);
+            outline-offset: 2px;
+        }
+
+        /* Material Design 3 动态阴影 */
+        .md3-elevated-on-hover:hover {
+            box-shadow: var(--md-sys-elevation-level3);
+        }
+
+        .md3-elevated-on-hover:active {
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+
+        /* Material Design 3 表面调色增强 */
+        .md3-surface-tint::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, transparent 60%);
+            opacity: 0.05;
+            border-radius: inherit;
+            pointer-events: none;
+        }
+
+        /* Material Design 3 加载状态 */
+        .md3-loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .md3-loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--md-sys-color-on-surface), transparent);
+            opacity: 0.1;
+            animation: loading-shimmer 1.5s infinite;
+        }
+
+        @keyframes loading-shimmer {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+        
+        /* 骨架屏动画效果 */
+        @keyframes skeleton-loading {
+            0% {
+                background-position: -200px 0;
+            }
+            100% {
+                background-position: calc(200px + 100%) 0;
+            }
+        }
+        
+        .skeleton {
+            animation: skeleton-loading 1.5s infinite;
+            background: linear-gradient(90deg, 
+                var(--md-sys-color-surface-variant) 25%, 
+                var(--md-sys-color-surface-container) 50%, 
+                var(--md-sys-color-surface-variant) 75%);
+            background-size: 200px 100%;
+            border-radius: var(--md-sys-shape-corner-small);
+        }
+        
+        .skeleton-text {
+            height: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .skeleton-title {
+            height: 32px;
+            margin-bottom: 16px;
+        }
+        
+        .skeleton-card {
+            height: 200px;
+            border-radius: var(--md-sys-shape-corner-large);
+        }
+        
+        /* 加载进度指示器 */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--md-sys-color-surface-variant);
+            border-top: 4px solid var(--md-sys-color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 进度条样式 */
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: var(--md-sys-color-surface-variant);
+            border-radius: var(--md-sys-shape-corner-small);
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                var(--md-sys-color-primary), 
+                var(--md-sys-color-secondary));
+            border-radius: var(--md-sys-shape-corner-small);
+            transition: width 0.3s cubic-bezier(0.2, 0, 0, 1);
+        }
+    </style>
+</head>
+<body class="transition-all duration-300" x-data="mainApp()">
+    <!-- 全局加载指示器 -->
+    <div x-show="isLoading" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed top-0 left-0 right-0 z-50">
+        <div class="progress-bar">
+            <div class="progress-fill" :style="`width: ${loadingProgress}%`"></div>
+        </div>
+    </div>
+    
+    <!-- 主题切换按钮 -->
+    <button class="theme-toggle" @click="toggleTheme()" :title="darkMode ? '切换到浅色模式' : '切换到暗色模式'">
+        <span class="material-symbols-rounded" x-text="darkMode ? 'light_mode' : 'dark_mode'"></span>
+    </button>
+
+    <!-- 导航栏容器 -->
+    <div id="navbar-container"></div>
+
+    <!-- 优雅的欢迎引导 -->
+    <div x-show="showWelcome" 
+         x-transition:enter="transition ease-out duration-500"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        
+        <div class="md3-card max-w-md w-full p-8 text-center" 
+             x-transition:enter="transition ease-out duration-700 delay-200"
+             x-transition:enter-start="opacity-0 scale-75"
+             x-transition:enter-end="opacity-100 scale-100">
+            
+            <div class="relative mb-6">
+                <div class="icon-container mx-auto">
+                    <span class="material-symbols-rounded">school</span>
+                </div>
+            </div>
+            
+            <h2 class="text-2xl font-bold mb-2" style="color: var(--text-primary);">
+                🎉 欢迎来到考研学习平台
+            </h2>
+            <p class="text-lg mb-6" style="color: var(--text-secondary);">开启您的高效备考之旅</p>
+            
+            <div class="grid grid-cols-2 gap-3 mb-6 text-sm">
+                    <div class="md3-surface-container p-3">
+                        <span class="material-symbols-rounded text-blue-400 mb-1">play_circle</span>
+                        <div class="font-semibold">200+ 视频课程</div>
+                    </div>
+                    <div class="md3-surface-container p-3">
+                        <span class="material-symbols-rounded text-green-400 mb-1">task_alt</span>
+                        <div class="font-semibold">1280+ 真题</div>
+                    </div>
+                    <div class="md3-surface-container p-3">
+                        <span class="material-symbols-rounded text-purple-400 mb-1">smart_toy</span>
+                        <div class="font-semibold">AI 智能辅导</div>
+                    </div>
+                    <div class="md3-surface-container p-3">
+                        <span class="material-symbols-rounded text-indigo-400 mb-1">cloud_sync</span>
+                        <div class="font-semibold">云端同步</div>
+                    </div>
+            </div>
+            
+            <div class="space-y-3">
+                <button @click="startTour()" 
+                        class="w-full md3-btn-filled py-3 px-6 text-lg font-bold">
+                    🚀 开始新手引导
+                </button>
+                <button @click="skipWelcome()" 
+                        class="w-full md3-btn-outlined py-2">
+                    直接进入平台 →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero区域 - 新拟物化设计 -->
+    <section class="hero-md3 py-20 lg:py-28">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="hero-content text-center relative">
+                <!-- 浮动装饰元素 -->
+                <div class="absolute -top-12 -left-12 w-24 h-24 md3-surface rounded-full animate-scale-in opacity-50 stagger-1 animate-optimized"></div>
+                <div class="absolute top-1/2 -right-16 w-16 h-16 md3-surface rounded-full animate-scale-in opacity-30 stagger-2 animate-optimized"></div>
+                <div class="absolute bottom-0 left-1/3 w-20 h-20 md3-surface rounded-full animate-scale-in opacity-40 stagger-3 animate-optimized"></div>
+                
+                <!-- 主标题区域 -->
+                <div class="mb-8 animate-fade-in stagger-1">
+                    <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 text-high-contrast animate-optimized">
+                        <span class="block" style="color: var(--md-sys-color-primary);">
+                            计算机考研
+                        </span>
+                        <span class="block" style="color: var(--md-sys-color-secondary);">
+                            学习平台
+                        </span>
+                    </h1>
+                    
+                    <p class="text-xl sm:text-2xl md:text-3xl mb-6 font-light animate-fade-in text-medium-contrast stagger-2">
+                        高效 · 智能 · 个性化的考研备考体验
+                    </p>
+                    
+                    <div class="flex flex-wrap justify-center gap-3 mb-8 animate-fade-in stagger-3">
+                        <span class="md3-surface-container px-4 py-2 text-sm font-medium" style="color: var(--md-sys-color-on-surface-variant);">✨ AI 智能辅导</span>
+                        <span class="md3-surface-container px-4 py-2 text-sm font-medium" style="color: var(--md-sys-color-on-surface-variant);">📊 数据分析</span>
+                        <span class="md3-surface-container px-4 py-2 text-sm font-medium" style="color: var(--md-sys-color-on-surface-variant);">☁️ 云端同步</span>
+                        <span class="md3-surface-container px-4 py-2 text-sm font-medium" style="color: var(--md-sys-color-on-surface-variant);">🎯 精准练习</span>
+                    </div>
+                </div>
+                
+                <!-- 统计数据展示 -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10 animate-fade-in stagger-4">
+                    <div class="stat-card animate-on-load animate-optimized stagger-1">
+                        <div class="stat-number">1280+</div>
+                        <div class="text-sm mt-1" style="color: var(--md-sys-color-on-surface-variant);">历年真题</div>
+                    </div>
+                    <div class="stat-card animate-on-load animate-optimized stagger-2">
+                        <div class="stat-number">200+</div>
+                        <div class="text-sm mt-1" style="color: var(--md-sys-color-on-surface-variant);">精品课程</div>
+                    </div>
+                    <div class="stat-card animate-on-load animate-optimized stagger-3">
+                        <div class="stat-number">10年</div>
+                        <div class="text-sm mt-1" style="color: var(--md-sys-color-on-surface-variant);">题库覆盖</div>
+                    </div>
+                    <div class="stat-card animate-on-load animate-optimized stagger-4">
+                        <div class="stat-number">24/7</div>
+                        <div class="text-sm mt-1" style="color: var(--md-sys-color-on-surface-variant);">AI 助手</div>
+                    </div>
+                </div>
+                
+                <!-- CTA按钮 -->
+                <div class="animate-fade-in stagger-5">
+                    <button onclick="document.getElementById('courses').scrollIntoView({behavior: 'smooth'})" 
+                            class="md3-btn-filled px-8 py-4 text-lg font-bold md3-state-layer animate-optimized">
+                        <span class="material-symbols-rounded mr-2">rocket_launch</span>
+                        立即开始学习
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 滚动提示 -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 cursor-pointer" 
+             onclick="document.getElementById('courses').scrollIntoView({behavior: 'smooth'})">
+            <div class="md3-surface w-6 h-10 rounded-full flex justify-center py-2">
+                <div class="w-1 h-3 rounded-full animate-bounce" style="background-color: var(--md-sys-color-primary);"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 学习模块区域 -->
+    <section id="courses" class="py-20" style="background-color: var(--md-sys-color-background);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- 区域标题 -->
+            <div class="text-center mb-16 animate-fade-in">
+                <h2 class="text-4xl md:text-5xl font-black mb-6" style="color: var(--md-sys-color-primary);">
+                    📚 核心学习模块
+                </h2>
+                <p class="text-xl max-w-3xl mx-auto" style="color: var(--md-sys-color-on-surface-variant);">
+                    全面覆盖考研科目，从公共课到专业课，打造个性化学习路径，助您高效备考
+                </p>
+            </div>
+            
+            <!-- 学习模块卡片 -->
+            <div class="grid md:grid-cols-2 gap-8 mb-16">
+                <!-- 公共课模块 -->
+                <div class="md3-card md3-elevated-on-hover md3-surface-tint p-8 cursor-pointer group animate-fade-in" 
+                     onclick="location.href='subjects.html?type=public'">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-2xl font-bold mb-2" style="color: var(--md-sys-color-on-surface);">公共课程</h3>
+                            <p style="color: var(--md-sys-color-on-surface-variant);">数学 · 英语 · 政治</p>
+                        </div>
+                        <div class="icon-container group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-rounded">menu_book</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="text-center p-3 md3-surface-container">
+                            <div class="text-lg font-bold text-blue-600">数学</div>
+                            <div class="text-xs" style="color: var(--md-sys-color-on-surface-variant);">高数/线代/概率</div>
+                        </div>
+                        <div class="text-center p-3 md3-surface-container">
+                            <div class="text-lg font-bold text-green-600">英语</div>
+                            <div class="text-xs" style="color: var(--md-sys-color-on-surface-variant);">词汇/阅读/写作</div>
+                        </div>
+                        <div class="text-center p-3 md3-surface-container">
+                            <div class="text-lg font-bold text-purple-600">政治</div>
+                            <div class="text-xs" style="color: var(--md-sys-color-on-surface-variant);">马原/毛概/史纲</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center text-sm" style="color: var(--md-sys-color-on-surface-variant);">
+                            <span class="material-symbols-rounded mr-2">groups</span>
+                            <span>85% 学员选择</span>
+                        </div>
+                        <div class="flex items-center text-blue-600 group-hover:text-blue-700">
+                            <span class="font-medium mr-2">开始学习</span>
+                            <span class="material-symbols-rounded transform group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 专业课模块 -->
+                <div class="md3-card md3-elevated-on-hover md3-surface-tint p-8 cursor-pointer group animate-fade-in" 
+                     onclick="location.href='subjects.html?type=professional'" style="animation-delay: 0.2s;">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-2xl font-bold mb-2" style="color: var(--md-sys-color-on-surface);">专业课程</h3>
+                            <p style="color: var(--md-sys-color-on-surface-variant);">计算机核心科目</p>
+                        </div>
+                        <div class="icon-container group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-rounded">computer</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="text-center p-3 md3-surface-container">
+                            <div class="text-lg font-bold text-purple-600">数据结构</div>
+                            <div class="text-xs" style="color: var(--md-sys-color-on-surface-variant);">★★★★★</div>
+                        </div>
+                        <div class="text-center p-3 md3-surface-container">
+                            <div class="text-lg font-bold text-orange-600">操作系统</div>
+                            <div class="text-xs" style="color: var(--md-sys-color-on-surface-variant);">★★★★☆</div>
+                        </div>
+                        <div class="text-center p-3 md3-surface-container">
+                            <div class="text-lg font-bold text-green-600">计算机网络</div>
+                            <div class="text-xs" style="color: var(--md-sys-color-on-surface-variant);">★★★☆☆</div>
+                        </div>
+                        <div class="text-center p-3 md3-surface-container">
+                            <div class="text-lg font-bold text-blue-600">组成原理</div>
+                            <div class="text-xs" style="color: var(--md-sys-color-on-surface-variant);">★★★☆☆</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center text-sm" style="color: var(--md-sys-color-on-surface-variant);">
+                            <span class="material-symbols-rounded mr-2">trending_up</span>
+                            <span>高分必备</span>
+                        </div>
+                        <div class="flex items-center text-purple-600 group-hover:text-purple-700">
+                            <span class="font-medium mr-2">开始学习</span>
+                            <span class="material-symbols-rounded transform group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快捷功能区 -->
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- 笔记管理 -->
+                <div class="md3-card p-6 cursor-pointer group animate-fade-in" 
+                     onclick="location.href='notes-management.html'"
+                     style="animation-delay: 0.2s;">
+                    <div class="text-center">
+                        <div class="icon-container mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-rounded">sticky_note_2</span>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2" style="color: var(--md-sys-color-on-surface);">笔记管理</h4>
+                        <p class="text-sm mb-4" style="color: var(--md-sys-color-on-surface-variant);">创建、编辑、导入导出</p>
+                        <div class="text-2xl font-bold text-indigo-600 mb-1" id="notes-count">0</div>
+                        <div class="text-xs" style="color: var(--md-sys-color-on-surface-variant);">学习笔记</div>
+                    </div>
+                </div>
+
+                <!-- 学习统计 -->
+                <div class="md3-card p-6 cursor-pointer group animate-fade-in" 
+                     onclick="openStatsModal()"
+                     style="animation-delay: 0.4s;">
+                    <div class="text-center">
+                        <div class="icon-container mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-rounded">bar_chart</span>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2" style="color: var(--md-sys-color-on-surface);">学习统计</h4>
+                        <p class="text-sm mb-4" style="color: var(--md-sys-color-on-surface-variant);">追踪真实学习进度</p>
+                        <div class="text-2xl font-bold text-orange-600 mb-1" 
+                             x-text="studyStats?.stats?.totalStudyTime > 0 ? Math.round(studyStats.stats.totalStudyTime / 60) + 'h' : '0h'">0h</div>
+                        <div class="text-xs" style="color: var(--md-sys-color-on-surface-variant);">总学习时长</div>
+                    </div>
+                </div>
+
+                <!-- 数据管理 -->
+                <div class="md3-card p-6 cursor-pointer group animate-fade-in" 
+                     onclick="window.location.href='study-data-manager.html'"
+                     style="animation-delay: 0.6s;">
+                    <div class="text-center">
+                        <div class="icon-container mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-rounded">database</span>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2" style="color: var(--md-sys-color-on-surface);">数据管理</h4>
+                        <p class="text-sm mb-4" style="color: var(--md-sys-color-on-surface-variant);">导入导出学习记录</p>
+                        <div class="text-2xl font-bold text-green-600 mb-1" 
+                             x-text="studyStats?.stats?.dailyStats ? Object.keys(studyStats.stats.dailyStats).length + '天' : '0天'">0天</div>
+                        <div class="text-xs" style="color: var(--md-sys-color-on-surface-variant);">学习记录</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Material Design 3 页脚 -->
+    <footer class="py-16" style="background-color: var(--md-sys-color-surface);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <!-- 品牌介绍 -->
+                <div class="footer-section">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 md3-surface rounded-full flex items-center justify-center mr-3">
+                            <span class="material-symbols-rounded text-lg" style="color: var(--md-sys-color-primary);">school</span>
+                        </div>
+                        <h3 class="text-xl font-bold" style="color: var(--md-sys-color-on-surface);">考研学习平台</h3>
+                    </div>
+                    <p class="mb-6 leading-relaxed" style="color: var(--md-sys-color-on-surface-variant);">
+                        专注计算机考研教育，提供高质量的学习资源和智能化的学习体验，助力每一位考研学子实现名校梦想。
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="md3-surface w-10 h-10 rounded-full flex items-center justify-center hover:scale-110 transition-transform">
+                            <span class="material-symbols-rounded" style="color: var(--md-sys-color-primary);">chat</span>
+                        </a>
+                        <a href="#" class="md3-surface w-10 h-10 rounded-full flex items-center justify-center hover:scale-110 transition-transform">
+                            <span class="material-symbols-rounded" style="color: var(--md-sys-color-primary);">forum</span>
+                        </a>
+                        <a href="https://github.com/aspinojony?tab=repositories" class="md3-surface w-10 h-10 rounded-full flex items-center justify-center hover:scale-110 transition-transform">
+                            <span class="material-symbols-rounded" style="color: var(--md-sys-color-primary);">code</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 快速导航 -->
+                <div class="footer-section">
+                    <h4 class="text-lg font-semibold mb-6" style="color: var(--md-sys-color-primary);">学习导航</h4>
+                    <ul class="space-y-3">
+                        <li><a href="subjects.html?type=public" class="flex items-center transition-colors duration-200 hover:scale-105" style="color: var(--md-sys-color-on-surface-variant);">
+                            <span class="material-symbols-rounded text-xs mr-2" style="color: var(--md-sys-color-primary);">chevron_right</span>公共课程</a></li>
+                        <li><a href="subjects.html?type=professional" class="flex items-center transition-colors duration-200 hover:scale-105" style="color: var(--md-sys-color-on-surface-variant);">
+                            <span class="material-symbols-rounded text-xs mr-2" style="color: var(--md-sys-color-primary);">chevron_right</span>专业课程</a></li>
+                        <li><a href="practice.html" class="flex items-center transition-colors duration-200 hover:scale-105" style="color: var(--md-sys-color-on-surface-variant);">
+                            <span class="material-symbols-rounded text-xs mr-2" style="color: var(--md-sys-color-primary);">chevron_right</span>真题练习</a></li>
+                    </ul>
+                </div>
+                
+                <!-- 学习工具 -->
+                <div class="footer-section">
+                    <h4 class="text-lg font-semibold mb-6" style="color: var(--md-sys-color-primary);">学习工具</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="flex items-center transition-colors duration-200 hover:scale-105" style="color: var(--md-sys-color-on-surface-variant);">
+                            <span class="material-symbols-rounded text-xs mr-2" style="color: var(--md-sys-color-primary);">chevron_right</span>AI智能辅导</a></li>
+                        <li><a href="#" class="flex items-center transition-colors duration-200 hover:scale-105" style="color: var(--md-sys-color-on-surface-variant);">
+                            <span class="material-symbols-rounded text-xs mr-2" style="color: var(--md-sys-color-primary);">chevron_right</span>学习计划</a></li>
+                        <li><a href="#" class="flex items-center transition-colors duration-200 hover:scale-105" style="color: var(--md-sys-color-on-surface-variant);">
+                            <span class="material-symbols-rounded text-xs mr-2" style="color: var(--md-sys-color-primary);">chevron_right</span>进度跟踪</a></li>
+                    </ul>
+                </div>
+                
+                <!-- 联系信息 -->
+                <div class="footer-section">
+                    <h4 class="text-lg font-semibold mb-6" style="color: var(--md-sys-color-primary);">联系我们</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center" style="color: var(--md-sys-color-on-surface-variant);">
+                            <span class="material-symbols-rounded mr-3" style="color: var(--md-sys-color-primary);">mail</span>
+                            <span>aspinojony@gmail.com</span>
+                        </div>
+                        <div class="flex items-center" style="color: var(--md-sys-color-on-surface-variant);">
+                            <span class="material-symbols-rounded mr-3" style="color: var(--md-sys-color-primary);">phone</span>
+                            <span>+86 16623076603</span>
+                        </div>
+                        <div class="flex items-center" style="color: var(--md-sys-color-on-surface-variant);">
+                            <span class="material-symbols-rounded mr-3" style="color: var(--md-sys-color-primary);">schedule</span>
+                            <span>周一至周日 9:00-21:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 版权信息 -->
+            <div class="border-t pt-8 text-center" style="border-color: var(--md-sys-color-outline-variant);">
+                <p style="color: var(--md-sys-color-on-surface-variant);">
+                    &copy; 2026 计算机考研学习平台. All rights reserved by ouyangzhiheng. 
+                    <span style="color: var(--md-sys-color-primary);">Made with ❤️ for 考研er</span>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 核心JavaScript -->
+    <script>
+        // Material Design 3 涟漪效果函数
+        function createRipple(event) {
+            const button = event.currentTarget;
+            const rect = button.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            
+            const ripple = document.createElement('span');
+            ripple.className = 'md3-ripple-effect';
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            
+            button.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+
+        // 为所有按钮和卡片添加涟漪效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const rippleElements = document.querySelectorAll('.md3-btn, .md3-card, .md3-state-layer');
+            rippleElements.forEach(element => {
+                element.classList.add('md3-ripple-container');
+                element.addEventListener('click', createRipple);
+            });
+        });
+
+        function mainApp() {
+            return {
+                showWelcome: false,
+                darkMode: false,
+                studyStats: null,
+                isLoading: true,
+                loadingProgress: 0,
+                // 用户个性化设置
+                userPreferences: {
+                    animationsEnabled: true,
+                    compactMode: false,
+                    fontSize: 'medium', // small, medium, large
+                    colorScheme: 'auto', // auto, light, dark
+                    autoSave: true,
+                    notificationsEnabled: true
+                },
+                
+                init() {
+                    // 加载用户个性化设置
+                    this.loadUserPreferences();
+                    // 模拟加载过程
+                    this.simulateLoading();
+                    // 检查首次访问
+                    this.checkFirstVisit();
+                    // 加载主题设置
+                    this.loadTheme();
+                    // 懒加载课程数据
+                    this.loadCourseData();
+                    // 初始化滚动动画
+                    this.initScrollAnimations();
+                    // 初始化学习统计
+                    this.initStudyStats();
+                    // 初始化触摸交互
+                    this.initTouchInteractions();
+                    // 懒加载组件
+                    this.loadComponentsLazily();
+                    
+                    // 定期更新笔记数量
+                    setInterval(() => {
+                        this.updateNotesCount();
+                    }, 5000); // 每5秒更新一次
+                },
+                
+                // 加载用户个性化设置
+                loadUserPreferences() {
+                    const savedPrefs = localStorage.getItem('userPreferences');
+                    if (savedPrefs) {
+                        try {
+                            const parsed = JSON.parse(savedPrefs);
+                            this.userPreferences = { ...this.userPreferences, ...parsed };
+                        } catch (error) {
+                            console.error('用户设置加载失败:', error);
+                        }
+                    }
+                    this.applyUserPreferences();
+                },
+                
+                // 保存用户个性化设置
+                saveUserPreferences() {
+                    try {
+                        localStorage.setItem('userPreferences', JSON.stringify(this.userPreferences));
+                        console.log('✅ 用户设置已保存');
+                    } catch (error) {
+                        console.error('❌ 用户设置保存失败:', error);
+                    }
+                },
+                
+                // 应用用户个性化设置
+                applyUserPreferences() {
+                    const { animationsEnabled, compactMode, fontSize, notificationsEnabled } = this.userPreferences;
+                    
+                    // 应用动画设置
+                    document.documentElement.classList.toggle('no-animations', !animationsEnabled);
+                    
+                    // 应用紧凑模式
+                    document.documentElement.classList.toggle('compact-mode', compactMode);
+                    
+                    // 应用字体大小
+                    document.documentElement.classList.remove('font-small', 'font-medium', 'font-large');
+                    document.documentElement.classList.add(`font-${fontSize}`);
+                    
+                    // 应用通知设置
+                    if (!notificationsEnabled) {
+                        // 禁用通知的逻辑
+                        this.showNotification = () => {}; // 覆盖通知方法
+                    }
+                },
+                
+                // 设置字体大小
+                setFontSize(size) {
+                    this.userPreferences.fontSize = size;
+                    this.applyUserPreferences();
+                    this.saveUserPreferences();
+                    this.showNotification(`🔤 字体大小已调整为${size === 'small' ? '小' : size === 'large' ? '大' : '中'}号`, 'info');
+                },
+                
+                // 切换紧凑模式
+                toggleCompactMode() {
+                    this.userPreferences.compactMode = !this.userPreferences.compactMode;
+                    this.applyUserPreferences();
+                    this.saveUserPreferences();
+                    this.showNotification(
+                        this.userPreferences.compactMode ? '📦 已启用紧凑模式' : '📖 已禁用紧凑模式',
+                        'info'
+                    );
+                },
+                
+                // 切换动画
+                toggleAnimations() {
+                    this.userPreferences.animationsEnabled = !this.userPreferences.animationsEnabled;
+                    this.applyUserPreferences();
+                    this.saveUserPreferences();
+                    this.showNotification(
+                        this.userPreferences.animationsEnabled ? '🎬 动画已启用' : '⏸️ 动画已禁用',
+                        'info'
+                    );
+                },
+                
+                // 切换通知
+                toggleNotifications() {
+                    this.userPreferences.notificationsEnabled = !this.userPreferences.notificationsEnabled;
+                    this.applyUserPreferences();
+                    this.saveUserPreferences();
+                    this.showNotification(
+                        this.userPreferences.notificationsEnabled ? '🔔 通知已启用' : '🔕 通知已禁用',
+                        'info'
+                    );
+                },
+                
+                simulateLoading() {
+                    let progress = 0;
+                    const interval = setInterval(() => {
+                        progress += Math.random() * 15;
+                        this.loadingProgress = Math.min(progress, 100);
+                        
+                        if (progress >= 100) {
+                            clearInterval(interval);
+                            // 延迟一下再隐藏加载状态，让用户看到100%完成
+                            setTimeout(() => {
+                                this.isLoading = false;
+                                // 触发页面内容动画
+                                this.triggerContentAnimations();
+                            }, 200);
+                        }
+                    }, 100);
+                },
+                
+                triggerContentAnimations() {
+                    // 为页面元素添加动画类
+                    const animateElements = document.querySelectorAll('.animate-on-load');
+                    animateElements.forEach((element, index) => {
+                        setTimeout(() => {
+                            element.classList.add('animate-fade-in');
+                            element.classList.remove('animate-on-load');
+                        }, index * 100); // 错开动画时间
+                    });
+                    
+                    // 优化性能：动画完成后清理will-change
+                    setTimeout(() => {
+                        document.querySelectorAll('.animate-optimized').forEach(element => {
+                            element.style.willChange = 'auto';
+                        });
+                    }, 2000);
+                },
+                
+                // 移动端触摸交互优化
+                initTouchInteractions() {
+                    // 检测是否为触摸设备
+                    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                    
+                    if (isTouchDevice) {
+                        // 为卡片添加触摸反馈
+                        document.addEventListener('touchstart', (e) => {
+                            const card = e.target.closest('.md3-card, .md3-btn');
+                            if (card) {
+                                card.style.transform = 'scale(0.98)';
+                                card.style.transition = 'transform 0.1s ease';
+                            }
+                        }, { passive: true });
+                        
+                        document.addEventListener('touchend', (e) => {
+                            const card = e.target.closest('.md3-card, .md3-btn');
+                            if (card) {
+                                setTimeout(() => {
+                                    card.style.transform = '';
+                                }, 100);
+                            }
+                        }, { passive: true });
+                        
+                        // 防止iOS Safari的双击缩放
+                        document.addEventListener('touchend', (e) => {
+                            const now = new Date().getTime();
+                            if (now - this.lastTouchEnd <= 300) {
+                                e.preventDefault();
+                            }
+                            this.lastTouchEnd = now;
+                        }, false);
+                        
+                        this.lastTouchEnd = 0;
+                    }
+                },
+                
+                initStudyStats() {
+                    // 等待学习统计管理器加载完成
+                    if (window.studyStats) {
+                        this.studyStats = window.studyStats;
+                        console.log('✅ 学习统计管理器已连接');
+                        
+                        // 监听统计数据变化
+                        this.studyStats.addObserver((event, data) => {
+                            if (event === 'statsUpdated') {
+                                // 触发页面更新
+                                this.$nextTick(() => {
+                                    // 强制重新渲染统计数据
+                                    this.studyStats = { ...this.studyStats };
+                                });
+                            }
+                        });
+                        
+                        // 不再生成虚假演示数据，让用户真实使用时再产生数据
+                        console.log('📊 学习统计系统已就绪，等待真实学习活动...');
+                    } else {
+                        // 延迟重试
+                        setTimeout(() => this.initStudyStats(), 1000);
+                    }
+                    
+                    // 初始化笔记数量显示
+                    this.updateNotesCount();
+                },
+                
+                updateNotesCount() {
+                    try {
+                        const savedData = localStorage.getItem('study_notes');
+                        let notesCount = 0;
+                        
+                        if (savedData) {
+                            const parsedData = JSON.parse(savedData);
+                            if (Array.isArray(parsedData)) {
+                                notesCount = parsedData.length;
+                            } else if (parsedData.notes && Array.isArray(parsedData.notes)) {
+                                notesCount = parsedData.notes.length;
+                            }
+                        }
+                        
+                        const notesCountElement = document.getElementById('notes-count');
+                        if (notesCountElement) {
+                            notesCountElement.textContent = notesCount;
+                        }
+                        
+                        console.log('✅ 笔记数量已更新:', notesCount);
+                    } catch (error) {
+                        console.error('更新笔记数量失败:', error);
+                    }
+                },
+                
+                checkFirstVisit() {
+                    const hasVisited = localStorage.getItem('platform_visited');
+                    if (!hasVisited) {
+                        this.showWelcome = true;
+                    }
+                },
+                
+                startTour() {
+                    this.showWelcome = false;
+                    localStorage.setItem('platform_visited', 'true');
+                    this.showNotification('🎉 开始您的学习之旅！', 'success');
+                    // 滚动到课程区域
+                    setTimeout(() => {
+                        document.getElementById('courses').scrollIntoView({behavior: 'smooth'});
+                    }, 500);
+                },
+                
+                skipWelcome() {
+                    this.showWelcome = false;
+                    localStorage.setItem('platform_visited', 'true');
+                    this.showNotification('欢迎使用考研学习平台！', 'info');
+                },
+                
+                loadTheme() {
+                    // 检测系统主题偏好
+                    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    const storedTheme = localStorage.getItem('theme');
+                    
+                    // 优先使用用户设置，其次跟随系统
+                    if (storedTheme) {
+                        this.darkMode = storedTheme === 'dark';
+                    } else {
+                        this.darkMode = systemPrefersDark;
+                        // 首次访问时保存系统偏好
+                        localStorage.setItem('theme', systemPrefersDark ? 'dark' : 'light');
+                    }
+                    
+                    this.applyTheme();
+                    this.watchSystemThemeChange();
+                },
+                
+                watchSystemThemeChange() {
+                    // 监听系统主题变化
+                    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                    mediaQuery.addEventListener('change', (e) => {
+                        // 只有在用户没有手动设置主题时才跟随系统
+                        const userSetTheme = localStorage.getItem('user-theme-preference');
+                        if (!userSetTheme) {
+                            this.darkMode = e.matches;
+                            this.applyTheme();
+                            this.showNotification(
+                                `🎨 已自动切换至${e.matches ? '暗色' : '浅色'}模式`,
+                                'info'
+                            );
+                        }
+                    });
+                },
+                
+                applyTheme() {
+                    document.documentElement.classList.toggle('dark', this.darkMode);
+                    
+                    // 添加主题切换的平滑过渡
+                    document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+                    
+                    // 更新主题色元标签（PWA支持）
+                    this.updateThemeColorMeta();
+                },
+                
+                updateThemeColorMeta() {
+                    let themeColorMeta = document.querySelector('meta[name="theme-color"]');
+                    if (!themeColorMeta) {
+                        themeColorMeta = document.createElement('meta');
+                        themeColorMeta.name = 'theme-color';
+                        document.head.appendChild(themeColorMeta);
+                    }
+                    
+                    // 根据当前主题设置合适的主题颜色
+                    const themeColor = this.darkMode ? '#141218' : '#FFFBFE';
+                    themeColorMeta.content = themeColor;
+                },
+                
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                    localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+                    // 标记用户手动设置了主题偏好
+                    localStorage.setItem('user-theme-preference', 'true');
+                    
+                    this.applyTheme();
+                    
+                    this.showNotification(
+                        this.darkMode ? '🌙 已切换至暗色模式' : '☀️ 已切换至浅色模式', 
+                        'info'
+                    );
+                },
+                
+                async loadCourseData() {
+                    try {
+                        // 懒加载课程数据，仅在需要时加载
+                        if (window.resourceLoader) {
+                            // 使用资源加载器加载数据
+                            const courses = await window.resourceLoader.loadJSON(
+                                'bilibilicatgorybydifficulty.json',
+                                window.fallbackCourseData,
+                                { useJSFallback: true }
+                            );
+                            console.log('✅ 课程数据加载成功，共', courses.length, '门课程');
+                        }
+                    } catch (error) {
+                        console.error('❌ 课程数据加载失败:', error);
+                    }
+                },
+                
+                // 懒加载组件
+                async loadComponentsLazily() {
+                    // 只在需要时加载统计组件
+                    if (!window.studyStats && document.querySelector('[x-data*="statsDashboard"]')) {
+                        try {
+                            await this.loadScript('assets/js/stats-manager.js');
+                            console.log('✅ 统计组件懒加载成功');
+                        } catch (error) {
+                            console.error('❌ 统计组件加载失败:', error);
+                        }
+                    }
+                    
+                    // 懒加载笔记管理器
+                    if (!window.notesManager) {
+                        try {
+                            await this.loadScript('assets/js/notes-manager.js');
+                            console.log('✅ 笔记管理器懒加载成功');
+                        } catch (error) {
+                            console.error('❌ 笔记管理器加载失败:', error);
+                        }
+                    }
+                },
+                
+                // 动态加载脚本的工具方法
+                loadScript(src) {
+                    return new Promise((resolve, reject) => {
+                        // 检查是否已经加载
+                        if (document.querySelector(`script[src="${src}"]`)) {
+                            resolve();
+                            return;
+                        }
+                        
+                        const script = document.createElement('script');
+                        script.src = src;
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                },
+                
+                initScrollAnimations() {
+                    // 滚动动画观察器
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('animate-fadeInUp');
+                            }
+                        });
+                    }, { threshold: 0.1 });
+                    
+                    // 观察所有需要动画的元素
+                    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+                        observer.observe(el);
+                    });
+                },
+                
+                showNotification(message, type = 'info') {
+                    const colors = {
+                        success: 'bg-green-500',
+                        error: 'bg-red-500',
+                        warning: 'bg-yellow-500',
+                        info: 'bg-blue-500'
+                    };
+                    
+                    const notification = document.createElement('div');
+                    notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-all duration-300`;
+                    notification.textContent = message;
+                    
+                    document.body.appendChild(notification);
+                    
+                    // 动画显示
+                    setTimeout(() => {
+                        notification.classList.remove('translate-x-full');
+                    }, 100);
+                    
+                    // 自动隐藏
+                    setTimeout(() => {
+                        notification.classList.add('translate-x-full');
+                        setTimeout(() => notification.remove(), 300);
+                    }, 3000);
+                }
+            };
+        }
+        
+        // 平滑滚动处理
+        document.addEventListener('DOMContentLoaded', function() {
+            // 导航栏透明度变化
+            window.addEventListener('scroll', function() {
+                const nav = document.querySelector('nav');
+                if (nav) {
+                    nav.style.background = window.scrollY > 50 ? 
+                        'rgba(255, 255, 255, 0.95)' : 
+                        'rgba(255, 255, 255, 1)';
+                }
+            });
+        });
+    </script>
+    
+    <!-- 组件加载 - 性能优化 -->
+    <script>
+        // 使用 Intersection Observer 实现懒加载导航栏
+        function loadNavbarLazily() {
+            const navContainer = document.getElementById('navbar-container');
+            if (!navContainer) return;
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // 只在导航栏进入视口时加载
+                        fetch('assets/components/navbar.html')
+                            .then(response => response.text())
+                            .then(html => {
+                                navContainer.innerHTML = html;
+                                console.log('✅ 导航栏懒加载成功');
+                                observer.disconnect(); // 加载完成后停止观察
+                            })
+                            .catch(error => console.error('导航栏懒加载失败:', error));
+                    }
+                });
+            }, { rootMargin: '50px' });
+            
+            observer.observe(navContainer);
+        }
+        
+        // 页面加载完成后启动懒加载
+        document.addEventListener('DOMContentLoaded', loadNavbarLazily);
+    </script>
+    
+    <!-- 其他组件脚本 - 按需加载 -->
+    <script>
+        // 动态加载统计管理器
+        function loadStatsManager() {
+            if (!window.studyStats) {
+                const script = document.createElement('script');
+                script.src = 'assets/js/stats-manager.js';
+                script.onload = () => console.log('✅ 统计管理器已加载');
+                script.onerror = () => console.error('❌ 统计管理器加载失败');
+                document.head.appendChild(script);
+            }
+        }
+        
+        // 动态加载笔记管理器
+        function loadNotesManager() {
+            if (!window.notesManager) {
+                const script = document.createElement('script');
+                script.src = 'assets/js/notes-manager.js';
+                script.onload = () => console.log('✅ 笔记管理器已加载');
+                script.onerror = () => console.error('❌ 笔记管理器加载失败');
+                document.head.appendChild(script);
+            }
+        }
+        
+        // 动态加载章节选择器
+        function loadChapterSelector() {
+            if (!window.chapterSelector) {
+                const script = document.createElement('script');
+                script.src = 'assets/js/chapter-selector.js';
+                script.onload = () => console.log('✅ 章节选择器已加载');
+                script.onerror = () => console.error('❌ 章节选择器加载失败');
+                document.head.appendChild(script);
+            }
+        }
+        
+        // 延迟加载非关键脚本
+        window.addEventListener('load', () => {
+            // 使用 requestIdleCallback 在浏览器空闲时加载
+            if (window.requestIdleCallback) {
+                requestIdleCallback(() => {
+                    loadStatsManager();
+                    loadNotesManager();
+                    loadChapterSelector();
+                });
+            } else {
+                // 兜底：延迟2秒加载
+                setTimeout(() => {
+                    loadStatsManager();
+                    loadNotesManager();
+                    loadChapterSelector();
+                }, 2000);
+            }
+        });
+    </script>
+    
+    <!-- 学习统计组件容器 -->
+    <div id="stats-dashboard-container"></div>
+    
+    <!-- 加载学习统计组件 - 直接嵌入避免fetch问题 -->
+    <script>
+        // 直接将组件HTML嵌入，避免fetch请求失败
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('stats-dashboard-container');
+            if (container) {
+                container.innerHTML = `
+<div class="stats-dashboard" x-data="statsDashboard()">
+    <div x-show="showStatsModal" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        
+        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+             x-transition:enter="transition ease-out duration-300 delay-150"
+             x-transition:enter-start="opacity-0 scale-90"
+             x-transition:enter-end="opacity-100 scale-100">
+            
+            <div class="sticky top-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold flex items-center">
+                            <span class="material-symbols-rounded mr-3">trending_up</span>
+                            学习统计分析
+                        </h2>
+                        <p class="text-indigo-100 mt-1">数据驱动的学习进步</p>
+                    </div>
+                    <button @click="closeStatsModal()" 
+                            class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
+                        <span class="material-symbols-rounded text-xl">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <!-- 无数据提示 -->
+                <div x-show="!studyStats || !studyStats.stats || studyStats.stats.totalStudyTime === 0" 
+                     class="text-center py-12">
+                    <div class="mb-6">
+                        <span class="material-symbols-rounded text-6xl text-gray-300 mb-4">analytics</span>
+                        <h3 class="text-2xl font-bold text-gray-600 mb-2">开始您的学习之旅</h3>
+                        <p class="text-gray-500 mb-6">当您开始学习时，这里将显示您的真实学习统计</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                        <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
+                            <span class="material-symbols-rounded text-3xl text-blue-500 mb-3">play_circle</span>
+                            <h4 class="font-semibold text-blue-700 dark:text-blue-300 mb-2">开始学习</h4>
+                            <p class="text-sm text-blue-600 dark:text-blue-400">访问课程页面，观看视频或完成练习</p>
+                        </div>
+                        
+                        <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-6">
+                            <span class="material-symbols-rounded text-3xl text-green-500 mb-3">target</span>
+                            <h4 class="font-semibold text-green-700 dark:text-green-300 mb-2">设置目标</h4>
+                            <p class="text-sm text-green-600 dark:text-green-400">点击下方按钮设置您的学习目标</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8">
+                        <button @click="openGoalSettings()" 
+                                class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                            <span class="material-symbols-rounded mr-2">flag</span>
+                            现在设置学习目标
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 有数据时显示统计 -->
+                <div x-show="studyStats && studyStats.stats && studyStats.stats.totalStudyTime > 0">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="material-symbols-rounded text-2xl opacity-80">schedule</span>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">今日</span>
+                            </div>
+                            <div class="text-2xl font-bold" x-text="formatTime(todayStats.studyTime)">0h 0m</div>
+                            <div class="text-sm opacity-90">学习时长</div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="material-symbols-rounded text-2xl opacity-80">local_fire_department</span>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">连续</span>
+                            </div>
+                            <div class="text-2xl font-bold" x-text="stats.streakDays || 0">0</div>
+                            <div class="text-sm opacity-90">连续天数</div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="material-symbols-rounded text-2xl opacity-80">psychology</span>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">今日</span>
+                            </div>
+                            <div class="text-2xl font-bold" x-text="todayStats.questionsAnswered || 0">0</div>
+                            <div class="text-sm opacity-90">已答题目</div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="material-symbols-rounded text-2xl opacity-80">target</span>
+                                <span class="text-xs bg-white/20 px-2 py-1 rounded-full">正确率</span>
+                            </div>
+                            <div class="text-2xl font-bold" x-text="getTodayAccuracy() + '%'">0%</div>
+                            <div class="text-sm opacity-90">今日正确率</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-3 justify-center">
+                    <button @click="exportStats()" 
+                            class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        <span class="material-symbols-rounded mr-2">download</span>
+                        导出数据
+                    </button>
+                    <button @click="openGoalSettings()" 
+                            class="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                        <span class="material-symbols-rounded mr-2">flag</span>
+                        设置目标
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="showGoalSettings" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 bg-black bg-opacity-50 z-70 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
+                    <span class="material-symbols-rounded text-green-500 mr-3">flag</span>
+                    设置学习目标
+                </h3>
+                <button @click="showGoalSettings = false" 
+                        class="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">
+                    <span class="material-symbols-rounded text-gray-600 dark:text-gray-300">close</span>
+                </button>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <h4 class="font-semibold text-gray-800 dark:text-white mb-3">📋 快速预设</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <button @click="setPresetGoal('conservative')" 
+                                class="p-4 border-2 border-blue-200 rounded-lg hover:border-blue-400 transition-colors text-left">
+                            <div class="font-medium text-blue-700">💧 保守型</div>
+                            <div class="text-sm text-gray-600 mt-1">每日1.5h，稳步推进</div>
+                        </button>
+                        <button @click="setPresetGoal('moderate')" 
+                                class="p-4 border-2 border-green-200 rounded-lg hover:border-green-400 transition-colors text-left">
+                            <div class="font-medium text-green-700">🎯 均衡型</div>
+                            <div class="text-sm text-gray-600 mt-1">每日3h，全面发展</div>
+                        </button>
+                        <button @click="setPresetGoal('intensive')" 
+                                class="p-4 border-2 border-red-200 rounded-lg hover:border-red-400 transition-colors text-left">
+                            <div class="font-medium text-red-700">🔥 冲刺型</div>
+                            <div class="text-sm text-gray-600 mt-1">每日5h，高强度备考</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h4 class="font-semibold text-gray-800 dark:text-white">⚙️ 自定义目标</h4>
+                    
+                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                        <h5 class="font-medium text-blue-800 dark:text-blue-200 mb-3">⏰ 时间目标</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    每日学习时长 (分钟)
+                                </label>
+                                <input type="range" x-model="newGoals.dailyStudyTime" min="30" max="480" step="15"
+                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="text-center text-sm text-blue-600 font-medium mt-1" 
+                                     x-text="Math.floor(newGoals.dailyStudyTime / 60) + 'h ' + (newGoals.dailyStudyTime % 60) + 'm'"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-8">
+                <button @click="showGoalSettings = false" 
+                        class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors">
+                    取消
+                </button>
+                <button @click="saveGoals()" 
+                        class="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium">
+                    <span class="material-symbols-rounded mr-2">save</span>
+                    保存目标
+                </button>
+            </div>
+        </div>
+    </div>
+</div>`;
+                
+                console.log('📊 学习统计组件已直接嵌入');
+            }
+        });
+    </script>
+
+    <!-- 统计组件脚本 -->
+    <script>
+        function statsDashboard() {
+            return {
+                showStatsModal: false,
+                showGoalSettings: false,
+                stats: {},
+                todayStats: {},
+                accuracy: 0,
+                newGoals: {
+                    dailyStudyTime: 180,
+                    weeklyActiveDays: 6,
+                    targetAccuracy: 80,
+                    dailyQuestions: 50,
+                    subjectBalance: {
+                        mathematics: 30,
+                        english: 25,
+                        politics: 20,
+                        professional: 25
+                    }
+                },
+
+                init() {
+                    this.loadStatsData();
+                    // 监听统计数据更新
+                    if (window.studyStats) {
+                        window.studyStats.addObserver((event, data) => {
+                            if (event === 'statsUpdated') {
+                                this.loadStatsData();
+                            }
+                        });
+                    }
+                },
+
+                loadStatsData() {
+                    if (window.studyStats) {
+                        this.stats = window.studyStats.stats;
+                        this.todayStats = window.studyStats.getTodayStats();
+                        this.accuracy = window.studyStats.getAccuracy();
+                        
+                        // 加载用户的目标设置
+                        if (this.stats.goals) {
+                            this.newGoals = { ...this.newGoals, ...this.stats.goals };
+                        }
+                    }
+                },
+
+                openStatsModal() {
+                    // 关闭目标设置弹窗（如果开启了）
+                    this.showGoalSettings = false;
+                    this.showStatsModal = true;
+                    this.loadStatsData();
+                },
+
+                closeStatsModal() {
+                    this.showStatsModal = false;
+                    // 清理状态，防止残留问题
+                    setTimeout(() => {
+                        this.showGoalSettings = false;
+                    }, 100);
+                },
+
+                openGoalSettings() {
+                    // 关闭学习统计弹窗（如果开启了）
+                    this.showStatsModal = false;
+                    this.showGoalSettings = true;
+                    this.loadStatsData();
+                },
+
+                setPresetGoal(type) {
+                    const presets = {
+                        conservative: {
+                            dailyStudyTime: 90,
+                            weeklyActiveDays: 5,
+                            targetAccuracy: 75,
+                            dailyQuestions: 30,
+                            subjectBalance: { mathematics: 35, english: 30, politics: 15, professional: 20 }
+                        },
+                        moderate: {
+                            dailyStudyTime: 180,
+                            weeklyActiveDays: 6,
+                            targetAccuracy: 82,
+                            dailyQuestions: 50,
+                            subjectBalance: { mathematics: 30, english: 25, politics: 20, professional: 25 }
+                        },
+                        intensive: {
+                            dailyStudyTime: 300,
+                            weeklyActiveDays: 7,
+                            targetAccuracy: 88,
+                            dailyQuestions: 80,
+                            subjectBalance: { mathematics: 25, english: 20, politics: 15, professional: 40 }
+                        }
+                    };
+                    
+                    this.newGoals = { ...this.newGoals, ...presets[type] };
+                    this.showNotification('🎯 已应用' + (type === 'conservative' ? '保守' : type === 'moderate' ? '均衡' : '冲刺') + '型目标预设', 'success');
+                },
+
+                saveGoals() {
+                    if (window.studyStats) {
+                        // 扩展统计管理器的目标设置功能
+                        if (!window.studyStats.setGoals) {
+                            window.studyStats.setGoals = function(goals) {
+                                this.stats.goals = { ...this.stats.goals, ...goals };
+                                this.saveStats();
+                                this.notifyObservers('goalsUpdated', this.stats.goals);
+                            };
+                        }
+                        
+                        window.studyStats.setGoals(this.newGoals);
+                        this.showGoalSettings = false;
+                        this.loadStatsData();
+                        this.showNotification('🎯 学习目标已保存！开始向目标努力吧！', 'success');
+                    }
+                },
+
+                getTodayAccuracy() {
+                    if (!this.todayStats.questionsAnswered || this.todayStats.questionsAnswered === 0) {
+                        return 0;
+                    }
+                    return Math.round((this.todayStats.correctAnswers / this.todayStats.questionsAnswered) * 100);
+                },
+
+                getDailyGoalCompletionStatus() {
+                    const timeGoalMet = this.todayStats.studyTime >= (this.stats.goals?.dailyStudyTime || 120);
+                    const questionGoalMet = (this.todayStats.questionsAnswered || 0) >= (this.stats.goals?.dailyQuestions || 50);
+                    const accuracyGoalMet = this.getTodayAccuracy() >= (this.stats.goals?.targetAccuracy || 80);
+                    
+                    const completedGoals = [timeGoalMet, questionGoalMet, accuracyGoalMet].filter(Boolean).length;
+                    const totalGoals = 3;
+                    
+                    if (completedGoals === totalGoals) {
+                        return {
+                            isAllComplete: true,
+                            message: '🎉 恭喜！今日所有学习目标已完成！'
+                        };
+                    } else if (completedGoals === 0) {
+                        return {
+                            isAllComplete: false,
+                            message: '💪 开始今日的学习之旅，向目标出发！'
+                        };
+                    } else {
+                        return {
+                            isAllComplete: false,
+                            message: `⚡ 已完成 ${completedGoals}/${totalGoals} 个目标，继续加油！`
+                        };
+                    }
+                },
+
+                formatTime(minutes) {
+                    if (!minutes || minutes === 0) return '0分钟';
+                    const hours = Math.floor(minutes / 60);
+                    const mins = minutes % 60;
+                    if (hours > 0) {
+                        return mins > 0 ? hours + 'h ' + mins + 'm' : hours + 'h';
+                    }
+                    return mins + 'm';
+                },
+
+                formatTotalTime(minutes) {
+                    if (!minutes || minutes === 0) return '0h';
+                    const hours = Math.floor(minutes / 60);
+                    return hours + 'h';
+                },
+
+                exportStats() {
+                    if (window.studyStats) {
+                        const data = {
+                            stats: window.studyStats.stats,
+                            exportTime: new Date().toISOString(),
+                            version: '1.0'
+                        };
+                        const blob = new Blob([JSON.stringify(data, null, 2)], {
+                            type: 'application/json'
+                        });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'study-stats-' + new Date().toISOString().split('T')[0] + '.json';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        this.showNotification('📊 统计数据已导出', 'success');
+                    }
+                },
+
+                showNotification(message, type = 'info') {
+                    const colors = {
+                        success: 'bg-green-500',
+                        error: 'bg-red-500',
+                        warning: 'bg-yellow-500',
+                        info: 'bg-blue-500'
+                    };
+                    
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 ' + colors[type] + ' text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-all duration-300';
+                    notification.textContent = message;
+                    
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.classList.remove('translate-x-full');
+                    }, 100);
+                    
+                    setTimeout(() => {
+                        notification.classList.add('translate-x-full');
+                        setTimeout(() => notification.remove(), 300);
+                    }, 3000);
+                }
+            };
+        }
+
+        // 全局函数，供外部调用
+        window.openStatsModal = function() {
+            const dashboard = document.querySelector('[x-data*="statsDashboard"]');
+            if (dashboard) {
+                Alpine.evaluate(dashboard, 'openStatsModal()');
+            }
+        };
+    </script>
+    
+    <!-- 快捷导航栏 - 按需加载 -->
+    <script>
+        // 懒加载快捷导航
+        function loadQuickNavLazily() {
+            // 检测用户是否滚动过页面，如果滚动了再加载快捷导航
+            let hasScrolled = false;
+            
+            function onScroll() {
+                if (!hasScrolled && window.scrollY > 100) {
+                    hasScrolled = true;
+                    const script = document.createElement('script');
+                    script.src = 'assets/js/quick-nav.js';
+                    script.onload = () => console.log('✅ 快捷导航已加载');
+                    script.onerror = () => console.error('❌ 快捷导航加载失败');
+                    document.head.appendChild(script);
+                    
+                    // 加载完成后移除滚动监听
+                    window.removeEventListener('scroll', onScroll);
+                }
+            }
+            
+            window.addEventListener('scroll', onScroll, { passive: true });
+            
+            // 5秒后如果用户没有滚动也加载
+            setTimeout(() => {
+                if (!hasScrolled) {
+                    onScroll();
+                }
+            }, 5000);
+        }
+        
+        // 页面加载完成后启动懒加载
+        window.addEventListener('load', loadQuickNavLazily);
+    </script>
+</body>
+</html>

@@ -1,0 +1,2418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>真题练习 - 计算机考研学习平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 添加CryptoJS库支持 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link href="assets/css/common.css" rel="stylesheet">
+    <!-- AI助手加载器 -->
+    <script src="assets/js/ai-assistant-loader.js"></script>
+    <!-- 题库管理器 -->
+    <script src="assets/js/question-bank-manager.js"></script>
+    <!-- 学习统计管理器 -->
+    <script src="assets/js/stats-manager.js"></script>
+    <!-- 资源加载器和数据文件 -->
+    <script src="assets/js/course-data.js"></script>
+    <script src="assets/js/fallback-data.js"></script>
+    <script src="assets/js/resource-loader.js"></script>
+    <style>
+        .hero-bg {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+        .question-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+        }
+        .option-button {
+            transition: all 0.2s ease;
+        }
+        .option-button:hover {
+            transform: scale(1.02);
+        }
+        .option-selected {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+        }
+        .option-correct {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .option-wrong {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        .timer {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="practiceApp()">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-2">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <i class="fas fa-graduation-cap text-2xl text-indigo-600"></i>
+                        <h1 class="text-xl font-bold text-gray-800">计算机考研平台</h1>
+                    </a>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="text-gray-600 hover:text-indigo-600 transition">首页</a>
+                    <a href="subjects.html" class="text-gray-600 hover:text-indigo-600 transition">课程导航</a>
+                    <a href="#" class="text-indigo-600 font-semibold">真题练习</a>
+                    <a href="question-manager.html" class="text-gray-600 hover:text-indigo-600 transition">题目管理</a>
+                    <a href="#" @click="showHistoryView = true" class="text-gray-600 hover:text-indigo-600 transition">练习记录</a>
+                    <a href="resources.html" class="text-gray-600 hover:text-indigo-600 transition">学习资源</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button @click="refreshQuestions()" class="text-gray-600 hover:text-indigo-600 transition" title="刷新题目数据">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button @click="showStatsModal = true" class="text-gray-600 hover:text-indigo-600 transition" title="统计详情">
+                        <i class="fas fa-chart-bar"></i>
+                    </button>
+                    <div class="hidden md:block text-sm text-gray-600">
+                        今日已练: <span class="text-indigo-600 font-semibold" x-text="dailyCompleted"></span> 题
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 面包屑导航 -->
+    <div class="bg-white border-b" x-show="!currentQuestion">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center space-x-2 text-sm">
+                <a href="index.html" class="text-indigo-600 hover:text-indigo-800">首页</a>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+                <span class="text-gray-600">真题练习</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 答题界面 -->
+    <div x-show="currentQuestion" class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+        <!-- 答题头部 -->
+        <div class="bg-white shadow-sm border-b sticky top-16 z-40">
+            <div class="max-w-4xl mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-4">
+                        <button @click="exitPractice()" class="flex items-center space-x-2 text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>退出练习</span>
+                        </button>
+                        <div class="text-sm text-gray-600">
+                            <span x-text="currentQuestionIndex + 1"></span> / <span x-text="selectedQuestions.length"></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- 计时器 -->
+                        <div class="timer text-white px-4 py-2 rounded-full text-sm font-medium">
+                            <i class="fas fa-clock mr-2"></i>
+                            <span x-text="formatTime(timeRemaining)"></span>
+                        </div>
+                        <!-- 进度条 -->
+                        <div class="w-32 bg-gray-200 rounded-full h-2">
+                            <div class="bg-indigo-500 h-2 rounded-full transition-all duration-300" 
+                                 :style="`width: ${((currentQuestionIndex + 1) / selectedQuestions.length) * 100}%`"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 答题区域 -->
+        <div class="max-w-4xl mx-auto px-4 py-8">
+            <div class="question-card rounded-xl shadow-lg p-8">
+                <!-- 题目信息 -->
+                <div class="flex justify-between items-start mb-6">
+                    <div class="flex items-center space-x-3">
+                        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium"
+                              x-text="currentQuestion.subject"></span>
+                        <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
+                              x-text="currentQuestion.year + '年真题'"></span>
+                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm"
+                              x-text="currentQuestion.difficulty"></span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button @click="toggleFavorite(currentQuestion)"
+                                class="p-2 rounded-lg hover:bg-gray-100 transition"
+                                :class="isFavorite(currentQuestion.id) ? 'text-yellow-500' : 'text-gray-400'">
+                            <i class="fas fa-star text-lg"></i>
+                        </button>
+                        <div class="text-sm text-gray-500">
+                            分值: <span class="font-medium" x-text="currentQuestion.points"></span>分
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 题目内容 -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-medium text-gray-800 leading-relaxed" x-html="currentQuestion.question"></h3>
+                </div>
+
+                <!-- 选项 -->
+                <div class="space-y-3 mb-8">
+                    <template x-for="(option, index) in currentQuestion.options" :key="index">
+                        <button class="option-button w-full text-left p-4 border-2 rounded-lg"
+                                :class="getOptionClass(index)"
+                                @click="selectOption(index)"
+                                :disabled="showAnswer">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center text-sm font-medium"
+                                     :class="getOptionCircleClass(index)">
+                                    <span x-text="String.fromCharCode(65 + index)"></span>
+                                </div>
+                                <span x-text="option"></span>
+                            </div>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- 答案解析 -->
+                <div x-show="showAnswer" class="bg-gray-50 rounded-lg p-6 mb-6">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <i class="fas fa-lightbulb text-yellow-500"></i>
+                        <h4 class="font-medium text-gray-800">答案解析</h4>
+                    </div>
+                    <div class="mb-3">
+                        <span class="text-sm text-gray-600">正确答案: </span>
+                        <span class="font-medium text-green-600" x-text="String.fromCharCode(65 + currentQuestion.correctAnswer)"></span>
+                    </div>
+                    <p class="text-gray-700 leading-relaxed" x-text="currentQuestion.explanation"></p>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="flex justify-between items-center">
+                    <button x-show="currentQuestionIndex > 0" 
+                            @click="previousQuestion()"
+                            class="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                        <i class="fas fa-chevron-left"></i>
+                        <span>上一题</span>
+                    </button>
+                    <div></div>
+                    
+                    <div class="flex space-x-3">
+                        <button x-show="!showAnswer && selectedAnswer !== null" 
+                                @click="checkAnswer()"
+                                class="bg-indigo-500 text-white px-8 py-3 rounded-lg hover:bg-indigo-600 transition font-medium">
+                            提交答案
+                        </button>
+                        
+                        <button x-show="showAnswer && currentQuestionIndex < selectedQuestions.length - 1" 
+                                @click="nextQuestion()"
+                                class="flex items-center space-x-2 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition">
+                            <span>下一题</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        
+                        <button x-show="showAnswer && currentQuestionIndex === selectedQuestions.length - 1" 
+                                @click="finishPractice()"
+                                class="bg-purple-500 text-white px-8 py-3 rounded-lg hover:bg-purple-600 transition font-medium">
+                            完成练习
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习选择界面 -->
+    <div x-show="!currentQuestion && !showHistoryView">
+
+    <!-- 练习历史界面 -->
+    <div x-show="showHistoryView" class="min-h-screen bg-gray-50">
+        <!-- 返回按钮 -->
+        <div class="bg-white shadow-sm border-b">
+            <div class="max-w-7xl mx-auto px-4 py-4">
+                <button @click="showHistoryView = false" class="flex items-center space-x-2 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>返回练习</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 练习历史内容 -->
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">📊 练习历史记录</h2>
+                <p class="text-gray-600">查看您的练习统计和历史记录</p>
+            </div>
+
+            <!-- 学习计划和目标设置 -->
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- 学习计划 -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">📅 学习计划</h3>
+                        <button @click="showPlanForm = !showPlanForm" 
+                                class="text-indigo-600 hover:text-indigo-800 text-sm">
+                            <i class="fas fa-plus mr-1"></i>新建计划
+                        </button>
+                    </div>
+                    
+                    <!-- 计划表单 -->
+                    <div x-show="showPlanForm" class="mb-4 p-4 bg-gray-50 rounded">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">目标考试日期</label>
+                                <input type="date" x-model="newPlan.targetDate" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">每日学习时长(小时)</label>
+                                <input type="number" x-model="newPlan.dailyHours" min="1" max="12"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div class="flex space-x-2">
+                                <button @click="createStudyPlan()" 
+                                        class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition">
+                                    创建计划
+                                </button>
+                                <button @click="showPlanForm = false" 
+                                        class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition">
+                                    取消
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 当前计划 -->
+                    <div x-show="studyPlans.length > 0">
+                        <template x-for="plan in studyPlans.slice(0, 1)" :key="plan.id">
+                            <div class="border rounded p-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-medium text-gray-800">目标日期</span>
+                                    <span class="text-gray-600" x-text="formatDate(plan.targetDate)"></span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium text-gray-800">每日时长</span>
+                                    <span class="text-gray-600" x-text="plan.dailyHours + '小时'"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <div x-show="studyPlans.length === 0" class="text-center text-gray-500 py-8">
+                        暂无学习计划，点击上方按钮创建
+                    </div>
+                </div>
+                
+                <!-- 学习目标 -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">🎯 学习目标</h3>
+                        <button @click="showGoalForm = !showGoalForm" 
+                                class="text-indigo-600 hover:text-indigo-800 text-sm">
+                            <i class="fas fa-plus mr-1"></i>新建目标
+                        </button>
+                    </div>
+                    
+                    <!-- 目标表单 -->
+                    <div x-show="showGoalForm" class="mb-4 p-4 bg-gray-50 rounded">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">目标类型</label>
+                                <select x-model="newGoal.goalType" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="">选择目标类型</option>
+                                    <option value="daily_questions">每日答题数</option>
+                                    <option value="weekly_accuracy">周正确率</option>
+                                    <option value="monthly_sessions">月练习次数</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">目标值</label>
+                                <input type="number" x-model="newGoal.targetValue" min="1"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">截止日期</label>
+                                <input type="date" x-model="newGoal.deadline" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div class="flex space-x-2">
+                                <button @click="createStudyGoal()" 
+                                        class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition">
+                                    创建目标
+                                </button>
+                                <button @click="showGoalForm = false" 
+                                        class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition">
+                                    取消
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 目标列表 -->
+                    <div class="space-y-3">
+                        <template x-for="goal in studyGoals.slice(0, 3)" :key="goal.id">
+                            <div class="border rounded p-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-medium text-gray-800" x-text="getGoalTypeName(goal.goalType)"></span>
+                                    <span class="text-sm" 
+                                          :class="goal.isCompleted ? 'text-green-600' : 'text-gray-600'"
+                                          x-text="goal.isCompleted ? '已完成' : '进行中'"></span>
+                                </div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm text-gray-600">
+                                        <span x-text="goal.currentValue"></span> / <span x-text="goal.targetValue"></span>
+                                    </span>
+                                    <span class="text-sm text-gray-600" x-text="Math.round(goal.progress) + '%'"></span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-indigo-500 h-2 rounded-full transition-all"
+                                         :style="`width: ${Math.min(goal.progress, 100)}%`"></div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <div x-show="studyGoals.length === 0" class="text-center text-gray-500 py-8">
+                        暂无学习目标，点击上方按钮创建
+                    </div>
+                </div>
+            </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="text-3xl font-bold text-indigo-600 mb-2" x-text="totalCompleted"></div>
+                    <div class="text-sm text-gray-600">总完成题数</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2" x-text="accuracyRate + '%'"></div>
+                    <div class="text-sm text-gray-600">总正确率</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="text-3xl font-bold text-purple-600 mb-2" x-text="practiceHistory.length"></div>
+                    <div class="text-sm text-gray-600">练习次数</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="text-3xl font-bold text-orange-600 mb-2" x-text="dailyCompleted"></div>
+                    <div class="text-sm text-gray-600">今日完成</div>
+                </div>
+            </div>
+
+            <!-- 历史记录列表 -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-800">练习记录</h3>
+                        <div class="flex items-center space-x-4">
+                            <!-- 筛选器 -->
+                            <select x-model="historyFilter" @change="filterHistory()" 
+                                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">全部类型</option>
+                                <option value="mixed">随机练习</option>
+                                <option value="subject">科目练习</option>
+                                <option value="year">年份练习</option>
+                                <option value="wrong">错题重做</option>
+                                <option value="favorite">收藏题目</option>
+                            </select>
+                            <select x-model="difficultyFilter" @change="filterHistory()" 
+                                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">全部难度</option>
+                                <option value="high">高正确率(≥80%)</option>
+                                <option value="medium">中等正确率(60-79%)</option>
+                                <option value="low">低正确率(<60%)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="divide-y divide-gray-200">
+                    <template x-for="record in filteredHistory" :key="record.id">
+                        <div class="p-6 hover:bg-gray-50 transition">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 rounded-lg flex items-center justify-center"
+                                         :class="record.accuracyRate >= 80 ? 'bg-green-100 text-green-600' : 
+                                                record.accuracyRate >= 60 ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'">
+                                        <i class="fas fa-chart-line text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-gray-800" x-text="record.sessionName"></h4>
+                                        <div class="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                                            <span x-text="record.totalQuestions + '题'"></span>
+                                            <span x-text="'正确率 ' + record.accuracyRate + '%'"></span>
+                                            <span x-text="formatTime(record.timeSpent || 0)"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-500" x-text="formatDate(record.startedAt)"></div>
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <div class="flex items-center space-x-1">
+                                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                            <span class="text-xs text-gray-600" x-text="record.correctCount"></span>
+                                        </div>
+                                        <div class="flex items-center space-x-1">
+                                            <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                                            <span class="text-xs text-gray-600" x-text="record.wrongCount || (record.totalQuestions - record.correctCount)"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <!-- 空状态 -->
+                    <div x-show="filteredHistory.length === 0" class="p-12 text-center">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-history text-gray-400 text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">暂无练习记录</h3>
+                        <p class="text-gray-600 mb-4">开始您的第一次练习吧！</p>
+                        <button @click="showHistoryView = false" 
+                                class="bg-indigo-500 text-white px-6 py-2 rounded-lg hover:bg-indigo-600 transition">
+                            开始练习
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        <!-- Hero区域 -->
+        <section class="hero-bg text-white py-16">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">📋 历年真题练习</h2>
+                <p class="text-lg opacity-90 mb-8">1280+ 道真题，10年完整覆盖，智能评测系统</p>
+                <div class="flex justify-center items-center space-x-8">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold" x-text="sampleQuestions.length + '+'"></div>
+                        <div class="text-sm opacity-75">题目总数</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold" x-text="totalCompleted"></div>
+                        <div class="text-sm opacity-75">已完成</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold" x-text="accuracyRate + '%'"></div>
+                        <div class="text-sm opacity-75">正确率</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold" x-text="dailyCompleted"></div>
+                        <div class="text-sm opacity-75">今日完成</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 快速练习区域 -->
+        <section class="py-16">
+            <div class="max-w-7xl mx-auto px-4">
+                <h3 class="text-2xl font-bold text-center mb-8 text-gray-800">⚡ 快速开始</h3>
+                
+                <!-- 搜索筛选工具栏 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <!-- 关键词搜索 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">关键词搜索</label>
+                            <input type="text" x-model="searchKeyword" @input="searchQuestions()"
+                                   placeholder="搜索题目内容..." 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        
+                        <!-- 科目筛选 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">科目</label>
+                            <select x-model="filterSubject" @change="searchQuestions()"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">全部科目</option>
+                                <optgroup label="公共课">
+                                    <option value="高等数学">高等数学</option>
+                                    <option value="线性代数">线性代数</option>
+                                    <option value="概率论与数理统计">概率论与数理统计</option>
+                                    <option value="政治">政治</option>
+                                    <option value="英语">英语</option>
+                                </optgroup>
+                                <optgroup label="专业课">
+                                    <option value="数据结构">数据结构</option>
+                                    <option value="算法设计">算法设计</option>
+                                    <option value="操作系统">操作系统</option>
+                                    <option value="计算机网络">计算机网络</option>
+                                    <option value="计算机组成原理">计算机组成原理</option>
+                                    <option value="数据库">数据库</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        
+                        <!-- 难度筛选 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">难度</label>
+                            <select x-model="filterDifficulty" @change="searchQuestions()"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">全部难度</option>
+                                <option value="简单">简单</option>
+                                <option value="中等">中等</option>
+                                <option value="困难">困难</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 年份筛选 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">年份</label>
+                            <select x-model="filterYear" @change="searchQuestions()"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">全部年份</option>
+                                <optgroup label="近年真题">
+                                    <option value="2024">2024年</option>
+                                    <option value="2023">2023年</option>
+                                    <option value="2022">2022年</option>
+                                    <option value="2021">2021年</option>
+                                    <option value="2020">2020年</option>
+                                </optgroup>
+                                <optgroup label="历年真题">
+                                    <option value="2019">2019年</option>
+                                    <option value="2018">2018年</option>
+                                    <option value="2017">2017年</option>
+                                    <option value="2016">2016年</option>
+                                    <option value="2015">2015年</option>
+                                    <option value="2014">2014年</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- 搜索结果 -->
+                    <div x-show="searchResults.length > 0" class="mt-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center space-x-4">
+                                <span class="text-sm text-gray-600">
+                                    找到 <span class="font-medium text-indigo-600" x-text="searchResults.length"></span> 道题目
+                                </span>
+                                <span class="text-sm text-gray-500" x-show="selectedQuestionIds.length > 0">
+                                    已选择 <span class="font-medium text-green-600" x-text="selectedQuestionIds.length"></span> 道
+                                </span>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button @click="selectAllSearchResults()" 
+                                        class="bg-gray-500 text-white px-3 py-2 rounded text-sm hover:bg-gray-600 transition">
+                                    全选
+                                </button>
+                                <button @click="clearSelections()" 
+                                        class="bg-gray-300 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-400 transition">
+                                    清空
+                                </button>
+                                <button @click="startCustomPractice()" 
+                                        :disabled="selectedQuestionIds.length === 0"
+                                        class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                    开始练习 (<span x-text="selectedQuestionIds.length"></span>)
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 搜索结果列表 -->
+                        <div class="max-h-80 overflow-y-auto space-y-2 border rounded-lg p-4 bg-gray-50">
+                            <template x-for="question in searchResults.slice(0, 20)" :key="question.id">
+                                <div class="flex items-center p-3 bg-white rounded border hover:bg-blue-50 cursor-pointer transition"
+                                     @click="toggleQuestionSelection(question.id)"
+                                     :class="selectedQuestionIds.includes(question.id) ? 'ring-2 ring-blue-200 bg-blue-50' : ''">
+                                    <input type="checkbox" 
+                                           :checked="selectedQuestionIds.includes(question.id)"
+                                           class="mr-3 text-indigo-600 focus:ring-indigo-500">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-2 mb-2">
+                                            <span class="text-xs px-2 py-1 rounded font-medium"
+                                                  :class="getSubjectBadgeStyle(question.subject)" 
+                                                  x-text="question.subject"></span>
+                                            <span class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded" 
+                                                  x-text="question.year + '年'"></span>
+                                            <span class="text-xs px-2 py-1 rounded"
+                                                  :class="getDifficultyBadgeStyle(question.difficulty)" 
+                                                  x-text="question.difficulty"></span>
+                                            <span class="text-xs text-gray-500" x-text="question.points + '分'"></span>
+                                        </div>
+                                        <p class="text-sm text-gray-800 line-clamp-2" x-text="question.question"></p>
+                                        <div class="mt-2 flex items-center space-x-3 text-xs text-gray-500">
+                                            <button @click.stop="previewQuestion(question)" 
+                                                    class="hover:text-blue-600 transition">
+                                                <i class="fas fa-eye mr-1"></i>预览
+                                            </button>
+                                            <button @click.stop="toggleFavorite(question)" 
+                                                    :class="isFavorite(question.id) ? 'text-yellow-500' : 'hover:text-yellow-600'"
+                                                    class="transition">
+                                                <i class="fas fa-star mr-1"></i>收藏
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="searchResults.length > 20" class="text-center pt-4">
+                                <p class="text-sm text-gray-500">显示前20个结果，共 <span x-text="searchResults.length"></span> 个</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 筛选条件总结 -->
+                        <div class="mt-4 flex flex-wrap gap-2" x-show="hasActiveFilters()">
+                            <span class="text-sm text-gray-600">当前筛选:</span>
+                            <span x-show="searchKeyword.trim()" class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                关键词: <span x-text="searchKeyword"></span>
+                                <button @click="searchKeyword = ''; searchQuestions()" class="ml-1 hover:text-blue-600">×</button>
+                            </span>
+                            <span x-show="filterSubject" class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                                科目: <span x-text="filterSubject"></span>
+                                <button @click="filterSubject = ''; searchQuestions()" class="ml-1 hover:text-green-600">×</button>
+                            </span>
+                            <span x-show="filterDifficulty" class="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
+                                难度: <span x-text="filterDifficulty"></span>
+                                <button @click="filterDifficulty = ''; searchQuestions()" class="ml-1 hover:text-yellow-600">×</button>
+                            </span>
+                            <span x-show="filterYear" class="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">
+                                年份: <span x-text="filterYear + '年'"></span>
+                                <button @click="filterYear = ''; searchQuestions()" class="ml-1 hover:text-purple-600">×</button>
+                            </span>
+                            <button @click="clearAllFilters()" class="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 text-xs rounded hover:bg-red-200">
+                                清除所有筛选
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover cursor-pointer"
+                         @click="startQuickPractice('mixed')">
+                        <div class="text-center">
+                            <i class="fas fa-random text-3xl text-purple-500 mb-4"></i>
+                            <h4 class="text-lg font-semibold mb-2">随机练习</h4>
+                            <p class="text-gray-600 text-sm mb-4">从题库中随机抽取10道题</p>
+                            <div class="bg-purple-50 rounded p-3">
+                                <div class="text-purple-600 font-medium">推荐新手</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover cursor-pointer"
+                         @click="startQuickPractice('wrong')">
+                        <div class="text-center">
+                            <i class="fas fa-redo text-3xl text-red-500 mb-4"></i>
+                            <h4 class="text-lg font-semibold mb-2">错题重做</h4>
+                            <p class="text-gray-600 text-sm mb-4">复习之前做错的题目</p>
+                            <div class="bg-red-50 rounded p-3">
+                                <div class="text-red-600 font-medium" x-text="wrongQuestions.length + '道待复习'"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover cursor-pointer"
+                         @click="startQuickPractice('favorite')">
+                        <div class="text-center">
+                            <i class="fas fa-star text-3xl text-yellow-500 mb-4"></i>
+                            <h4 class="text-lg font-semibold mb-2">收藏题目</h4>
+                            <p class="text-gray-600 text-sm mb-4">练习收藏的重点题目</p>
+                            <div class="bg-yellow-50 rounded p-3">
+                                <div class="text-yellow-600 font-medium" x-text="favoriteQuestions.length + '道已收藏'"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 分科练习区域 -->
+        <section class="bg-gray-100 py-16">
+            <div class="max-w-7xl mx-auto px-4">
+                <h3 class="text-2xl font-bold text-center mb-12 text-gray-800">📚 分科练习</h3>
+                
+                <!-- 科目筛选标签 -->
+                <div class="flex justify-center mb-8">
+                    <div class="inline-flex bg-white p-1 rounded-lg shadow-sm">
+                        <button @click="subjectFilter = 'all'" 
+                                :class="subjectFilter === 'all' ? 'bg-indigo-500 text-white' : 'text-gray-600 hover:text-indigo-600'"
+                                class="px-4 py-2 rounded-md text-sm font-medium transition">
+                            全部科目
+                        </button>
+                        <button @click="subjectFilter = 'public'" 
+                                :class="subjectFilter === 'public' ? 'bg-indigo-500 text-white' : 'text-gray-600 hover:text-indigo-600'"
+                                class="px-4 py-2 rounded-md text-sm font-medium transition">
+                            公共课
+                        </button>
+                        <button @click="subjectFilter = 'professional'" 
+                                :class="subjectFilter === 'professional' ? 'bg-indigo-500 text-white' : 'text-gray-600 hover:text-indigo-600'"
+                                class="px-4 py-2 rounded-md text-sm font-medium transition">
+                            专业课
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 公共课区域 -->
+                <div x-show="subjectFilter === 'all' || subjectFilter === 'public'" class="mb-12">
+                    <h4 class="text-lg font-semibold text-gray-700 mb-6 text-center">📖 公共课</h4>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+                        <template x-for="subject in subjects.filter(s => s.category === 'public')" :key="subject.id">
+                            <div class="bg-white rounded-lg shadow-lg overflow-hidden card-hover cursor-pointer"
+                                 @click="startSubjectPractice(subject.id)">
+                                <!-- 科目头部 -->
+                                <div class="p-6 text-white text-center"
+                                     :style="`background: linear-gradient(135deg, ${subject.color1} 0%, ${subject.color2} 100%)`">
+                                    <i :class="subject.icon" class="text-3xl mb-3"></i>
+                                    <h4 class="text-lg font-semibold" x-text="subject.name"></h4>
+                                    <p class="text-sm opacity-90" x-text="subject.description"></p>
+                                </div>
+                                
+                                <!-- 统计信息 -->
+                                <div class="p-6">
+                                    <div class="grid grid-cols-2 gap-4 text-center">
+                                        <div>
+                                            <div class="text-xl font-bold text-gray-800" x-text="subject.totalQuestions"></div>
+                                            <div class="text-xs text-gray-500">题目总数</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-xl font-bold text-green-600" x-text="subject.completed"></div>
+                                            <div class="text-xs text-gray-500">已完成</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 进度条 -->
+                                    <div class="mt-4">
+                                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                                            <span>进度</span>
+                                            <span x-text="subject.totalQuestions > 0 ? Math.round((subject.completed / subject.totalQuestions) * 100) + '%' : '0%'"></span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-300"
+                                                 :style="`width: ${subject.totalQuestions > 0 ? (subject.completed / subject.totalQuestions) * 100 : 0}%`"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- 专业课区域 -->
+                <div x-show="subjectFilter === 'all' || subjectFilter === 'professional'">
+                    <h4 class="text-lg font-semibold text-gray-700 mb-6 text-center">💻 专业课</h4>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <template x-for="subject in subjects.filter(s => s.category === 'professional')" :key="subject.id">
+                            <div class="bg-white rounded-lg shadow-lg overflow-hidden card-hover cursor-pointer"
+                                 @click="startSubjectPractice(subject.id)">
+                                <!-- 科目头部 -->
+                                <div class="p-6 text-white text-center"
+                                     :style="`background: linear-gradient(135deg, ${subject.color1} 0%, ${subject.color2} 100%)`">
+                                    <i :class="subject.icon" class="text-3xl mb-3"></i>
+                                    <h4 class="text-lg font-semibold" x-text="subject.name"></h4>
+                                    <p class="text-sm opacity-90" x-text="subject.description"></p>
+                                </div>
+                                
+                                <!-- 统计信息 -->
+                                <div class="p-6">
+                                    <div class="grid grid-cols-2 gap-4 text-center mb-4">
+                                        <div>
+                                            <div class="text-xl font-bold text-gray-800" x-text="subject.totalQuestions"></div>
+                                            <div class="text-xs text-gray-500">题目总数</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-xl font-bold text-green-600" x-text="subject.completed"></div>
+                                            <div class="text-xs text-gray-500">已完成</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 进度条 -->
+                                    <div>
+                                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                                            <span>进度</span>
+                                            <span x-text="subject.totalQuestions > 0 ? Math.round((subject.completed / subject.totalQuestions) * 100) + '%' : '0%'"></span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-gradient-to-r from-indigo-400 to-indigo-600 h-2 rounded-full transition-all duration-300"
+                                                 :style="`width: ${subject.totalQuestions > 0 ? (subject.completed / subject.totalQuestions) * 100 : 0}%`"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 练习设置按钮 -->
+                                    <div class="mt-4 flex space-x-2">
+                                        <button @click.stop="showPracticeSettings(subject)" 
+                                                class="flex-1 bg-gray-100 text-gray-700 py-2 px-3 rounded text-sm hover:bg-gray-200 transition">
+                                            <i class="fas fa-cog mr-1"></i>设置
+                                        </button>
+                                        <button @click.stop="showSubjectStats(subject)" 
+                                                class="flex-1 bg-indigo-100 text-indigo-700 py-2 px-3 rounded text-sm hover:bg-indigo-200 transition">
+                                            <i class="fas fa-chart-line mr-1"></i>统计
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 年份练习区域 -->
+        <section class="py-16">
+            <div class="max-w-7xl mx-auto px-4">
+                <h3 class="text-2xl font-bold text-center mb-12 text-gray-800">📅 按年份练习</h3>
+                
+                <!-- 年份筛选和统计 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- 年份范围选择 -->
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-4">📊 年份分析</h4>
+                            <div class="grid grid-cols-2 gap-4 text-center">
+                                <div class="bg-blue-50 rounded-lg p-3">
+                                    <div class="text-xl font-bold text-blue-600" x-text="getYearRange().earliest"></div>
+                                    <div class="text-sm text-gray-600">最早年份</div>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-3">
+                                    <div class="text-xl font-bold text-green-600" x-text="getYearRange().latest"></div>
+                                    <div class="text-sm text-gray-600">最新年份</div>
+                                </div>
+                                <div class="bg-purple-50 rounded-lg p-3">
+                                    <div class="text-xl font-bold text-purple-600" x-text="getTotalYearQuestions()"></div>
+                                    <div class="text-sm text-gray-600">历年题目总数</div>
+                                </div>
+                                <div class="bg-orange-50 rounded-lg p-3">
+                                    <div class="text-xl font-bold text-orange-600" x-text="getCompletedYears().length"></div>
+                                    <div class="text-sm text-gray-600">已完成年份</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 快速年份选择 -->
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-4">🎯 快速练习</h4>
+                            <div class="space-y-3">
+                                <button @click="startRecentYearsPractice()" 
+                                        class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg hover:from-blue-600 hover:to-blue-700 transition">
+                                    <i class="fas fa-calendar-alt mr-2"></i>近3年真题练习
+                                </button>
+                                <button @click="startRandomYearPractice()" 
+                                        class="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white py-3 px-4 rounded-lg hover:from-purple-600 hover:to-purple-700 transition">
+                                    <i class="fas fa-random mr-2"></i>随机年份练习
+                                </button>
+                                <button @click="startIncompleteYearsPractice()" 
+                                        class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-4 rounded-lg hover:from-orange-600 hover:to-orange-700 transition">
+                                    <i class="fas fa-clock mr-2"></i>未完成年份练习
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 年份卡片网格 -->
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-4">
+                    <template x-for="year in years" :key="year.year">
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden card-hover cursor-pointer transform transition-all duration-300"
+                             @click="startYearPractice(year.year)"
+                             :class="getYearCardStyle(year)">
+                            <!-- 年份头部 -->
+                            <div class="text-white p-4 text-center"
+                                 :style="getYearGradient(year)">
+                                <div class="text-lg font-bold mb-1" x-text="year.year"></div>
+                                <div class="text-xs opacity-90">年真题</div>
+                            </div>
+                            
+                            <!-- 统计信息 -->
+                            <div class="p-4">
+                                <div class="text-center mb-3">
+                                    <div class="text-xl font-bold text-gray-800" x-text="year.questions"></div>
+                                    <div class="text-xs text-gray-500">道题目</div>
+                                </div>
+                                
+                                <!-- 进度条 -->
+                                <div class="mb-3">
+                                    <div class="flex justify-between text-xs text-gray-500 mb-1">
+                                        <span>进度</span>
+                                        <span x-text="getYearProgress(year) + '%'"></span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                        <div class="h-1.5 rounded-full transition-all duration-300"
+                                             :class="getProgressBarColor(year)"
+                                             :style="`width: ${getYearProgress(year)}%`"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 完成状态 -->
+                                <div class="text-center">
+                                    <div class="text-xs font-medium"
+                                         :class="getYearStatusColor(year)"
+                                         x-text="getYearStatusText(year)"></div>
+                                    <div class="text-xs text-gray-400 mt-1" x-text="year.completed + '/' + year.questions"></div>
+                                </div>
+                                
+                                <!-- 操作按钮 -->
+                                <div class="mt-3 flex space-x-1">
+                                    <button @click.stop="showYearStats(year)" 
+                                            class="flex-1 bg-gray-100 text-gray-600 py-1 px-2 rounded text-xs hover:bg-gray-200 transition">
+                                        <i class="fas fa-chart-line"></i>
+                                    </button>
+                                    <button @click.stop="resetYearProgress(year)" 
+                                            x-show="year.completed > 0"
+                                            class="flex-1 bg-red-100 text-red-600 py-1 px-2 rounded text-xs hover:bg-red-200 transition">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <!-- 年份分组视图切换 -->
+                <div class="mt-8 text-center">
+                    <div class="inline-flex bg-white p-1 rounded-lg shadow-sm">
+                        <button @click="yearViewMode = 'all'" 
+                                :class="yearViewMode === 'all' ? 'bg-indigo-500 text-white' : 'text-gray-600 hover:text-indigo-600'"
+                                class="px-4 py-2 rounded-md text-sm font-medium transition">
+                            全部年份
+                        </button>
+                        <button @click="yearViewMode = 'recent'" 
+                                :class="yearViewMode === 'recent' ? 'bg-indigo-500 text-white' : 'text-gray-600 hover:text-indigo-600'"
+                                class="px-4 py-2 rounded-md text-sm font-medium transition">
+                            近年真题 (2020-2024)
+                        </button>
+                        <button @click="yearViewMode = 'incomplete'" 
+                                :class="yearViewMode === 'incomplete' ? 'bg-indigo-500 text-white' : 'text-gray-600 hover:text-indigo-600'"
+                                class="px-4 py-2 rounded-md text-sm font-medium transition">
+                            未完成年份
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 结果统计弹窗 -->
+    <div x-show="showResults" 
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl max-w-md w-full p-6">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-500 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">练习完成！</h3>
+                <p class="text-gray-600">本次练习统计</p>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">总题数:</span>
+                    <span class="font-medium" x-text="practiceResults.total"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">正确数:</span>
+                    <span class="font-medium text-green-600" x-text="practiceResults.correct"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">错误数:</span>
+                    <span class="font-medium text-red-600" x-text="practiceResults.wrong"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">正确率:</span>
+                    <span class="font-medium text-indigo-600" x-text="practiceResults.accuracy + '%'"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">用时:</span>
+                    <span class="font-medium" x-text="formatTime(practiceResults.timeUsed)"></span>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3">
+                <button @click="showResults = false" 
+                        class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200 transition">
+                    继续练习
+                </button>
+                <button @click="viewWrongQuestions()" 
+                        class="flex-1 bg-indigo-500 text-white py-3 rounded-lg hover:bg-indigo-600 transition">
+                    查看错题
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计详情模态框 -->
+    <div x-show="showStatsModal" 
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl max-w-2xl w-full p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">📊 学习统计详情</h3>
+                <button @click="showStatsModal = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <!-- 总体统计 -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-800 mb-3">📈 总体数据</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">总完成题数:</span>
+                            <span class="font-medium" x-text="totalCompleted"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">总体正确率:</span>
+                            <span class="font-medium" :class="accuracyRate >= 80 ? 'text-green-600' : accuracyRate >= 60 ? 'text-yellow-600' : 'text-red-600'" x-text="accuracyRate + '%'"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">今日完成:</span>
+                            <span class="font-medium text-indigo-600" x-text="dailyCompleted"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">练习次数:</span>
+                            <span class="font-medium" x-text="practiceHistory.length"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 详细统计 -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-800 mb-3">🔍 详细分析</h4>
+                    <div class="space-y-2" id="detailed-stats">
+                        <!-- 通过JavaScript动态填充 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <h4 class="font-semibold text-yellow-800 mb-2">📋 正确率计算说明</h4>
+                <div class="text-sm text-yellow-700 space-y-1">
+                    <p><strong>计算公式:</strong> 正确率 = (历史总答对题数 ÷ 历史总答题数) × 100%</p>
+                    <p><strong>数据来源:</strong> 统计所有练习会话的答题结果</p>
+                    <p><strong>实时更新:</strong> 每次完成练习后自动更新</p>
+                    <p><strong>数据持久化:</strong> 保存在浏览器本地存储中</p>
+                </div>
+            </div>
+
+            <div class="flex justify-between">
+                <button @click="showDetailedStats()" 
+                        class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition">
+                    查看详细统计
+                </button>
+                <button @click="resetStats()" 
+                        class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
+                    重置统计数据
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-300">&copy; 2026 计算机考研学习平台. 让每一次练习都有价值</p>
+        </div>
+    </footer>
+
+    <script>
+        function practiceApp() {
+            return {
+                // 基础数据
+                totalCompleted: 0,
+                accuracyRate: 0, // 将从localStorage计算得出
+                dailyCompleted: 0,
+                
+                // 新增数据属性
+                subjectFilter: 'all',
+                yearViewMode: 'all',
+                
+                // 搜索筛选
+                searchKeyword: '',
+                filterSubject: '',
+                filterDifficulty: '',
+                filterYear: '',
+                searchResults: [],
+                selectedQuestionIds: [],
+                
+                // 错题本和收藏
+                wrongQuestions: [],
+                favoriteQuestions: [],
+                
+                // 练习历史
+                practiceHistory: [],
+                filteredHistory: [],
+                historyFilter: '',
+                
+                // 学习计划和目标
+                studyPlans: [],
+                studyGoals: [],
+                showPlanForm: false,
+                showGoalForm: false,
+                newPlan: {
+                    targetDate: '',
+                    dailyHours: 3
+                },
+                newGoal: {
+                    goalType: '',
+                    targetValue: '',
+                    deadline: ''
+                },
+                
+                // 当前用户ID (实际应用中从登录状态获取)
+                currentUserId: 1,
+                
+                // 当前练习会话ID
+                currentSessionId: null,
+                
+                // 练习状态
+                currentQuestion: null,
+                currentQuestionIndex: 0,
+                selectedQuestions: [],
+                selectedAnswer: null,
+                showAnswer: false,
+                timeRemaining: 0,
+                timer: null,
+                showResults: false,
+                showHistoryView: false,
+                showStatsModal: false,
+                practiceResults: {},
+                
+                // 科目数据 - 包含公共课和专业课
+                subjects: [
+                    // 公共课
+                    {
+                        id: 'mathematics',
+                        name: '高等数学',
+                        description: '极限、导数、积分',
+                        icon: 'fas fa-square-root-alt',
+                        color1: '#3b82f6',
+                        color2: '#1d4ed8',
+                        totalQuestions: 0,
+                        completed: 0,
+                        category: 'public'
+                    },
+                    {
+                        id: 'linear_algebra',
+                        name: '线性代数',
+                        description: '矩阵、向量、线性方程',
+                        icon: 'fas fa-calculator',
+                        color1: '#06b6d4',
+                        color2: '#0891b2',
+                        totalQuestions: 0,
+                        completed: 0,
+                        category: 'public'
+                    },
+                    {
+                        id: 'probability',
+                        name: '概率论与数理统计',
+                        description: '概率、随机变量、统计',
+                        icon: 'fas fa-chart-bar',
+                        color1: '#f59e0b',
+                        color2: '#d97706',
+                        totalQuestions: 0,
+                        completed: 0,
+                        category: 'public'
+                    },
+                    {
+                        id: 'politics',
+                        name: '政治',
+                        description: '马原、毛概、史纲、思修',
+                        icon: 'fas fa-flag',
+                        color1: '#ef4444',
+                        color2: '#dc2626',
+                        totalQuestions: 0,
+                        completed: 0,
+                        category: 'public'
+                    },
+                    {
+                        id: 'english',
+                        name: '英语',
+                        description: '阅读、写作、翻译',
+                        icon: 'fas fa-language',
+                        color1: '#10b981',
+                        color2: '#059669',
+                        totalQuestions: 0,
+                        completed: 0,
+                        category: 'public'
+                    },
+                    // 专业课
+                    {
+                        id: 'datastructure',
+                        name: '数据结构',
+                        description: '线性表、树、图等',
+                        icon: 'fas fa-sitemap',
+                        color1: '#8b5cf6',
+                        color2: '#7c3aed',
+                        totalQuestions: 0,
+                        completed: 0,
+                        category: 'professional'
+                    },
+                    {
+                        id: 'algorithm',
+                        name: '算法设计',
+                        description: '排序、查找、动态规划',
+                        icon: 'fas fa-code',
+                        color1: '#a855f7',
+                        color2: '#9333ea',
+                        totalQuestions: 0,
+                        completed: 0,
+                        category: 'professional'
+                    },
+                    {
+                        id: 'os',
+                        name: '操作系统',
+                        description: '进程、内存、文件系统',
+                        icon: 'fas fa-desktop',
+                        color1: '#f59e0b',
+                        color2: '#d97706',
+                        totalQuestions: 0,
+                        completed: 0,
+                        category: 'professional'
+                    },
+                    {
+                        id: 'network',
+                        name: '计算机网络',
+                        description: 'TCP/IP、OSI模型',
+                        icon: 'fas fa-network-wired',
+                        color1: '#06b6d4',
+                        color2: '#0891b2',
+                        totalQuestions: 0,
+                        completed: 0,
+                        category: 'professional'
+                    },
+                    {
+                        id: 'organization',
+                        name: '计算机组成原理',
+                        description: 'CPU、内存、I/O',
+                        icon: 'fas fa-microchip',
+                        color1: '#f97316',
+                        color2: '#ea580c',
+                        totalQuestions: 0,
+                        completed: 0,
+                        category: 'professional'
+                    },
+                    {
+                        id: 'database',
+                        name: '数据库',
+                        description: 'SQL、关系模型、索引',
+                        icon: 'fas fa-database',
+                        color1: '#84cc16',
+                        color2: '#65a30d',
+                        totalQuestions: 0,
+                        completed: 0,
+                        category: 'professional'
+                    }
+                ],
+                
+                // 年份数据
+                years: [
+                    { year: 2024, questions: 150, completed: 23 },
+                    { year: 2023, questions: 148, completed: 148 },
+                    { year: 2022, questions: 145, completed: 132 },
+                    { year: 2021, questions: 142, completed: 98 },
+                    { year: 2020, questions: 140, completed: 76 },
+                    { year: 2019, questions: 138, completed: 45 },
+                    { year: 2018, questions: 135, completed: 28 },
+                    { year: 2017, questions: 132, completed: 15 },
+                    { year: 2016, questions: 130, completed: 8 },
+                    { year: 2015, questions: 128, completed: 3 }
+                ],
+                
+                // 示例题目数据 - 现在从题库管理器获取
+                sampleQuestions: [],
+                
+                // 初始化
+                init() {
+                    // 等待题库管理器加载完成
+                    this.$nextTick(() => {
+                        this.loadQuestionsFromBank();
+                        this.updateSubjectStats();
+                        // 加载错题本和收藏数据
+                        this.loadWrongQuestions();
+                        this.loadFavoriteQuestions();
+                        this.loadPracticeHistory();
+                        this.loadStudyPlans();
+                        this.loadStudyGoals();
+                    });
+                },
+
+                // 从题库管理器加载题目
+                loadQuestionsFromBank() {
+                    if (window.questionBank && window.questionBank.questions) {
+                        this.sampleQuestions = window.questionBank.questions.map(q => ({
+                            id: q.id,
+                            subject: q.subject,
+                            year: q.year,
+                            difficulty: q.difficulty,
+                            points: q.points || 2,
+                            question: q.question,
+                            options: q.options,
+                            correctAnswer: q.correct_answer,
+                            explanation: q.explanation || '暂无解析'
+                        }));
+                        console.log(`📚 已加载 ${this.sampleQuestions.length} 道题目`);
+                        
+                        // 更新统计信息
+                        this.updateTotalCompleted();
+                    } else {
+                        console.warn('⚠️ 题库管理器未找到，使用默认题目');
+                        // 保持原有的示例题目作为备用
+                        this.sampleQuestions = [
+                            {
+                                id: 1,
+                                subject: '数据结构',
+                                year: 2023,
+                                difficulty: '中等',
+                                points: 2,
+                                question: '在一个长度为n的顺序表中，在第i个位置上插入一个元素时需要移动的元素个数为（）',
+                                options: [
+                                    'n-i',
+                                    'n-i+1', 
+                                    'n-i-1',
+                                    'i'
+                                ],
+                                correctAnswer: 0,
+                                explanation: '在顺序表的第i个位置插入元素时，需要将第i个位置及其后面的所有元素向后移动一位。由于顺序表长度为n，第i个位置后面还有n-i个元素需要移动。'
+                            },
+                            {
+                                id: 2,
+                                subject: '操作系统',
+                                year: 2023,
+                                difficulty: '困难',
+                                points: 3,
+                                question: '下列关于死锁的叙述中，正确的是（）',
+                                options: [
+                                    '只有在系统中同时出现四个必要条件时，才会发生死锁',
+                                    '死锁预防是通过设置某些限制条件，去破坏产生死锁的四个必要条件中的一个或几个',
+                                    '死锁避免是当进程提出资源请求时，系统测试分配后是否会产生死锁',
+                                    '以上都正确'
+                                ],
+                                correctAnswer: 3,
+                                explanation: '四个选项都是正确的。死锁的四个必要条件同时满足时会发生死锁；死锁预防通过破坏必要条件来防止死锁；死锁避免通过银行家算法等方法在分配资源前进行安全性检查。'
+                            },
+                            {
+                                id: 3,
+                                subject: '计算机网络',
+                                year: 2022,
+                                difficulty: '简单',
+                                points: 2,
+                                question: 'TCP协议提供的是（）',
+                                options: [
+                                    '可靠的数据报服务',
+                                    '不可靠的数据报服务',
+                                    '可靠的字节流服务',
+                                    '不可靠的字节流服务'
+                                ],
+                                correctAnswer: 2,
+                                explanation: 'TCP（传输控制协议）提供面向连接的可靠字节流服务。它通过序号、确认、重传等机制保证数据的可靠传输，并且以字节流的方式提供服务。'
+                            }
+                        ];
+                    }
+                },
+
+                // 更新科目统计信息
+                updateSubjectStats() {
+                    const questionCounts = this.sampleQuestions.reduce((acc, q) => {
+                        acc[q.subject] = (acc[q.subject] || 0) + 1;
+                        return acc;
+                    }, {});
+
+                    // 科目映射表 - 与startSubjectPractice中的映射保持一致
+                    const subjectMapping = {
+                        // 公共课
+                        'mathematics': '高等数学',
+                        'linear_algebra': '线性代数', 
+                        'probability': '概率论与数理统计',
+                        'politics': '政治',
+                        'english': '英语',
+                        // 专业课
+                        'datastructure': '数据结构',
+                        'algorithm': '算法设计',
+                        'os': '操作系统',
+                        'network': '计算机网络',
+                        'organization': '计算机组成原理',
+                        'database': '数据库'
+                    };
+
+                    // 更新科目数据
+                    this.subjects.forEach(subject => {
+                        const subjectName = subjectMapping[subject.id];
+                        if (subjectName) {
+                            subject.totalQuestions = questionCounts[subjectName] || 0;
+                        }
+                    });
+
+                    // 更新年份数据
+                    const yearCounts = this.sampleQuestions.reduce((acc, q) => {
+                        acc[q.year] = (acc[q.year] || 0) + 1;
+                        return acc;
+                    }, {});
+
+                    this.years.forEach(year => {
+                        year.questions = yearCounts[year.year] || 0;
+                    });
+                },
+
+                // 刷新题目数据
+                refreshQuestions() {
+                    // 重新加载题库管理器
+                    if (window.questionBank) {
+                        window.questionBank = new QuestionBankManager();
+                    }
+                    
+                    // 重新加载题目
+                    this.loadQuestionsFromBank();
+                    this.updateSubjectStats();
+                    
+                    this.showToast('题目数据已刷新', 'success');
+                },
+
+                // 更新总完成数和正确率
+                updateTotalCompleted() {
+                    // 从localStorage获取练习历史来计算总完成数
+                    const completed = localStorage.getItem('totalCompleted');
+                    if (completed) {
+                        this.totalCompleted = parseInt(completed);
+                    } else {
+                        this.totalCompleted = 0;
+                    }
+                    
+                    // 计算真实的总体正确率
+                    this.calculateAccuracyRate();
+                    
+                    // 计算今日完成数
+                    this.calculateDailyCompleted();
+                },
+
+                // 计算总体正确率
+                calculateAccuracyRate() {
+                    const practiceStats = localStorage.getItem('practiceStats');
+                    if (practiceStats) {
+                        try {
+                            const stats = JSON.parse(practiceStats);
+                            if (stats.totalAnswered > 0) {
+                                this.accuracyRate = Math.round((stats.totalCorrect / stats.totalAnswered) * 100);
+                            } else {
+                                this.accuracyRate = 0;
+                            }
+                        } catch (error) {
+                            console.error('解析练习统计数据失败:', error);
+                            this.accuracyRate = 0;
+                        }
+                    } else {
+                        this.accuracyRate = 0;
+                    }
+                },
+
+                // 计算今日完成数
+                calculateDailyCompleted() {
+                    const today = new Date().toDateString();
+                    const dailyStats = localStorage.getItem('dailyStats');
+                    
+                    if (dailyStats) {
+                        try {
+                            const stats = JSON.parse(dailyStats);
+                            this.dailyCompleted = stats[today] || 0;
+                        } catch (error) {
+                            console.error('解析每日统计数据失败:', error);
+                            this.dailyCompleted = 0;
+                        }
+                    } else {
+                        this.dailyCompleted = 0;
+                    }
+                },
+
+                // 更新练习统计
+                updatePracticeStats(correct, wrong) {
+                    // 更新总体统计
+                    let practiceStats = { totalCorrect: 0, totalAnswered: 0 };
+                    const saved = localStorage.getItem('practiceStats');
+                    if (saved) {
+                        try {
+                            practiceStats = JSON.parse(saved);
+                        } catch (error) {
+                            console.error('解析练习统计数据失败:', error);
+                        }
+                    }
+                    
+                    practiceStats.totalCorrect += correct;
+                    practiceStats.totalAnswered += (correct + wrong);
+                    localStorage.setItem('practiceStats', JSON.stringify(practiceStats));
+                    
+                    // 更新每日统计
+                    const today = new Date().toDateString();
+                    let dailyStats = {};
+                    const savedDaily = localStorage.getItem('dailyStats');
+                    if (savedDaily) {
+                        try {
+                            dailyStats = JSON.parse(savedDaily);
+                        } catch (error) {
+                            console.error('解析每日统计数据失败:', error);
+                        }
+                    }
+                    
+                    dailyStats[today] = (dailyStats[today] || 0) + correct + wrong;
+                    localStorage.setItem('dailyStats', JSON.stringify(dailyStats));
+                    
+                    // 重新计算显示的数据
+                    this.calculateAccuracyRate();
+                    this.calculateDailyCompleted();
+                },
+                
+                // 加载练习历史
+                async loadPracticeHistory() {
+                    try {
+                        const response = await fetch(`/api/practice/users/${this.currentUserId}/history?limit=10`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.practiceHistory = data.sessions;
+                            this.filteredHistory = [...this.practiceHistory];
+                        }
+                    } catch (error) {
+                        console.error('加载练习历史失败:', error);
+                        // 如果API失败，使用默认数据
+                        this.practiceHistory = [
+                            {
+                                id: 1,
+                                sessionName: '随机练习',
+                                sessionType: 'mixed',
+                                totalQuestions: 10,
+                                correctCount: 8,
+                                accuracyRate: 80,
+                                timeSpent: 720,
+                                startedAt: '2024-01-15 14:30:00'
+                            },
+                            {
+                                id: 2,
+                                sessionName: '数据结构',
+                                sessionType: 'subject',
+                                totalQuestions: 15,
+                                correctCount: 12,
+                                accuracyRate: 80,
+                                timeSpent: 900,
+                                startedAt: '2024-01-14 16:20:00'
+                            }
+                        ];
+                        this.filteredHistory = [...this.practiceHistory];
+                    }
+                },
+                
+                // 筛选练习历史
+                filterHistory() {
+                    let filtered = [...this.practiceHistory];
+                    
+                    // 按类型筛选
+                    if (this.historyFilter) {
+                        filtered = filtered.filter(record => record.sessionType === this.historyFilter);
+                    }
+                    
+                    // 按难度筛选
+                    if (this.difficultyFilter) {
+                        filtered = filtered.filter(record => {
+                            const accuracy = record.accuracyRate || 0;
+                            switch(this.difficultyFilter) {
+                                case 'high':
+                                    return accuracy >= 80;
+                                case 'medium':
+                                    return accuracy >= 60 && accuracy < 80;
+                                case 'low':
+                                    return accuracy < 60;
+                                default:
+                                    return true;
+                            }
+                        });
+                    }
+                    
+                    this.filteredHistory = filtered;
+                },
+                
+                // 加载学习计划
+                async loadStudyPlans() {
+                    try {
+                        const response = await fetch(`/api/practice/users/${this.currentUserId}/plans`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.studyPlans = data.plans;
+                        }
+                    } catch (error) {
+                        console.error('加载学习计划失败:', error);
+                        this.studyPlans = [];
+                    }
+                },
+                
+                // 加载学习目标
+                async loadStudyGoals() {
+                    try {
+                        const response = await fetch(`/api/practice/users/${this.currentUserId}/goals`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.studyGoals = data.goals;
+                        }
+                    } catch (error) {
+                        console.error('加载学习目标失败:', error);
+                        this.studyGoals = [];
+                    }
+                },
+                
+                // 创建学习计划
+                async createStudyPlan() {
+                    if (!this.newPlan.targetDate || !this.newPlan.dailyHours) {
+                        this.showToast('请填写完整的计划信息', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch(`/api/practice/users/${this.currentUserId}/plans`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.newPlan)
+                        });
+                        
+                        if (response.ok) {
+                            this.showToast('学习计划创建成功', 'success');
+                            this.showPlanForm = false;
+                            this.newPlan = { targetDate: '', dailyHours: 3 };
+                            this.loadStudyPlans();
+                        } else {
+                            this.showToast('创建学习计划失败', 'error');
+                        }
+                    } catch (error) {
+                        console.error('创建学习计划失败:', error);
+                        this.showToast('创建学习计划失败', 'error');
+                    }
+                },
+                
+                // 创建学习目标
+                async createStudyGoal() {
+                    if (!this.newGoal.goalType || !this.newGoal.targetValue) {
+                        this.showToast('请填写完整的目标信息', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch(`/api/practice/users/${this.currentUserId}/goals`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.newGoal)
+                        });
+                        
+                        if (response.ok) {
+                            this.showToast('学习目标创建成功', 'success');
+                            this.showGoalForm = false;
+                            this.newGoal = { goalType: '', targetValue: '', deadline: '' };
+                            this.loadStudyGoals();
+                        } else {
+                            this.showToast('创建学习目标失败', 'error');
+                        }
+                    } catch (error) {
+                        console.error('创建学习目标失败:', error);
+                        this.showToast('创建学习目标失败', 'error');
+                    }
+                },
+                
+                // 获取目标类型名称
+                getGoalTypeName(goalType) {
+                    const typeNames = {
+                        'daily_questions': '每日答题数',
+                        'weekly_accuracy': '周正确率',
+                        'monthly_sessions': '月练习次数'
+                    };
+                    return typeNames[goalType] || goalType;
+                },
+                
+                // 加载错题本
+                loadWrongQuestions() {
+                    const saved = localStorage.getItem('wrongQuestions');
+                    if (saved) {
+                        this.wrongQuestions = JSON.parse(saved);
+                    } else {
+                        // 示例错题数据
+                        this.wrongQuestions = [this.sampleQuestions[0], this.sampleQuestions[1]];
+                    }
+                },
+                
+                // 保存错题本
+                saveWrongQuestions() {
+                    localStorage.setItem('wrongQuestions', JSON.stringify(this.wrongQuestions));
+                },
+                
+                // 添加错题
+                addToWrongQuestions(question) {
+                    if (!this.wrongQuestions.find(q => q.id === question.id)) {
+                        this.wrongQuestions.push(question);
+                        this.saveWrongQuestions();
+                    }
+                },
+                
+                // 从错题本移除
+                removeFromWrongQuestions(questionId) {
+                    this.wrongQuestions = this.wrongQuestions.filter(q => q.id !== questionId);
+                    this.saveWrongQuestions();
+                },
+                
+                // 加载收藏题目
+                loadFavoriteQuestions() {
+                    const saved = localStorage.getItem('favoriteQuestions');
+                    if (saved) {
+                        this.favoriteQuestions = JSON.parse(saved);
+                    } else {
+                        // 示例收藏数据
+                        this.favoriteQuestions = [this.sampleQuestions[1], this.sampleQuestions[2]];
+                    }
+                },
+                
+                // 保存收藏题目
+                saveFavoriteQuestions() {
+                    localStorage.setItem('favoriteQuestions', JSON.stringify(this.favoriteQuestions));
+                },
+                
+                // 切换收藏状态
+                toggleFavorite(question) {
+                    const index = this.favoriteQuestions.findIndex(q => q.id === question.id);
+                    if (index > -1) {
+                        this.favoriteQuestions.splice(index, 1);
+                        this.showToast('已取消收藏', 'info');
+                    } else {
+                        this.favoriteQuestions.push(question);
+                        this.showToast('已添加到收藏', 'success');
+                    }
+                    this.saveFavoriteQuestions();
+                },
+                
+                // 检查是否已收藏
+                isFavorite(questionId) {
+                    return this.favoriteQuestions.some(q => q.id === questionId);
+                },
+                
+                // 获取随机题目
+                getRandomQuestions(count) {
+                    const allQuestions = [...this.sampleQuestions];
+                    const shuffled = allQuestions.sort(() => 0.5 - Math.random());
+                    return shuffled.slice(0, Math.min(count, allQuestions.length));
+                },
+                
+                // 搜索题目
+                searchQuestions() {
+                    let filtered = [...this.sampleQuestions];
+                    
+                    // 关键词搜索
+                    if (this.searchKeyword.trim()) {
+                        const keyword = this.searchKeyword.toLowerCase();
+                        filtered = filtered.filter(q => 
+                            q.question.toLowerCase().includes(keyword) ||
+                            q.options.some(option => option.toLowerCase().includes(keyword)) ||
+                            q.explanation.toLowerCase().includes(keyword)
+                        );
+                    }
+                    
+                    // 科目筛选
+                    if (this.filterSubject) {
+                        filtered = filtered.filter(q => q.subject === this.filterSubject);
+                    }
+                    
+                    // 难度筛选
+                    if (this.filterDifficulty) {
+                        filtered = filtered.filter(q => q.difficulty === this.filterDifficulty);
+                    }
+                    
+                    // 年份筛选
+                    if (this.filterYear) {
+                        filtered = filtered.filter(q => q.year.toString() === this.filterYear);
+                    }
+                    
+                    this.searchResults = filtered;
+                },
+                
+                // 切换题目选择状态
+                toggleQuestionSelection(questionId) {
+                    const index = this.selectedQuestionIds.indexOf(questionId);
+                    if (index > -1) {
+                        this.selectedQuestionIds.splice(index, 1);
+                    } else {
+                        this.selectedQuestionIds.push(questionId);
+                    }
+                },
+                
+                // 开始自定义练习
+                startCustomPractice() {
+                    if (this.selectedQuestionIds.length === 0) {
+                        this.showToast('请至少选择一道题目', 'error');
+                        return;
+                    }
+                    
+                    const selectedQuestions = this.sampleQuestions.filter(q => 
+                        this.selectedQuestionIds.includes(q.id)
+                    );
+                    this.startPractice(selectedQuestions, 'custom');
+                },
+                
+                // 搜索和筛选辅助方法
+                selectAllSearchResults() {
+                    this.searchResults.forEach(question => {
+                        if (!this.selectedQuestionIds.includes(question.id)) {
+                            this.selectedQuestionIds.push(question.id);
+                        }
+                    });
+                },
+                
+                clearSelections() {
+                    this.selectedQuestionIds = [];
+                },
+                
+                hasActiveFilters() {
+                    return this.searchKeyword.trim() || this.filterSubject || this.filterDifficulty || this.filterYear;
+                },
+                
+                clearAllFilters() {
+                    this.searchKeyword = '';
+                    this.filterSubject = '';
+                    this.filterDifficulty = '';
+                    this.filterYear = '';
+                    this.searchQuestions();
+                },
+                
+                getSubjectBadgeStyle(subject) {
+                    const publicSubjects = ['高等数学', '线性代数', '概率论与数理统计', '政治', '英语'];
+                    if (publicSubjects.includes(subject)) {
+                        return 'bg-blue-100 text-blue-800';
+                    }
+                    return 'bg-purple-100 text-purple-800';
+                },
+                
+                getDifficultyBadgeStyle(difficulty) {
+                    switch(difficulty) {
+                        case '简单': return 'bg-green-100 text-green-800';
+                        case '中等': return 'bg-yellow-100 text-yellow-800';
+                        case '困难': return 'bg-red-100 text-red-800';
+                        default: return 'bg-gray-100 text-gray-800';
+                    }
+                },
+                
+                previewQuestion(question) {
+                    const preview = `题目预览\n\n【${question.subject}】${question.year}年 - ${question.difficulty}\n\n${question.question}\n\n选项:\n${question.options.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt}`).join('\n')}\n\n正确答案: ${String.fromCharCode(65 + question.correctAnswer)}\n\n解析: ${question.explanation || '暂无解析'}`;
+                    alert(preview);
+                },
+                
+                // 快速练习
+                startQuickPractice(type) {
+                    let questions = [];
+                    switch(type) {
+                        case 'mixed':
+                            // 随机选择10道题
+                            questions = this.getRandomQuestions(10);
+                            break;
+                        case 'wrong':
+                            // 错题
+                            questions = [...this.wrongQuestions];
+                            if (questions.length === 0) {
+                                this.showToast('错题本为空，继续练习积累错题吧！', 'info');
+                                return;
+                            }
+                            break;
+                        case 'favorite':
+                            // 收藏题目
+                            questions = [...this.favoriteQuestions];
+                            if (questions.length === 0) {
+                                this.showToast('收藏夹为空，先收藏一些重点题目吧！', 'info');
+                                return;
+                            }
+                            break;
+                    }
+                    switch(type) {
+                        case 'mixed':
+                            this.startPractice(questions, 'mixed');
+                            break;
+                        case 'wrong':
+                            this.startPractice(questions, 'wrong');
+                            break;
+                        case 'favorite':
+                            this.startPractice(questions, 'favorite');
+                            break;
+                    }
+                },
+                
+                // 科目练习
+                startSubjectPractice(subjectId) {
+                    // 科目ID到中文名称的映射
+                    const subjectMapping = {
+                        // 公共课
+                        'mathematics': '高等数学',
+                        'linear_algebra': '线性代数', 
+                        'probability': '概率论与数理统计',
+                        'politics': '政治',
+                        'english': '英语',
+                        // 专业课
+                        'datastructure': '数据结构',
+                        'algorithm': '算法设计',
+                        'os': '操作系统',
+                        'network': '计算机网络',
+                        'organization': '计算机组成原理',
+                        'database': '数据库'
+                    };
+                    
+                    const subjectName = subjectMapping[subjectId];
+                    if (!subjectName) {
+                        this.showToast('未知科目ID', 'error');
+                        return;
+                    }
+                    
+                    const questions = this.sampleQuestions.filter(q => q.subject === subjectName);
+                    if (questions.length === 0) {
+                        this.showToast(`${subjectName}题目正在整理中...`, 'info');
+                        return;
+                    }
+                    const subject = this.subjects.find(s => s.id === subjectId);
+                    this.startPractice(questions, 'subject', { subject: subject?.name });
+                },
+                
+                // 年份练习
+                startYearPractice(year) {
+                    const questions = this.sampleQuestions.filter(q => q.year === year);
+                    if (questions.length === 0) {
+                        this.showToast(`${year}年真题正在整理中...`, 'info');
+                        return;
+                    }
+                    this.startPractice(questions, 'year', { year: year });
+                },
+                
+                // 开始练习
+                async startPractice(questions, sessionType = 'mixed', filters = {}) {
+                    this.selectedQuestions = questions;
+                    this.currentQuestionIndex = 0;
+                    this.currentQuestion = questions[0];
+                    this.selectedAnswer = null;
+                    this.showAnswer = false;
+                    this.timeRemaining = questions.length * 180; // 每题3分钟
+                    this.practiceResults = {
+                        total: questions.length,
+                        correct: 0,
+                        wrong: 0,
+                        accuracy: 0,
+                        timeUsed: 0,
+                        answers: []
+                    };
+
+                    // 启动学习统计会话
+                    if (window.studyStats) {
+                        const subjectName = filters.subject || sessionType;
+                        const chapterName = filters.year ? `${filters.year}年真题` : '练习';
+                        window.studyStats.startStudySession(subjectName, chapterName);
+                        console.log('📊 已启动学习统计追踪:', { subject: subjectName, chapter: chapterName });
+                    }
+
+                    // 创建练习会话
+                    try {
+                        const response = await fetch('/api/practice/sessions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                userId: this.currentUserId,
+                                sessionType: sessionType,
+                                subjectFilter: filters.subject || null,
+                                difficultyFilter: filters.difficulty || null,
+                                yearFilter: filters.year || null
+                            })
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.currentSessionId = data.sessionId;
+                        }
+                    } catch (error) {
+                        console.error('创建练习会话失败:', error);
+                    }
+
+                    this.startTimer();
+                },
+                
+                startTimer() {
+                    if (this.timer) clearInterval(this.timer);
+                    this.timer = setInterval(() => {
+                        if (this.timeRemaining > 0) {
+                            this.timeRemaining--;
+                        } else {
+                            this.finishPractice();
+                        }
+                    }, 1000);
+                },
+                
+                formatTime(seconds) {
+                    const minutes = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                },
+
+                formatDate(dateString) {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    const now = new Date();
+                    const diffTime = Math.abs(now - date);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays === 1) {
+                        return '今天';
+                    } else if (diffDays === 2) {
+                        return '昨天';
+                    } else if (diffDays <= 7) {
+                        return `${diffDays}天前`;
+                    } else {
+                        return date.toLocaleDateString('zh-CN');
+                    }
+                },
+                
+                selectOption(index) {
+                    if (!this.showAnswer) {
+                        this.selectedAnswer = index;
+                    }
+                },
+                
+                checkAnswer() {
+                    if (this.selectedAnswer === null) return;
+                    
+                    this.showAnswer = true;
+                    const isCorrect = this.selectedAnswer === this.currentQuestion.correctAnswer;
+                    
+                    // 记录答案到学习统计
+                    if (window.studyStats) {
+                        window.studyStats.recordAnswer(isCorrect, this.currentQuestion.subject || '练习');
+                    }
+                    
+                    // 记录答案
+                    this.practiceResults.answers.push({
+                        questionId: this.currentQuestion.id,
+                        userAnswer: this.selectedAnswer,
+                        correctAnswer: this.currentQuestion.correctAnswer,
+                        isCorrect: isCorrect,
+                        timeSpent: this.getQuestionTime()
+                    });
+                    
+                    if (isCorrect) {
+                        this.practiceResults.correct++;
+                        this.showToast('✅ 答对了！', 'success');
+                        // 答对了，从错题本中移除（如果存在）
+                        this.removeFromWrongQuestions(this.currentQuestion.id);
+                    } else {
+                        this.practiceResults.wrong++;
+                        this.showToast('❌ 答错了，已加入错题本', 'error');
+                        // 答错了，加入错题本
+                        this.addToWrongQuestions(this.currentQuestion);
+                    }
+                },
+                
+                getQuestionTime() {
+                    // 计算当前题目用时（简化版）
+                    return Math.floor(Math.random() * 120) + 30; // 30-150秒
+                },
+                
+                nextQuestion() {
+                    if (this.currentQuestionIndex < this.selectedQuestions.length - 1) {
+                        this.currentQuestionIndex++;
+                        this.currentQuestion = this.selectedQuestions[this.currentQuestionIndex];
+                        this.selectedAnswer = null;
+                        this.showAnswer = false;
+                    }
+                },
+                
+                previousQuestion() {
+                    if (this.currentQuestionIndex > 0) {
+                        this.currentQuestionIndex--;
+                        this.currentQuestion = this.selectedQuestions[this.currentQuestionIndex];
+                        // 恢复之前的答案状态
+                        const previousAnswer = this.practiceResults.answers.find(a => a.questionId === this.currentQuestion.id);
+                        if (previousAnswer) {
+                            this.selectedAnswer = previousAnswer.userAnswer;
+                            this.showAnswer = true;
+                        } else {
+                            this.selectedAnswer = null;
+                            this.showAnswer = false;
+                        }
+                    }
+                },
+                
+                async finishPractice() {
+                    if (this.timer) clearInterval(this.timer);
+                    
+                    // 结束学习统计会话
+                    if (window.studyStats) {
+                        window.studyStats.endStudySession();
+                        console.log('📊 学习统计会话已结束');
+                    }
+                    
+                    // 计算最终统计
+                    this.practiceResults.accuracy = Math.round((this.practiceResults.correct / this.practiceResults.total) * 100);
+                    this.practiceResults.timeUsed = (this.selectedQuestions.length * 180) - this.timeRemaining;
+                    
+                    // 更新练习会话
+                    if (this.currentSessionId) {
+                        try {
+                            await fetch(`/api/practice/sessions/${this.currentSessionId}/complete`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    totalQuestions: this.practiceResults.total,
+                                    correctCount: this.practiceResults.correct,
+                                    wrongCount: this.practiceResults.wrong,
+                                    timeSpent: this.practiceResults.timeUsed
+                                })
+                            });
+                        } catch (error) {
+                            console.error('更新练习会话失败:', error);
+                        }
+                    }
+                    
+                    // 更新全局统计
+                    this.totalCompleted += this.practiceResults.total;
+                    
+                    // 更新练习统计（正确率计算）
+                    this.updatePracticeStats(this.practiceResults.correct, this.practiceResults.wrong);
+                    
+                    // 保存到localStorage
+                    localStorage.setItem('totalCompleted', this.totalCompleted.toString());
+                    
+                    // 重新加载练习历史
+                    this.loadPracticeHistory();
+                    
+                    this.showResults = true;
+                },
+                
+                exitPractice() {
+                    if (confirm('确定要退出练习吗？当前进度将不会保存。')) {
+                        if (this.timer) clearInterval(this.timer);
+                        this.currentQuestion = null;
+                        this.selectedQuestions = [];
+                    }
+                },
+                
+                viewWrongQuestions() {
+                    const wrongAnswers = this.practiceResults.answers.filter(a => !a.isCorrect);
+                    if (wrongAnswers.length > 0) {
+                        this.showToast(`发现 ${wrongAnswers.length} 道错题，已加入错题本`, 'info');
+                        // 这里可以跳转到错题本页面
+                    }
+                    this.showResults = false;
+                },
+                
+                getOptionClass(index) {
+                    if (!this.showAnswer) {
+                        return this.selectedAnswer === index ? 'option-selected border-indigo-500' : 'border-gray-200 hover:border-indigo-300';
+                    } else {
+                        if (index === this.currentQuestion.correctAnswer) {
+                            return 'option-correct border-green-500';
+                        } else if (index === this.selectedAnswer && index !== this.currentQuestion.correctAnswer) {
+                            return 'option-wrong border-red-500';
+                        } else {
+                            return 'border-gray-200';
+                        }
+                    }
+                },
+                
+                getOptionCircleClass(index) {
+                    if (!this.showAnswer) {
+                        return this.selectedAnswer === index ? 'border-white' : 'border-current';
+                    } else {
+                        if (index === this.currentQuestion.correctAnswer) {
+                            return 'border-white';
+                        } else if (index === this.selectedAnswer && index !== this.currentQuestion.correctAnswer) {
+                            return 'border-white';
+                        } else {
+                            return 'border-current';
+                        }
+                    }
+                },
+                
+                // 练习设置方法
+                showPracticeSettings(subject) {
+                    alert(`练习设置\n\n科目: ${subject.name}\n\n• 题目数量: 1-50题\n• 难度选择: 简单/中等/困难\n• 时间限制: 自定义\n• 答题模式: 练习/模拟考试\n\n功能开发中...`);
+                },
+                
+                // 科目统计方法
+                showSubjectStats(subject) {
+                    const stats = `科目统计\n\n${subject.name}\n• 总题数: ${subject.totalQuestions}\n• 已完成: ${subject.completed}\n• 完成率: ${subject.totalQuestions > 0 ? Math.round((subject.completed / subject.totalQuestions) * 100) + '%' : '0%'}\n• 正确率: 计算中...\n\n详细统计功能开发中...`;
+                    alert(stats);
+                },
+                
+                // 年份相关方法
+                getYearRange() {
+                    if (this.years.length === 0) return { earliest: 0, latest: 0 };
+                    const yearValues = this.years.map(y => y.year);
+                    return {
+                        earliest: Math.min(...yearValues),
+                        latest: Math.max(...yearValues)
+                    };
+                },
+                
+                getTotalYearQuestions() {
+                    return this.years.reduce((total, year) => total + year.questions, 0);
+                },
+                
+                getCompletedYears() {
+                    return this.years.filter(year => year.completed === year.questions);
+                },
+                
+                getYearProgress(year) {
+                    if (year.questions === 0) return 0;
+                    return Math.round((year.completed / year.questions) * 100);
+                },
+                
+                getYearCardStyle(year) {
+                    const progress = this.getYearProgress(year);
+                    if (progress === 100) return 'ring-2 ring-green-200 bg-green-50';
+                    if (progress > 50) return 'ring-2 ring-blue-200 bg-blue-50';
+                    if (progress > 0) return 'ring-2 ring-yellow-200 bg-yellow-50';
+                    return 'hover:ring-2 hover:ring-gray-200';
+                },
+                
+                getYearGradient(year) {
+                    const progress = this.getYearProgress(year);
+                    if (progress === 100) return 'background: linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                    if (progress > 50) return 'background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)';
+                    if (progress > 0) return 'background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+                    return 'background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
+                },
+                
+                getProgressBarColor(year) {
+                    const progress = this.getYearProgress(year);
+                    if (progress === 100) return 'bg-green-500';
+                    if (progress > 50) return 'bg-blue-500';
+                    if (progress > 0) return 'bg-yellow-500';
+                    return 'bg-gray-300';
+                },
+                
+                getYearStatusColor(year) {
+                    const progress = this.getYearProgress(year);
+                    if (progress === 100) return 'text-green-600';
+                    if (progress > 50) return 'text-blue-600';
+                    if (progress > 0) return 'text-yellow-600';
+                    return 'text-gray-500';
+                },
+                
+                getYearStatusText(year) {
+                    const progress = this.getYearProgress(year);
+                    if (progress === 100) return '已完成';
+                    if (progress > 50) return '进行中';
+                    if (progress > 0) return '已开始';
+                    return '未开始';
+                },
+                
+                // 快速练习方法
+                startRecentYearsPractice() {
+                    const recentYears = this.years.filter(y => y.year >= 2022);
+                    const questions = this.sampleQuestions.filter(q => q.year >= 2022);
+                    if (questions.length === 0) {
+                        this.showToast('近年真题正在整理中...', 'info');
+                        return;
+                    }
+                    this.startPractice(questions, 'year', { yearRange: '2022-2024' });
+                },
+                
+                startRandomYearPractice() {
+                    const availableYears = this.years.filter(y => y.questions > 0);
+                    if (availableYears.length === 0) {
+                        this.showToast('暂无可用年份题目', 'info');
+                        return;
+                    }
+                    const randomYear = availableYears[Math.floor(Math.random() * availableYears.length)];
+                    this.startYearPractice(randomYear.year);
+                },
+                
+                startIncompleteYearsPractice() {
+                    const incompleteYears = this.years.filter(y => y.completed < y.questions && y.questions > 0);
+                    if (incompleteYears.length === 0) {
+                        this.showToast('所有年份都已完成！', 'success');
+                        return;
+                    }
+                    const allIncompleteQuestions = [];
+                    incompleteYears.forEach(year => {
+                        const yearQuestions = this.sampleQuestions.filter(q => q.year === year.year);
+                        allIncompleteQuestions.push(...yearQuestions);
+                    });
+                    this.startPractice(allIncompleteQuestions, 'year', { type: 'incomplete' });
+                },
+                
+                showYearStats(year) {
+                    const stats = `${year.year}年真题统计\n\n• 题目总数: ${year.questions}道\n• 已完成: ${year.completed}道\n• 完成率: ${this.getYearProgress(year)}%\n• 状态: ${this.getYearStatusText(year)}\n\n详细统计功能开发中...`;
+                    alert(stats);
+                },
+                
+                resetYearProgress(year) {
+                    if (confirm(`确定要重置${year.year}年的练习进度吗？`)) {
+                        year.completed = 0;
+                        this.showToast(`${year.year}年练习进度已重置`, 'success');
+                    }
+                },
+                
+                showToast(message, type = 'info') {
+                    const toast = document.createElement('div');
+                    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 transition-all duration-300 ${
+                        type === 'success' ? 'bg-green-500' : 
+                        type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                    }`;
+                    toast.textContent = message;
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                        toast.style.opacity = '0';
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
+                },
+
+                // 显示详细统计
+                showDetailedStats() {
+                    const practiceStats = localStorage.getItem('practiceStats');
+                    const detailsContainer = document.getElementById('detailed-stats');
+                    
+                    if (practiceStats) {
+                        try {
+                            const stats = JSON.parse(practiceStats);
+                            detailsContainer.innerHTML = `
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">总答题数:</span>
+                                    <span class="font-medium">${stats.totalAnswered || 0}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">总答对数:</span>
+                                    <span class="font-medium text-green-600">${stats.totalCorrect || 0}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">总答错数:</span>
+                                    <span class="font-medium text-red-600">${(stats.totalAnswered || 0) - (stats.totalCorrect || 0)}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">数据更新时间:</span>
+                                    <span class="font-medium text-xs">${new Date().toLocaleString()}</span>
+                                </div>
+                            `;
+                        } catch (error) {
+                            detailsContainer.innerHTML = '<p class="text-red-600">数据解析失败</p>';
+                        }
+                    } else {
+                        detailsContainer.innerHTML = '<p class="text-gray-500">暂无统计数据</p>';
+                    }
+                },
+
+                // 重置统计数据
+                resetStats() {
+                    if (confirm('确定要重置所有统计数据吗？此操作不可恢复！')) {
+                        localStorage.removeItem('practiceStats');
+                        localStorage.removeItem('dailyStats');
+                        localStorage.removeItem('totalCompleted');
+                        
+                        // 重新初始化数据
+                        this.totalCompleted = 0;
+                        this.accuracyRate = 0;
+                        this.dailyCompleted = 0;
+                        
+                        this.showStatsModal = false;
+                        this.showToast('统计数据已重置', 'success');
+                    }
+                }
+            };
+        }
+    </script>
+    
+    <!-- 笔记管理器 -->
+    <script src="assets/js/notes-manager.js"></script>
+    <!-- 章节选择器 -->
+    <script src="assets/js/chapter-selector.js"></script>
+    
+    <!-- 快捷导航栏 -->
+    <script src="assets/js/quick-nav.js"></script>
+</body>
+</html>

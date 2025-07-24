@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计算机考研学习平台 - 启动指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- AI助手加载器 -->
+    <script src="../assets/js/ai-assistant-loader.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="startupGuide()">
+    <div class="min-h-screen">
+        <!-- 头部 -->
+        <div class="gradient-bg text-white text-center py-16">
+            <div class="container mx-auto px-4">
+                <i class="fas fa-graduation-cap text-6xl mb-6"></i>
+                <h1 class="text-4xl font-bold mb-4">计算机考研学习平台</h1>
+                <p class="text-xl opacity-90">高效、自主、可持续的学习体验</p>
+            </div>
+        </div>
+
+        <!-- 访问方式选择 -->
+        <div class="container mx-auto px-4 py-12">
+            <h2 class="text-3xl font-bold text-center mb-8 text-gray-800">选择访问方式</h2>
+            
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
+                <!-- HTTP服务器访问 -->
+                <div class="bg-white rounded-lg shadow-lg p-8 card-hover border-2 border-green-200">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-server text-5xl text-green-500 mb-4"></i>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">HTTP服务器</h3>
+                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">推荐方式</span>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="flex items-center text-green-600">
+                            <i class="fas fa-check-circle mr-3"></i>
+                            <span>完整功能支持</span>
+                        </div>
+                        <div class="flex items-center text-green-600">
+                            <i class="fas fa-check-circle mr-3"></i>
+                            <span>实时数据加载</span>
+                        </div>
+                        <div class="flex items-center text-green-600">
+                            <i class="fas fa-check-circle mr-3"></i>
+                            <span>最佳性能表现</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                        <h4 class="font-semibold mb-2">启动方式：</h4>
+                        <code class="text-sm bg-gray-800 text-white p-2 rounded block">
+                            python3 -m http.server 8080
+                        </code>
+                        <p class="text-sm text-gray-600 mt-2">然后访问 http://localhost:8080</p>
+                    </div>
+
+                    <button onclick="window.open('http://localhost:8080', '_blank')" 
+                            class="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition font-medium">
+                        <i class="fas fa-external-link-alt mr-2"></i>
+                        访问平台
+                    </button>
+                </div>
+
+                <!-- 直接文件访问 -->
+                <div class="bg-white rounded-lg shadow-lg p-8 card-hover border-2 border-blue-200">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-file-alt text-5xl text-blue-500 mb-4"></i>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">直接文件访问</h3>
+                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">离线模式</span>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="flex items-center text-blue-600">
+                            <i class="fas fa-check-circle mr-3"></i>
+                            <span>无需启动服务器</span>
+                        </div>
+                        <div class="flex items-center text-blue-600">
+                            <i class="fas fa-check-circle mr-3"></i>
+                            <span>离线完全可用</span>
+                        </div>
+                        <div class="flex items-center text-orange-500">
+                            <i class="fas fa-exclamation-triangle mr-3"></i>
+                            <span>部分功能受限</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                        <h4 class="font-semibold mb-2">使用方式：</h4>
+                        <p class="text-sm text-gray-600">直接双击打开 index.html 文件</p>
+                        <p class="text-xs text-orange-600 mt-1">注：将自动使用内置数据</p>
+                    </div>
+
+                    <a href="../index.html" 
+                       class="block w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-medium text-center">
+                        <i class="fas fa-play mr-2"></i>
+                        直接启动
+                    </a>
+                </div>
+            </div>
+
+            <!-- 系统状态检查 -->
+            <div class="max-w-2xl mx-auto">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">
+                        <i class="fas fa-cogs text-blue-500 mr-2"></i>
+                        系统状态检查
+                    </h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="flex items-center p-3 rounded-lg" :class="networkStatus ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'">
+                            <i :class="networkStatus ? 'fas fa-wifi' : 'fas fa-wifi-slash'" class="mr-3"></i>
+                            <span x-text="networkStatus ? '网络连接正常' : '网络连接断开'"></span>
+                        </div>
+                        
+                        <div class="flex items-center p-3 rounded-lg" :class="serverStatus ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'">
+                            <i :class="serverStatus ? 'fas fa-server' : 'fas fa-exclamation-triangle'" class="mr-3"></i>
+                            <span x-text="serverStatus ? '本地服务器可用' : '建议启动HTTP服务器'"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <button @click="checkStatus()" 
+                                class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+                            <i class="fas fa-sync-alt mr-2"></i>
+                            重新检查
+                        </button>
+                        
+                        <a href="../resource-test.html" 
+                           class="ml-4 bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition inline-block">
+                            <i class="fas fa-vial mr-2"></i>
+                            功能测试
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 帮助信息 -->
+            <div class="max-w-4xl mx-auto mt-12">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <h3 class="text-lg font-bold text-blue-800 mb-4">
+                        <i class="fas fa-question-circle mr-2"></i>
+                        常见问题
+                    </h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 text-sm">
+                        <div>
+                            <h4 class="font-semibold text-blue-700 mb-2">为什么推荐使用HTTP服务器？</h4>
+                            <p class="text-blue-600">HTTP服务器可以避免浏览器的CORS限制，确保所有功能正常工作，包括实时数据加载和完整的动画效果。</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-blue-700 mb-2">直接文件访问有什么限制？</h4>
+                            <p class="text-blue-600">主要是JSON数据文件可能无法加载，但系统会自动切换到内置数据，核心学习功能仍然可用。</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-blue-700 mb-2">如何启动HTTP服务器？</h4>
+                            <p class="text-blue-600">在项目目录下运行命令：python3 -m http.server 8080，然后在浏览器访问 localhost:8080。</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-blue-700 mb-2">遇到问题怎么办？</h4>
+                            <p class="text-blue-600">可以点击"功能测试"按钮检查系统状态，或查看浏览器开发者工具的控制台信息。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function startupGuide() {
+            return {
+                networkStatus: navigator.onLine,
+                serverStatus: false,
+
+                init() {
+                    this.checkStatus();
+                    
+                    // 监听网络状态变化
+                    window.addEventListener('online', () => {
+                        this.networkStatus = true;
+                    });
+                    
+                    window.addEventListener('offline', () => {
+                        this.networkStatus = false;
+                    });
+                },
+
+                async checkStatus() {
+                    // 检查网络状态
+                    this.networkStatus = navigator.onLine;
+                    
+                    // 检查本地服务器
+                    try {
+                        const response = await fetch('http://localhost:8080', { 
+                            method: 'HEAD',
+                            mode: 'no-cors'
+                        });
+                        this.serverStatus = true;
+                    } catch (error) {
+                        this.serverStatus = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

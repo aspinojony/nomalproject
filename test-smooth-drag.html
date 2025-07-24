@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI助手 - 优化拖拽效果测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .hero-section {
+            text-align: center;
+            padding: 40px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .demo-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        .demo-btn:active {
+            transform: translateY(0);
+        }
+        .instructions {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .demo-playground {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .demo-item {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .demo-item:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+        .status-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 9999;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="hero-section">
+            <h1>🚀 AI助手 - 超流畅拖拽体验</h1>
+            <p>全新升级的拖拽效果，媲美桌面应用的流畅体验</p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="feature-icon">✨</span>
+                <h3>流畅拖拽</h3>
+                <p>60fps 流畅动画，配合虚影效果和实时反馈</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🧲</span>
+                <h3>智能吸附</h3>
+                <p>边缘吸附效果，自动对齐屏幕边界</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🎯</span>
+                <h3>视觉反馈</h3>
+                <p>拖拽时的阴影、缩放和高亮效果</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">⚡</span>
+                <h3>性能优化</h3>
+                <p>节流处理，防抖优化，内存高效</p>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <h2>🎮 交互演示控制台</h2>
+            
+            <div class="instructions">
+                <h3>📋 体验指南：</h3>
+                <ol>
+                    <li><strong>打开AI助手</strong> → 点击"启动AI助手"按钮</li>
+                    <li><strong>切换悬浮模式</strong> → 点击标题栏的切换按钮</li>
+                    <li><strong>开始拖拽</strong> → 拖拽标题栏移动窗口</li>
+                    <li><strong>体验吸附</strong> → 拖拽到屏幕边缘感受自动吸附</li>
+                    <li><strong>观察效果</strong> → 注意虚影、阴影和边界高亮</li>
+                </ol>
+            </div>
+
+            <div class="btn-group">
+                <button class="demo-btn" onclick="launchAI()">🚀 启动AI助手</button>
+                <button class="demo-btn" onclick="enableFloatingMode()">🏃‍♂️ 切换悬浮模式</button>
+                <button class="demo-btn" onclick="demonstrateDrag()">🖱️ 拖拽演示</button>
+                <button class="demo-btn" onclick="testSnapping()">🧲 吸附测试</button>
+                <button class="demo-btn" onclick="resetPosition()">🔄 重置位置</button>
+            </div>
+
+            <h3>🎪 测试playground - 验证拖拽不影响页面交互</h3>
+            <div class="demo-playground">
+                <div class="demo-item" onclick="playgroundClick(this, '点击')">
+                    点击测试
+                </div>
+                <div class="demo-item" onmouseover="playgroundHover(this)" onmouseout="playgroundOut(this)">
+                    悬停测试
+                </div>
+                <div class="demo-item" ondblclick="playgroundDblClick(this)">
+                    双击测试
+                </div>
+                <div class="demo-item" oncontextmenu="playgroundContext(this, event)">
+                    右键测试
+                </div>
+                <div class="demo-item" draggable="true" ondragstart="playgroundDrag(this)">
+                    原生拖拽
+                </div>
+                <div class="demo-item">
+                    <input type="text" placeholder="输入测试" style="width: 100%; border: none; background: transparent; text-align: center;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-display" id="status">
+        <strong>🔍 拖拽状态监控</strong><br>
+        状态: 待启动<br>
+        模式: 未知<br>
+        位置: -<br>
+        性能: 正常
+    </div>
+
+    <script>
+        let statusInterval;
+        
+        function launchAI() {
+            if (window.aiAssistant && typeof window.aiAssistant.show === 'function') {
+                window.aiAssistant.show();
+                updateStatus('AI助手已启动', '模态模式');
+                startStatusMonitoring();
+            } else {
+                alert('⏳ AI助手正在加载中，请稍后再试...');
+            }
+        }
+
+        function enableFloatingMode() {
+            if (!window.aiAssistant) {
+                alert('请先启动AI助手');
+                return;
+            }
+            
+            if (!window.aiAssistant.isVisible) {
+                window.aiAssistant.show();
+            }
+            
+            setTimeout(() => {
+                if (window.aiAssistant.toggleMode) {
+                    window.aiAssistant.toggleMode();
+                    updateStatus('模式已切换', '悬浮模式');
+                    alert('✅ 已切换到悬浮模式！\\n\\n🎯 新功能体验：\\n• 虚影跟随效果\\n• 边缘智能吸附\\n• 流畅的拖拽动画\\n• 60fps 性能优化');
+                }
+            }, 300);
+        }
+
+        function demonstrateDrag() {
+            if (!window.aiAssistant || !window.aiAssistant.isFloatingMode) {
+                alert('请先切换到悬浮模式');
+                return;
+            }
+            
+            const positions = [
+                { left: '100px', top: '100px' },
+                { left: '300px', top: '150px' },
+                { left: '500px', top: '200px' },
+                { left: '200px', top: '300px' }
+            ];
+            
+            let currentPos = 0;
+            const demo = setInterval(() => {
+                if (currentPos < positions.length) {
+                    const pos = positions[currentPos];
+                    if (window.aiAssistant.window) {
+                        window.aiAssistant.window.style.left = pos.left;
+                        window.aiAssistant.window.style.top = pos.top;
+                        updateStatus(`演示位置 ${currentPos + 1}`, `${pos.left}, ${pos.top}`);
+                    }
+                    currentPos++;
+                } else {
+                    clearInterval(demo);
+                    alert('🎉 拖拽演示完成！现在您可以手动拖拽体验全新效果。');
+                }
+            }, 1000);
+        }
+
+        function testSnapping() {
+            if (!window.aiAssistant || !window.aiAssistant.isFloatingMode) {
+                alert('请先切换到悬浮模式');
+                return;
+            }
+            
+            alert('🧲 吸附测试说明：\\n\\n1. 将窗口拖拽到屏幕边缘\\n2. 当距离边缘30px时会自动吸附\\n3. 观察吸附区域的蓝色高亮\\n4. 边界会显示绿色提示框');
+            
+            // 演示吸附到各个边缘
+            const edges = [
+                { left: '0px', top: '100px', name: '左边缘' },
+                { left: (window.innerWidth - 480) + 'px', top: '100px', name: '右边缘' },
+                { left: '200px', top: '0px', name: '上边缘' },
+                { left: '200px', top: (window.innerHeight - 650) + 'px', name: '下边缘' }
+            ];
+            
+            let edgeIndex = 0;
+            const snapDemo = setInterval(() => {
+                if (edgeIndex < edges.length) {
+                    const edge = edges[edgeIndex];
+                    if (window.aiAssistant.window) {
+                        window.aiAssistant.window.style.left = edge.left;
+                        window.aiAssistant.window.style.top = edge.top;
+                        updateStatus(`吸附演示: ${edge.name}`, `${edge.left}, ${edge.top}`);
+                    }
+                    edgeIndex++;
+                } else {
+                    clearInterval(snapDemo);
+                }
+            }, 1500);
+        }
+
+        function resetPosition() {
+            if (window.aiAssistant && window.aiAssistant.window) {
+                window.aiAssistant.window.style.left = '50px';
+                window.aiAssistant.window.style.top = '50px';
+                window.aiAssistant.window.style.width = '480px';
+                window.aiAssistant.window.style.height = '650px';
+                updateStatus('位置已重置', '50px, 50px');
+            }
+        }
+
+        function updateStatus(action, detail) {
+            const status = document.getElementById('status');
+            const now = new Date().toLocaleTimeString();
+            status.innerHTML = `
+                <strong>🔍 拖拽状态监控</strong><br>
+                时间: ${now}<br>
+                动作: ${action}<br>
+                详情: ${detail}<br>
+                性能: 60fps 优化
+            `;
+        }
+
+        function startStatusMonitoring() {
+            if (statusInterval) clearInterval(statusInterval);
+            
+            statusInterval = setInterval(() => {
+                if (window.aiAssistant && window.aiAssistant.window) {
+                    const rect = window.aiAssistant.window.getBoundingClientRect();
+                    const mode = window.aiAssistant.isFloatingMode ? '悬浮模式' : '模态模式';
+                    const pos = `${Math.round(rect.left)}px, ${Math.round(rect.top)}px`;
+                    
+                    updateStatus('实时监控', `${mode} | ${pos}`);
+                }
+            }, 1000);
+        }
+
+        // Playground 交互测试
+        function playgroundClick(element, type) {
+            element.style.background = '#10b981';
+            element.textContent = `${type}成功!`;
+            setTimeout(() => {
+                element.style.background = 'rgba(255, 255, 255, 0.9)';
+                element.textContent = '点击测试';
+            }, 1000);
+        }
+
+        function playgroundHover(element) {
+            element.style.background = '#f59e0b';
+            element.textContent = '悬停中...';
+        }
+
+        function playgroundOut(element) {
+            element.style.background = 'rgba(255, 255, 255, 0.9)';
+            element.textContent = '悬停测试';
+        }
+
+        function playgroundDblClick(element) {
+            element.style.background = '#ef4444';
+            element.textContent = '双击成功!';
+            element.classList.add('pulse');
+            setTimeout(() => {
+                element.style.background = 'rgba(255, 255, 255, 0.9)';
+                element.textContent = '双击测试';
+                element.classList.remove('pulse');
+            }, 2000);
+        }
+
+        function playgroundContext(element, event) {
+            event.preventDefault();
+            element.style.background = '#8b5cf6';
+            element.textContent = '右键成功!';
+            setTimeout(() => {
+                element.style.background = 'rgba(255, 255, 255, 0.9)';
+                element.textContent = '右键测试';
+            }, 1000);
+        }
+
+        function playgroundDrag(element) {
+            element.style.background = '#06b6d4';
+            element.textContent = '拖拽开始!';
+        }
+
+        // 初始化
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (window.aiAssistant) {
+                    updateStatus('AI助手已加载', '准备就绪');
+                } else {
+                    updateStatus('加载中...', '请等待');
+                }
+            }, 2000);
+        });
+    </script>
+
+    <!-- 加载AI助手 -->
+    <script src="assets/js/ai-assistant-loader.js"></script>
+</body>
+</html>

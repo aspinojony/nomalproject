@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习记录导入导出功能</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- 页面标题 -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">📚 学习记录管理</h1>
+            <p class="text-lg text-gray-600">跨设备同步你的学习数据，随时随地继续学习进度</p>
+        </div>
+
+        <!-- 当前数据概览 -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="text-2xl mr-3">📊</span>
+                当前学习数据概览
+            </h2>
+            <div id="dataOverview" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- 数据将通过JavaScript动态加载 -->
+            </div>
+        </div>
+
+        <!-- 主要功能区域 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- 导出功能 -->
+            <div class="feature-card bg-white rounded-2xl shadow-lg p-8">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">📥</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">导出学习记录</h3>
+                    <p class="text-gray-600">将你的学习数据保存为文件，方便备份和迁移到其他设备</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="font-semibold text-gray-700 mb-2">导出内容包括：</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• 学习时长统计</li>
+                            <li>• 每日学习记录</li>
+                            <li>• 科目学习详情</li>
+                            <li>• 答题正确率</li>
+                            <li>• 学习目标设置</li>
+                        </ul>
+                    </div>
+                    
+                    <button onclick="exportData()" 
+                            class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                        <span class="mr-2">📥</span>
+                        导出学习记录
+                    </button>
+                </div>
+            </div>
+
+            <!-- 导入功能 -->
+            <div class="feature-card bg-white rounded-2xl shadow-lg p-8">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">📤</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">导入学习记录</h3>
+                    <p class="text-gray-600">从备份文件恢复学习数据，或合并来自其他设备的记录</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="font-semibold text-gray-700 mb-2">导入选项：</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• <strong>合并导入</strong>：保留现有数据，合并新数据</li>
+                            <li>• <strong>替换导入</strong>：清空现有数据，使用导入数据</li>
+                            <li>• 支持数据验证和自动备份</li>
+                        </ul>
+                    </div>
+                    
+                    <button onclick="importData()" 
+                            class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                        <span class="mr-2">📤</span>
+                        导入学习记录
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能介绍 -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="text-2xl mr-3">💡</span>
+                使用场景
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center p-4">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-xl">🔄</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 mb-2">设备切换</h4>
+                    <p class="text-sm text-gray-600">在不同设备间同步学习进度，保持学习连续性</p>
+                </div>
+                <div class="text-center p-4">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-xl">💾</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 mb-2">数据备份</h4>
+                    <p class="text-sm text-gray-600">定期备份学习数据，防止数据丢失</p>
+                </div>
+                <div class="text-center p-4">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-xl">📊</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 mb-2">数据分析</h4>
+                    <p class="text-sm text-gray-600">导出数据进行深度分析和个性化学习报告</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作历史和状态 -->
+        <div class="bg-white rounded-2xl shadow-lg p-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="text-2xl mr-3">📋</span>
+                操作记录
+            </h2>
+            <div id="operationLog" class="space-y-3">
+                <p class="text-gray-500 text-center py-4">暂无操作记录</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载学习统计管理器 -->
+    <script src="assets/js/stats-manager.js"></script>
+    
+    <script>
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                updateDataOverview();
+                setupEventListeners();
+            }, 1000);
+        });
+
+        // 更新数据概览
+        function updateDataOverview() {
+            if (!window.studyStats) {
+                document.getElementById('dataOverview').innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <p class="text-red-500">❌ 学习统计管理器未加载</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const stats = window.studyStats.stats;
+            const today = window.studyStats.getTodayStats();
+            const storageInfo = window.studyStats.getStorageInfo();
+
+            document.getElementById('dataOverview').innerHTML = `
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-blue-600">${Math.round(stats.totalStudyTime / 60)}h</div>
+                    <div class="text-sm text-gray-500">总学习时长</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-green-600">${stats.totalSessions}</div>
+                    <div class="text-sm text-gray-500">学习会话</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-purple-600">${stats.totalQuestionsAnswered || 0}</div>
+                    <div class="text-sm text-gray-500">答题数量</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-orange-600">${Object.keys(stats.dailyStats).length}</div>
+                    <div class="text-sm text-gray-500">学习天数</div>
+                </div>
+            `;
+        }
+
+        // 设置事件监听
+        function setupEventListeners() {
+            if (window.studyStats) {
+                // 监听统计数据更新
+                window.studyStats.addObserver((event, data) => {
+                    if (event === 'dataExported') {
+                        addOperationLog('✅ 数据导出成功', 'success');
+                        updateDataOverview();
+                    } else if (event === 'dataImported') {
+                        addOperationLog(`✅ 数据${data.strategy === 'merge' ? '合并' : '替换'}导入成功`, 'success');
+                        updateDataOverview();
+                    } else if (event === 'dataRestored') {
+                        addOperationLog('✅ 数据恢复成功', 'success');
+                        updateDataOverview();
+                    }
+                });
+            }
+        }
+
+        // 导出数据
+        async function exportData() {
+            if (!window.studyStats) {
+                alert('❌ 学习统计管理器未加载');
+                return;
+            }
+
+            try {
+                addOperationLog('📥 开始导出数据...', 'info');
+                const result = window.studyStats.exportStudyData();
+                
+                if (result.success) {
+                    addOperationLog(`✅ 导出成功 - ${result.exportInfo.totalStudyTime}分钟数据`, 'success');
+                } else {
+                    addOperationLog(`❌ 导出失败 - ${result.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('导出错误:', error);
+                addOperationLog(`❌ 导出异常 - ${error.message}`, 'error');
+            }
+        }
+
+        // 导入数据
+        async function importData() {
+            if (!window.studyStats) {
+                alert('❌ 学习统计管理器未加载');
+                return;
+            }
+
+            try {
+                addOperationLog('📤 选择导入文件...', 'info');
+                const result = await window.studyStats.triggerImportDialog();
+                
+                if (result.success) {
+                    const oldTime = Math.round(result.oldStats.totalStudyTime / 60);
+                    const newTime = Math.round(result.newStats.totalStudyTime / 60);
+                    addOperationLog(`✅ ${result.strategy === 'merge' ? '合并' : '替换'}导入成功 - ${oldTime}h → ${newTime}h`, 'success');
+                } else {
+                    addOperationLog(`❌ 导入失败 - ${result.message}`, 'error');
+                }
+            } catch (error) {
+                if (error.message !== '用户取消' && error.message !== '用户取消导入') {
+                    console.error('导入错误:', error);
+                    addOperationLog(`❌ 导入异常 - ${error.message}`, 'error');
+                } else {
+                    addOperationLog('⏹️ 用户取消导入', 'info');
+                }
+            }
+        }
+
+        // 添加操作日志
+        function addOperationLog(message, type = 'info') {
+            const logContainer = document.getElementById('operationLog');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `p-3 rounded-lg ${getLogStyle(type)}`;
+            logEntry.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <span>${message}</span>
+                    <span class="text-xs opacity-75">${timestamp}</span>
+                </div>
+            `;
+            
+            // 如果是第一条记录，清空默认提示
+            if (logContainer.children.length === 1 && logContainer.children[0].textContent.includes('暂无操作记录')) {
+                logContainer.innerHTML = '';
+            }
+            
+            logContainer.insertBefore(logEntry, logContainer.firstChild);
+            
+            // 限制显示的记录数量
+            while (logContainer.children.length > 10) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+        }
+
+        // 获取日志样式
+        function getLogStyle(type) {
+            switch (type) {
+                case 'success':
+                    return 'bg-green-50 border border-green-200 text-green-800';
+                case 'error':
+                    return 'bg-red-50 border border-red-200 text-red-800';
+                case 'warning':
+                    return 'bg-yellow-50 border border-yellow-200 text-yellow-800';
+                default:
+                    return 'bg-blue-50 border border-blue-200 text-blue-800';
+            }
+        }
+
+        // 页面可见性变化时更新数据
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                updateDataOverview();
+            }
+        });
+    </script>
+</body>
+</html>
