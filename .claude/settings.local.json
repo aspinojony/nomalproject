@@ -39,7 +39,11 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push origin test-claude-pr)",
-      "Bash(git remote set-url:*)"
+      "Bash(git remote set-url:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull origin master)",
+      "Bash(git fetch origin main)",
+      "Bash(git checkout -b main origin/main)"
     ],
     "deny": []
   }
