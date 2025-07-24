@@ -8,11 +8,12 @@ class AuthManager {
         // 认证配置
         this.config = {
             serverUrl: window.location.hostname === 'localhost' ? 
-                'http://localhost:5000' : 'https://your-server-domain.com',
+                'http://localhost:5000' : 'http://142.171.194.104:5000',
             apiVersion: 'v1',
             tokenRefreshThreshold: 5 * 60 * 1000, // 5分钟前刷新token
             retryAttempts: 3,
-            retryDelay: 2000
+            retryDelay: 2000,
+            localOnlyMode: false // 是否启用本地模式
         };
 
         // 认证状态
@@ -191,6 +192,18 @@ class AuthManager {
             }
         } catch (error) {
             console.error('❌ 登录失败:', error);
+            
+            // 检查是否是网络连接问题
+            if (error.message.includes('Failed to fetch') || error.message.includes('ERR_NAME_NOT_RESOLVED')) {
+                console.log('🔄 服务器不可用，尝试本地登录');
+                
+                // 启用本地模式
+                this.config.localOnlyMode = true;
+                
+                // 在本地模式下处理登录
+                return this.handleLocalLogin(identifier, password, rememberMe);
+            }
+            
             this.emit('loginError', {
                 message: '登录失败，请检查网络连接',
                 error: error.message
@@ -262,11 +275,188 @@ class AuthManager {
             }
         } catch (error) {
             console.error('❌ 注册失败:', error);
+            
+            // 检查是否是网络连接问题
+            if (error.message.includes('Failed to fetch') || error.message.includes('ERR_NAME_NOT_RESOLVED')) {
+                console.log('🔄 服务器不可用，切换到本地模式进行注册');
+                
+                // 启用本地模式
+                this.config.localOnlyMode = true;
+                
+                // 在本地模式下处理注册
+                return this.handleLocalRegistration(userData);
+            }
+            
             this.emit('registerError', {
                 message: '注册失败，请检查网络连接',
                 error: error.message
             });
             return { success: false, message: '注册失败，请检查网络连接' };
+        }
+    }
+
+    /**
+     * 本地模式注册处理
+     */
+    async handleLocalRegistration(userData) {
+        const { username, email, password, displayName } = userData;
+        
+        try {
+            // 检查用户是否已存在
+            const existingUsers = JSON.parse(localStorage.getItem('localUsers') || '[]');
+            
+            if (existingUsers.find(user => user.username === username || user.email === email)) {
+                return { 
+                    success: false, 
+                    message: '用户名或邮箱已存在' 
+                };
+            }
+            
+            // 创建新用户
+            const newUser = {
+                id: 'local_' + Date.now(),
+                username,
+                email,
+                displayName: displayName || username,
+                avatar: null,
+                createdAt: new Date().toISOString(),
+                passwordHash: await this.hashPassword(password) // 简单哈希
+            };
+            
+            // 保存到本地存储
+            existingUsers.push(newUser);
+            localStorage.setItem('localUsers', JSON.stringify(existingUsers));
+            
+            console.log('✅ 本地注册成功');
+            
+            // 发射注册成功事件
+            this.emit('registerSuccess', { user: { ...newUser, passwordHash: undefined } });
+            
+            return { 
+                success: true, 
+                message: '注册成功！请使用您的用户名和密码登录。',
+                user: { ...newUser, passwordHash: undefined }
+            };
+            
+        } catch (error) {
+            console.error('❌ 本地注册失败:', error);
+            return { 
+                success: false, 
+                message: '注册失败，请重试' 
+            };
+        }
+    }
+
+    /**
+     * 简单密码哈希（仅用于演示，生产环境应使用更安全的方法）
+     */
+    async hashPassword(password) {
+        try {
+            // 检查crypto API是否可用
+            if (window.crypto && window.crypto.subtle) {
+                // 使用浏览器内置的crypto API进行简单哈希
+                const encoder = new TextEncoder();
+                const data = encoder.encode(password + 'local_salt'); // 添加盐值
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            } else {
+                // 降级方案：简单字符串哈希
+                console.warn('⚠️ crypto.subtle API不可用，使用降级哈希方案');
+                return this.simpleHash(password + 'local_salt');
+            }
+        } catch (error) {
+            console.warn('⚠️ 哈希过程出错，使用降级方案:', error);
+            return this.simpleHash(password + 'local_salt');
+        }
+    }
+
+    /**
+     * 简单字符串哈希降级方案
+     */
+    simpleHash(str) {
+        let hash = 0;
+        if (str.length === 0) return hash.toString(16);
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // 转换为32位整数
+        }
+        return Math.abs(hash).toString(16);
+    }
+
+    /**
+     * 本地模式登录处理
+     */
+    async handleLocalLogin(identifier, password, rememberMe = true) {
+        try {
+            // 获取本地用户数据
+            const existingUsers = JSON.parse(localStorage.getItem('localUsers') || '[]');
+            
+            // 查找用户
+            const user = existingUsers.find(u => 
+                u.username === identifier || u.email === identifier
+            );
+            
+            if (!user) {
+                return { 
+                    success: false, 
+                    message: '用户不存在' 
+                };
+            }
+            
+            // 验证密码
+            const passwordHash = await this.hashPassword(password);
+            if (user.passwordHash !== passwordHash) {
+                return { 
+                    success: false, 
+                    message: '密码错误' 
+                };
+            }
+            
+            // 创建本地会话
+            const sessionUser = {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                displayName: user.displayName,
+                avatar: user.avatar
+            };
+            
+            // 更新认证状态
+            this.authState.isAuthenticated = true;
+            this.authState.user = sessionUser;
+            this.authState.accessToken = 'local_token_' + Date.now(); // 模拟token
+            this.authState.refreshToken = null;
+            this.authState.loginTime = new Date();
+            this.authState.lastActivity = new Date();
+            this.authState.tokenExpiry = null; // 本地模式无需过期时间
+            
+            // 保存到本地存储
+            if (rememberMe) {
+                await this.saveAuthState();
+            }
+            
+            console.log('✅ 本地登录成功');
+            
+            // 触发登录成功事件
+            this.emit('loginSuccess', {
+                user: sessionUser,
+                timestamp: this.authState.loginTime
+            });
+            
+            return { 
+                success: true, 
+                message: '登录成功',
+                user: sessionUser
+            };
+            
+        } catch (error) {
+            console.error('❌ 本地登录失败:', error);
+            return { 
+                success: false, 
+                message: '登录失败，请重试' 
+            };
         }
     }
 

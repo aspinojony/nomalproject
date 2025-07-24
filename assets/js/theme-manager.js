@@ -397,6 +397,53 @@ class ModernThemeManager {
     }
 
     /**
+     * 显示通知消息 (为兼容auth-manager)
+     */
+    showNotification(message, type = 'info') {
+        const typeColors = {
+            info: '#3b82f6',
+            success: '#10b981', 
+            warning: '#f59e0b',
+            error: '#ef4444'
+        };
+        
+        const toast = this.createElement('div', {
+            className: 'notification-toast',
+            innerHTML: message
+        });
+        
+        toast.style.cssText = `
+            position: fixed;
+            top: 4rem;
+            right: 1rem;
+            padding: 0.75rem 1rem;
+            background: var(--surface-primary);
+            border: 1px solid ${typeColors[type] || typeColors.info};
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10001;
+            transform: translateX(calc(100% + 1rem));
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
+            max-width: 300px;
+        `;
+        
+        document.body.appendChild(toast);
+        
+        requestAnimationFrame(() => {
+            toast.style.transform = 'translateX(0)';
+        });
+        
+        setTimeout(() => {
+            toast.style.transform = 'translateX(calc(100% + 1rem))';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    /**
      * 添加主题变化观察者
      */
     addObserver(callback) {

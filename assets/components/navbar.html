@@ -23,6 +23,63 @@
                         学习进度: <span class="text-indigo-600 font-semibold" id="progress-display">0%</span>
                     </div>
                     
+                    <!-- 用户认证区域 -->
+                    <div class="flex items-center space-x-2" id="user-auth-area">
+                        <!-- 未登录状态 -->
+                        <div class="user-not-logged-in flex items-center space-x-2">
+                            <button onclick="openUserLogin()" class="hidden md:inline-flex items-center px-3 py-1 text-sm text-gray-600 hover:text-indigo-600 transition">
+                                <span class="material-symbols-outlined text-lg mr-1">login</span>
+                                登录
+                            </button>
+                            <button onclick="openUserRegister()" class="hidden md:inline-flex items-center px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition text-sm">
+                                <span class="material-symbols-outlined text-lg mr-1">person_add</span>
+                                注册
+                            </button>
+                        </div>
+                        
+                        <!-- 已登录状态 -->
+                        <div class="user-logged-in hidden flex items-center space-x-2">
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center space-x-2 text-gray-600 hover:text-indigo-600 transition">
+                                    <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-indigo-600">person</span>
+                                    </div>
+                                    <span class="hidden md:block text-sm font-medium" id="user-display-name">用户</span>
+                                    <span class="material-symbols-outlined text-sm">expand_more</span>
+                                </button>
+                                
+                                <!-- 用户菜单 -->
+                                <div x-show="open" @click.away="open = false" 
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="transform opacity-0 scale-95"
+                                     x-transition:enter-end="transform opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="transform opacity-100 scale-100"
+                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                     class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
+                                    <div class="px-4 py-2 text-sm text-gray-500 border-b">
+                                        <div class="font-medium" id="menu-user-name">用户名</div>
+                                        <div class="text-xs" id="menu-user-email">user@example.com</div>
+                                    </div>
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                                        <span class="material-symbols-outlined text-lg mr-2">person</span>
+                                        个人资料
+                                    </a>
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                                        <span class="material-symbols-outlined text-lg mr-2">settings</span>
+                                        设置
+                                    </a>
+                                    <div class="border-t">
+                                        <button onclick="handleUserLogout()" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center">
+                                            <span class="material-symbols-outlined text-lg mr-2">logout</span>
+                                            退出登录
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- 移动端菜单按钮 -->
                     <button class="md:hidden text-gray-600 hover:text-indigo-600" id="mobile-menu-btn">
                         <i class="fas fa-bars text-xl"></i>
@@ -35,6 +92,49 @@
                 <div class="px-2 pt-2 pb-3 space-y-1" id="mobile-nav-links">
                     <!-- 移动端导航链接 -->
                 </div>
+                
+                <!-- 移动端用户认证区域 -->
+                <div class="px-4 py-3 border-t border-gray-200" id="mobile-user-auth">
+                    <!-- 未登录状态 -->
+                    <div class="mobile-user-not-logged-in space-y-2">
+                        <button onclick="openUserLogin()" class="w-full flex items-center justify-center px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition">
+                            <span class="material-symbols-outlined text-lg mr-2">login</span>
+                            登录
+                        </button>
+                        <button onclick="openUserRegister()" class="w-full flex items-center justify-center px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+                            <span class="material-symbols-outlined text-lg mr-2">person_add</span>
+                            注册
+                        </button>
+                    </div>
+                    
+                    <!-- 已登录状态 -->
+                    <div class="mobile-user-logged-in hidden">
+                        <div class="flex items-center space-x-3 py-2">
+                            <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                                <span class="material-symbols-outlined text-indigo-600">person</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-gray-900" id="mobile-user-name">用户名</div>
+                                <div class="text-xs text-gray-500" id="mobile-user-email">user@example.com</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 space-y-1">
+                            <a href="#" class="block px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md flex items-center">
+                                <span class="material-symbols-outlined text-lg mr-2">person</span>
+                                个人资料
+                            </a>
+                            <a href="#" class="block px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md flex items-center">
+                                <span class="material-symbols-outlined text-lg mr-2">settings</span>
+                                设置
+                            </a>
+                            <button onclick="handleUserLogout()" class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md flex items-center">
+                                <span class="material-symbols-outlined text-lg mr-2">logout</span>
+                                退出登录
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- 移动端统计信息 -->
                 <div class="px-4 py-3 border-t border-gray-200" id="mobile-nav-stats">
                     <div class="text-sm text-gray-600">
@@ -144,6 +244,76 @@ class NavbarComponent {
                 icon.className = 'fas fa-bars text-xl';
             }
         });
+        
+        // 监听用户认证状态变化
+        this.initUserAuthStatus();
+        this.bindUserAuthEvents();
+    }
+
+    initUserAuthStatus() {
+        // 检查用户登录状态并更新UI
+        setTimeout(() => {
+            if (window.authManager && window.authManager.isAuthenticated()) {
+                const user = window.authManager.getCurrentUser();
+                this.updateUserUI(user);
+            } else {
+                this.showNotLoggedInState();
+            }
+        }, 100);
+    }
+
+    bindUserAuthEvents() {
+        // 监听登录成功事件
+        document.addEventListener('userLoggedIn', (event) => {
+            this.updateUserUI(event.detail.user);
+        });
+
+        // 监听登出事件
+        document.addEventListener('userLoggedOut', () => {
+            this.showNotLoggedInState();
+        });
+    }
+
+    updateUserUI(user) {
+        // 桌面端更新
+        const notLoggedIn = this.container.querySelector('.user-not-logged-in');
+        const loggedIn = this.container.querySelector('.user-logged-in');
+        const displayName = this.container.querySelector('#user-display-name');
+        const menuUserName = this.container.querySelector('#menu-user-name');
+        const menuUserEmail = this.container.querySelector('#menu-user-email');
+
+        if (notLoggedIn) notLoggedIn.classList.add('hidden');
+        if (loggedIn) loggedIn.classList.remove('hidden');
+        if (displayName) displayName.textContent = user.displayName || user.username;
+        if (menuUserName) menuUserName.textContent = user.displayName || user.username;
+        if (menuUserEmail) menuUserEmail.textContent = user.email;
+
+        // 移动端更新
+        const mobileNotLoggedIn = this.container.querySelector('.mobile-user-not-logged-in');
+        const mobileLoggedIn = this.container.querySelector('.mobile-user-logged-in');
+        const mobileUserName = this.container.querySelector('#mobile-user-name');
+        const mobileUserEmail = this.container.querySelector('#mobile-user-email');
+
+        if (mobileNotLoggedIn) mobileNotLoggedIn.classList.add('hidden');
+        if (mobileLoggedIn) mobileLoggedIn.classList.remove('hidden');
+        if (mobileUserName) mobileUserName.textContent = user.displayName || user.username;
+        if (mobileUserEmail) mobileUserEmail.textContent = user.email;
+    }
+
+    showNotLoggedInState() {
+        // 桌面端更新
+        const notLoggedIn = this.container.querySelector('.user-not-logged-in');
+        const loggedIn = this.container.querySelector('.user-logged-in');
+
+        if (notLoggedIn) notLoggedIn.classList.remove('hidden');
+        if (loggedIn) loggedIn.classList.add('hidden');
+
+        // 移动端更新
+        const mobileNotLoggedIn = this.container.querySelector('.mobile-user-not-logged-in');
+        const mobileLoggedIn = this.container.querySelector('.mobile-user-logged-in');
+
+        if (mobileNotLoggedIn) mobileNotLoggedIn.classList.remove('hidden');
+        if (mobileLoggedIn) mobileLoggedIn.classList.add('hidden');
     }
 
     setProgress(progress) {

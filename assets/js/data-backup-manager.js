@@ -941,6 +941,8 @@ class DataBackupManager {
      * 检查是否为重要数据键
      */
     isImportantDataKey(key) {
+        if (!key) return false;
+        
         const importantKeys = [
             'study_progress', 'study_statistics', 'study_notes',
             'modern-theme', 'user-theme-set'

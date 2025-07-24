@@ -37,6 +37,18 @@
     <!-- 主题管理器 - 优先加载 -->
     <script src="assets/js/theme-manager.js"></script>
     
+    <!-- 用户管理系统 - 在其他脚本之前加载 -->
+    <script src="assets/js/auth-manager.js" defer></script>
+    <script src="assets/js/user-settings-manager.js" defer></script>
+    <script src="assets/js/data-backup-manager.js" defer></script>
+    <script src="assets/js/realtime-sync-manager.js" defer></script>
+    <script src="assets/js/user-auth-controllers.js" defer></script>
+    
+    <!-- 页面管理和组件系统 -->
+    <script src="assets/js/utils.js" defer></script>
+    <script src="assets/js/core/module-system.js" defer></script>
+    <script src="assets/js/core/state-manager.js" defer></script>
+    
     <!-- 懒加载脚本 -->
     <script src="assets/js/ai-assistant-loader.js" defer></script>
     <script src="assets/js/course-data.js" defer></script>
@@ -707,6 +719,9 @@
         
         // 确保主题管理器在DOM加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
+            // 加载导航栏组件
+            loadNavbarComponent();
+            
             // 等待一点时间让主题管理器完全初始化
             setTimeout(() => {
                 if (window.themeManager) {
@@ -739,6 +754,161 @@
                     updateManualButtonIcon();
                 }
             }, 100);
+        });
+
+        // 加载导航栏组件函数
+        async function loadNavbarComponent() {
+            try {
+                const response = await fetch('assets/components/navbar.html');
+                if (!response.ok) {
+                    throw new Error(`Failed to load navbar: ${response.status}`);
+                }
+                
+                const navbarHTML = await response.text();
+                const navbarContainer = document.getElementById('navbar-container');
+                
+                if (navbarContainer) {
+                    navbarContainer.innerHTML = navbarHTML;
+                    console.log('✅ 导航栏组件加载成功');
+                    
+                    // 执行导航栏HTML中的脚本
+                    const scripts = navbarContainer.querySelectorAll('script');
+                    scripts.forEach(script => {
+                        const newScript = document.createElement('script');
+                        if (script.src) {
+                            newScript.src = script.src;
+                        } else {
+                            newScript.textContent = script.textContent;
+                        }
+                        // 立即执行
+                        document.head.appendChild(newScript);
+                        document.head.removeChild(newScript);
+                    });
+                    
+                    // 等待脚本执行完成，然后初始化组件
+                    setTimeout(() => {
+                        // 手动触发导航栏组件初始化
+                        if (window.NavbarComponent) {
+                            console.log('✅ 使用NavbarComponent类初始化');
+                            new window.NavbarComponent(navbarContainer);
+                        } else {
+                            console.log('⚠️ NavbarComponent类未找到，尝试手动初始化');
+                            // 手动初始化导航栏功能
+                            initializeNavbarManually(navbarContainer);
+                        }
+                    }, 200);
+                } else {
+                    console.error('❌ 未找到导航栏容器');
+                }
+            } catch (error) {
+                console.error('❌ 导航栏加载失败:', error);
+            }
+        }
+
+        // 手动初始化导航栏功能
+        function initializeNavbarManually(container) {
+            try {
+                // 移动端菜单切换
+                const mobileMenuBtn = container.querySelector('#mobile-menu-btn');
+                const mobileMenu = container.querySelector('#mobile-menu');
+                
+                if (mobileMenuBtn && mobileMenu) {
+                    mobileMenuBtn.addEventListener('click', () => {
+                        mobileMenu.classList.toggle('hidden');
+                        const icon = mobileMenuBtn.querySelector('i') || mobileMenuBtn.querySelector('.material-symbols-outlined');
+                        if (icon) {
+                            if (mobileMenu.classList.contains('hidden')) {
+                                icon.className = 'fas fa-bars text-xl';
+                            } else {
+                                icon.className = 'fas fa-times text-xl';
+                            }
+                        }
+                    });
+                }
+
+                // 初始化用户认证状态
+                setTimeout(() => {
+                    if (window.authManager && window.authManager.isAuthenticated()) {
+                        const user = window.authManager.getCurrentUser();
+                        updateNavbarUserUI(user, container);
+                    } else {
+                        showNavbarNotLoggedInState(container);
+                    }
+                }, 100);
+
+                // 监听用户认证状态变化
+                document.addEventListener('userLoggedIn', (event) => {
+                    updateNavbarUserUI(event.detail.user, container);
+                });
+
+                document.addEventListener('userLoggedOut', () => {
+                    showNavbarNotLoggedInState(container);
+                });
+
+                console.log('✅ 导航栏手动初始化完成');
+            } catch (error) {
+                console.error('❌ 导航栏手动初始化失败:', error);
+            }
+        }
+
+        // 更新导航栏用户UI
+        function updateNavbarUserUI(user, container) {
+            // 桌面端
+            const notLoggedIn = container.querySelector('.user-not-logged-in');
+            const loggedIn = container.querySelector('.user-logged-in');
+            const displayName = container.querySelector('#user-display-name');
+            const menuUserName = container.querySelector('#menu-user-name');
+            const menuUserEmail = container.querySelector('#menu-user-email');
+
+            if (notLoggedIn) notLoggedIn.classList.add('hidden');
+            if (loggedIn) loggedIn.classList.remove('hidden');
+            if (displayName) displayName.textContent = user.displayName || user.username;
+            if (menuUserName) menuUserName.textContent = user.displayName || user.username;
+            if (menuUserEmail) menuUserEmail.textContent = user.email;
+
+            // 移动端
+            const mobileNotLoggedIn = container.querySelector('.mobile-user-not-logged-in');
+            const mobileLoggedIn = container.querySelector('.mobile-user-logged-in');
+            const mobileUserName = container.querySelector('#mobile-user-name');
+            const mobileUserEmail = container.querySelector('#mobile-user-email');
+
+            if (mobileNotLoggedIn) mobileNotLoggedIn.classList.add('hidden');
+            if (mobileLoggedIn) mobileLoggedIn.classList.remove('hidden');
+            if (mobileUserName) mobileUserName.textContent = user.displayName || user.username;
+            if (mobileUserEmail) mobileUserEmail.textContent = user.email;
+        }
+
+        // 显示未登录状态
+        function showNavbarNotLoggedInState(container) {
+            // 桌面端
+            const notLoggedIn = container.querySelector('.user-not-logged-in');
+            const loggedIn = container.querySelector('.user-logged-in');
+
+            if (notLoggedIn) notLoggedIn.classList.remove('hidden');
+            if (loggedIn) loggedIn.classList.add('hidden');
+
+            // 移动端
+            const mobileNotLoggedIn = container.querySelector('.mobile-user-not-logged-in');
+            const mobileLoggedIn = container.querySelector('.mobile-user-logged-in');
+
+            if (mobileNotLoggedIn) mobileNotLoggedIn.classList.remove('hidden');
+            if (mobileLoggedIn) mobileLoggedIn.classList.add('hidden');
+        }
+    </script>
+
+    <!-- 包含用户认证组件 -->
+    <div id="user-auth-component"></div>
+    
+    <script>
+        // 加载用户认证组件
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('assets/components/user-auth.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('user-auth-component').innerHTML = html;
+                    console.log('✅ 用户认证组件已加载');
+                })
+                .catch(error => console.error('Error loading user auth component:', error));
         });
     </script>
 </body>

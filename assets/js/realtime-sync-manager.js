@@ -8,7 +8,7 @@ class RealtimeSyncManager {
         // 同步配置
         this.config = {
             serverUrl: window.location.hostname === 'localhost' ? 
-                'http://localhost:5000' : 'https://your-server-domain.com',
+                'http://localhost:5000' : 'http://142.171.194.104:5000',
             reconnectInterval: 5000, // 重连间隔
             heartbeatInterval: 30000, // 心跳间隔
             maxReconnectAttempts: 10,
@@ -622,6 +622,8 @@ class RealtimeSyncManager {
      * 检查是否为被跟踪的存储键
      */
     isTrackedStorageKey(key) {
+        if (!key) return false;
+        
         const trackedKeys = [
             'study_progress', 'study_statistics', 'study_notes',
             'modern-theme', 'user-theme-set'

@@ -9,7 +9,7 @@ class CloudSyncConversationStorage extends AIConversationStorage {
         // 云同步相关配置
         this.cloudConfig = {
             serverUrl: window.location.hostname === 'localhost' ? 
-                'http://localhost:5000' : 'https://your-server-domain.com',
+                'http://localhost:5000' : 'http://142.171.194.104:5000',
             apiVersion: 'v1',
             syncInterval: 5 * 60 * 1000, // 5分钟自动同步
             retryAttempts: 3,

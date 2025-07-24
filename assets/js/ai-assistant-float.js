@@ -517,8 +517,16 @@ class AIAssistantFloat {
         
         // 点击其他地方关闭大小预设菜单
         document.addEventListener('click', (e) => {
-            if (this.sizePresets && !this.sizePresets.contains(e.target) && !this.sizeMenuBtn.contains(e.target)) {
-                this.sizePresets.classList.remove('show');
+            try {
+                if (this.sizePresets && this.sizeMenuBtn && e.target && 
+                    typeof e.target.nodeType !== 'undefined' &&
+                    !this.sizePresets.contains(e.target) && 
+                    !this.sizeMenuBtn.contains(e.target)) {
+                    this.sizePresets.classList.remove('show');
+                }
+            } catch (error) {
+                // Silently ignore errors related to DOM element access
+                console.debug('AI Assistant: Size menu click handler error (ignored):', error);
             }
         });
         

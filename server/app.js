@@ -17,7 +17,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: process.env.CLIENT_URL || "http://localhost:3000",
+        origin: process.env.CLIENT_URL || "http://142.171.194.104:8080",
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -26,9 +26,26 @@ const io = new Server(server, {
 // 安全中间件
 app.use(helmet());
 app.use(cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
-    credentials: true
+    origin: function (origin, callback) {
+        const allowList = [
+            "http://142.171.194.104:8080",
+            "http://localhost:8080"
+        ];
+        if (!origin || allowList.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    credentials: true,
+    optionsSuccessStatus: 200,  // 确保预检请求正确响应
+    preflightContinue: false
 }));
+
+// 额外的预检请求处理
+app.options('*', cors());
 
 // 速率限制
 const limiter = rateLimit({
