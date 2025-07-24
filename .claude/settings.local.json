@@ -36,7 +36,10 @@
       "Bash(gh pr:*)",
       "Bash(gh repo view:*)",
       "Bash(gh api:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push origin test-claude-pr)",
+      "Bash(git remote set-url:*)"
     ],
     "deny": []
   }
