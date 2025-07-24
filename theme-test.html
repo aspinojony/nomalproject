@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主题切换测试</title>
+    
+    <!-- 主题系统 -->
+    <link href="assets/css/theme-manager.css" rel="stylesheet">
+    <script src="assets/js/theme-manager.js"></script>
+    <script src="test-theme.js"></script>
+    
+    <style>
+        body {
+            padding: 2rem;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .test-button {
+            margin: 0.5rem;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary-500);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="theme-heading-1">主题切换测试页面</h1>
+        
+        <div class="theme-card">
+            <h2 class="theme-heading-2">测试按钮</h2>
+            <p class="theme-text-secondary">请点击以下按钮测试主题功能：</p>
+            
+            <div style="margin: 2rem 0;">
+                <button class="test-button" onclick="toggleTheme()">切换主题</button>
+                <button class="test-button" onclick="debugTheme()">调试信息</button>
+                <button class="test-button" onclick="showThemeButton()">强制显示按钮</button>
+                <button class="test-button" onclick="runThemeTests()">运行自动测试</button>
+            </div>
+            
+            <div id="info" class="theme-text-tertiary">
+                主题管理器状态: <span id="status">检查中...</span>
+            </div>
+        </div>
+        
+        <div class="theme-card" style="margin-top: 2rem;">
+            <h3 class="theme-heading-3">调试信息</h3>
+            <pre id="debug-info" style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; overflow: auto;">
+等待调试信息...
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后检查主题管理器状态
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusElement = document.getElementById('status');
+            const debugInfoElement = document.getElementById('debug-info');
+            
+            // 延迟检查，确保主题管理器有时间初始化
+            setTimeout(() => {
+                try {
+                    if (window.themeManager) {
+                        statusElement.textContent = '✅ 正常工作';
+                        statusElement.style.color = 'green';
+                        
+                        debugInfoElement.textContent = `主题管理器已加载
+当前主题: ${window.themeManager.getCurrentTheme()}
+是否为深色模式: ${window.themeManager.isDark()}
+现代按钮是否存在: ${document.getElementById('modern-theme-toggle') ? '是' : '否'}
+临时按钮是否存在: ${document.getElementById('manual-theme-toggle') ? '是' : '否'}
+DOM状态: ${document.readyState}
+Body是否存在: ${document.body ? '是' : '否'}`;
+                    } else if (window.toggleTheme) {
+                        statusElement.textContent = '⚠️ 部分工作';
+                        statusElement.style.color = 'orange';
+                        
+                        debugInfoElement.textContent = `全局函数已定义但主题管理器实例未找到
+toggleTheme函数: ${typeof window.toggleTheme}
+debugTheme函数: ${typeof window.debugTheme}
+showThemeButton函数: ${typeof window.showThemeButton}
+现代按钮是否存在: ${document.getElementById('modern-theme-toggle') ? '是' : '否'}
+临时按钮是否存在: ${document.getElementById('manual-theme-toggle') ? '是' : '否'}`;
+                    } else {
+                        statusElement.textContent = '❌ 未加载';
+                        statusElement.style.color = 'red';
+                        
+                        debugInfoElement.textContent = `主题管理器完全未加载
+可能的原因：
+1. JavaScript文件路径错误
+2. 文件加载失败
+3. 初始化错误
+4. 脚本执行顺序问题`;
+                    }
+                } catch (error) {
+                    statusElement.textContent = '❌ 错误';
+                    statusElement.style.color = 'red';
+                    debugInfoElement.textContent = `错误信息: ${error.message}`;
+                }
+            }, 1000);
+        });
+        
+        // 重写调试函数以显示在页面上
+        function debugTheme() {
+            const debugInfoElement = document.getElementById('debug-info');
+            
+            try {
+                if (window.debugTheme && window.themeManager) {
+                    // 调用原始的debugTheme函数
+                    window.debugTheme();
+                    
+                    debugInfoElement.textContent = `=== 主题系统调试信息 ===
+当前主题: ${window.themeManager.getCurrentTheme()}
+是否为深色模式: ${window.themeManager.isDark()}
+现代按钮是否存在: ${document.getElementById('modern-theme-toggle') ? '是' : '否'}
+临时按钮是否存在: ${document.getElementById('manual-theme-toggle') ? '是' : '否'}
+DOM状态: ${document.readyState}
+Body是否存在: ${document.body ? '是' : '否'}
+主题管理器实例: ${window.themeManager ? '已创建' : '未创建'}
+
+强制显示按钮已执行 - 检查页面右上角`;
+                } else {
+                    debugInfoElement.textContent = '❌ 调试函数或主题管理器未初始化';
+                }
+            } catch (error) {
+                debugInfoElement.textContent = `❌ 调试时发生错误: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

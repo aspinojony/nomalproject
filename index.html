@@ -138,6 +138,17 @@
     
     <!-- 导航栏容器 -->
     <div id="navbar-container"></div>
+    
+    <!-- 临时主题切换按钮（如果自动创建的按钮没有显示） -->
+    <button id="manual-theme-toggle" onclick="toggleManualTheme()" 
+            style="position: fixed; top: 1rem; right: 1rem; width: 3rem; height: 3rem; border-radius: 50%; 
+                   background: var(--surface-primary, white); border: 2px solid var(--border-secondary, #ccc); 
+                   box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.15));
+                   display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999;
+                   color: var(--text-primary, #333); font-size: 1.5rem; transition: all 0.2s ease;"
+            title="切换深色/浅色模式">
+        🌓
+    </button>
 
     <!-- 优雅的欢迎引导 -->
     <div x-show="showWelcome" 
@@ -666,14 +677,68 @@
                 Alpine.evaluate(dashboard, 'openStatsModal()');
             }
         };
+
+        // 临时主题切换函数
+        window.toggleManualTheme = function() {
+            if (window.themeManager) {
+                window.themeManager.toggle();
+                updateManualButtonIcon();
+            } else if (window.toggleTheme) {
+                window.toggleTheme();
+                updateManualButtonIcon();
+            } else {
+                // 如果主题管理器未加载，简单切换类名
+                document.documentElement.classList.toggle('dark');
+                document.body.classList.toggle('dark');
+                updateManualButtonIcon();
+                console.log('使用临时主题切换');
+            }
+        };
+
+        // 更新临时按钮图标
+        window.updateManualButtonIcon = function() {
+            const manualButton = document.getElementById('manual-theme-toggle');
+            if (manualButton) {
+                const isDark = document.documentElement.classList.contains('dark');
+                manualButton.innerHTML = isDark ? '☀️' : '🌙';
+                manualButton.title = isDark ? '切换到浅色模式' : '切换到深色模式';
+            }
+        };
         
         // 确保主题管理器在DOM加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
-            if (window.themeManager) {
-                console.log('✅ 主题管理器已初始化');
-            } else {
-                console.warn('⚠️ 主题管理器未找到');
-            }
+            // 等待一点时间让主题管理器完全初始化
+            setTimeout(() => {
+                if (window.themeManager) {
+                    console.log('✅ 主题管理器已初始化');
+                    
+                    // 添加主题变化监听器来更新临时按钮
+                    window.themeManager.addObserver((event, theme) => {
+                        if (event === 'themeChanged') {
+                            updateManualButtonIcon();
+                        }
+                    });
+                    
+                    // 检查是否创建了现代按钮，如果是则隐藏临时按钮
+                    setTimeout(() => {
+                        const modernButton = document.getElementById('modern-theme-toggle');
+                        const manualButton = document.getElementById('manual-theme-toggle');
+                        
+                        if (modernButton && manualButton) {
+                            manualButton.style.display = 'none';
+                            console.log('✅ 现代主题按钮已显示，隐藏临时按钮');
+                        } else if (!modernButton && manualButton) {
+                            console.log('⚠️ 现代主题按钮未显示，使用临时按钮');
+                            // 更新临时按钮的图标
+                            updateManualButtonIcon();
+                        }
+                    }, 300);
+                } else {
+                    console.warn('⚠️ 主题管理器未找到，使用临时按钮');
+                    // 初始化临时按钮图标
+                    updateManualButtonIcon();
+                }
+            }, 100);
         });
     </script>
 </body>

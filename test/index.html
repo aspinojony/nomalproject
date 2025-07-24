@@ -63,6 +63,16 @@
 </head>
 
 <body x-data="testManager()">
+    <!-- 临时主题切换按钮 -->
+    <button onclick="window.themeManager ? window.themeManager.toggleTheme() : console.log('主题管理器未加载')" 
+            style="position: fixed; top: 1rem; right: 1rem; width: 3rem; height: 3rem; border-radius: 50%; 
+                   background: white; border: 2px solid #ccc; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                   display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999;
+                   color: #333; font-size: 1.5rem;"
+            title="切换深色/浅色模式">
+        🌓
+    </button>
+    
     <!-- 头部 -->
     <header class="test-header text-white py-8">
         <div class="max-w-6xl mx-auto px-6">
