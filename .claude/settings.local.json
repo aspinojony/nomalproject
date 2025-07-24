@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(sqlite3:*)",
+      "Bash(node:*)",
+      "Bash(ls:*)",
+      "Bash(python3:*)",
+      "Bash(grep:*)",
+      "Bash(rm:*)",
+      "Bash(cp:*)",
+      "WebFetch(domain:www.xfyun.cn)",
+      "Bash(curl:*)",
+      "Bash(jq:*)",
+      "Bash(npm run dev)",
+      "Bash(find /home/aspinojony/nomalproject -name \"*.html\" -exec grep -l \"mobile.*menu\\|hamburger\\|toggle.*menu\" {} ;)",
+      "Bash(find:*)",
+      "Bash(touch:*)",
+      "WebFetch(domain:emuch.net)",
+      "WebFetch(domain:www.cmpedu.com)",
+      "WebFetch(domain:www.shuxuekaoyan.com)",
+      "WebFetch(domain:www.kaoyanenglish.com)",
+      "WebFetch(domain:www.kaoyan8.com)",
+      "WebFetch(domain:www.youti.net)",
+      "WebFetch(domain:www.51kaoyan.vip)",
+      "WebFetch(domain:www.yanxueshe.com)",
+      "WebFetch(domain:www.rrkaoyan.com)",
+      "WebFetch(domain:www.didakaoyan.com)",
+      "WebFetch(domain:axutongxue.netlify.app)",
+      "WebFetch(domain:www.xuekaocn.cn)",
+      "WebFetch(domain:yz.chsi.com.cn)",
+      "WebFetch(domain:www.bilibili.com)",
+      "WebFetch(domain:www.zhihu.com)",
+      "Bash(ls -la debug-resize.html test-resize-final.html)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh api:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}
