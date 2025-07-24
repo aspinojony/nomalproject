@@ -7,7 +7,7 @@ class DataBackupManager {
     constructor() {
         // 备份配置
         this.config = {
-            autoBackupInterval: 30 * 60 * 1000, // 30分钟自动备份
+            autoBackupInterval: 2 * 60 * 1000, // 2分钟自动备份
             maxLocalBackups: 10, // 最大本地备份数
             maxCloudBackups: 50, // 最大云端备份数
             compressionEnabled: true,

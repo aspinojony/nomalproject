@@ -111,8 +111,7 @@ function authModalController() {
                     if (result.success) {
                         console.log('✅ 登录成功');
                         this.closeModal();
-                        // 触发页面更新
-                        window.location.reload();
+                        // 不需要刷新页面，依赖事件系统自动更新UI
                     } else {
                         this.loginError = result.message || '登录失败';
                     }

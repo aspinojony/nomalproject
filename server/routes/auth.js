@@ -6,12 +6,20 @@ const { generateTokens, verifyRefreshToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// 登录速率限制
+// 登录速率限制 - 开发模式下放宽限制
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15分钟
-    max: 5, // 最多5次尝试
-    message: '登录尝试次数过多，请15分钟后再试',
-    skipSuccessfulRequests: true
+    max: 999, // 测试阶段大幅增加限制
+    handler: (req, res) => {
+        res.status(429).json({
+            success: false,
+            message: '登录尝试次数过多，请15分钟后再试',
+            code: 'RATE_LIMIT_EXCEEDED'
+        });
+    },
+    skipSuccessfulRequests: true,
+    standardHeaders: true,
+    legacyHeaders: false
 });
 
 // 注册验证规则

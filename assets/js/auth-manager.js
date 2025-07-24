@@ -176,7 +176,7 @@ class AuthManager {
                 this.setupTokenRefresh();
 
                 // 触发登录成功事件
-                this.emit('loginSuccess', {
+                this.emit('userLoggedIn', {
                     user: this.authState.user,
                     timestamp: this.authState.loginTime
                 });
@@ -440,7 +440,7 @@ class AuthManager {
             console.log('✅ 本地登录成功');
             
             // 触发登录成功事件
-            this.emit('loginSuccess', {
+            this.emit('userLoggedIn', {
                 user: sessionUser,
                 timestamp: this.authState.loginTime
             });
@@ -555,12 +555,28 @@ class AuthManager {
      */
     async saveAuthState() {
         try {
-            localStorage.setItem('auth_access_token', this.authState.accessToken);
-            localStorage.setItem('auth_refresh_token', this.authState.refreshToken);
-            localStorage.setItem('auth_user', JSON.stringify(this.authState.user));
-            localStorage.setItem('auth_login_time', this.authState.loginTime.toISOString());
+            // 安全保存令牌
+            if (this.authState.accessToken) {
+                localStorage.setItem('auth_access_token', this.authState.accessToken);
+            }
+            if (this.authState.refreshToken) {
+                localStorage.setItem('auth_refresh_token', this.authState.refreshToken);
+            }
             
-            if (this.authState.tokenExpiry) {
+            // 保存用户信息
+            if (this.authState.user) {
+                localStorage.setItem('auth_user', JSON.stringify(this.authState.user));
+            }
+            
+            // 安全保存日期，确保日期有效
+            if (this.authState.loginTime && this.authState.loginTime instanceof Date && !isNaN(this.authState.loginTime)) {
+                localStorage.setItem('auth_login_time', this.authState.loginTime.toISOString());
+            } else if (this.authState.loginTime) {
+                // 如果不是有效日期，使用当前时间
+                localStorage.setItem('auth_login_time', new Date().toISOString());
+            }
+            
+            if (this.authState.tokenExpiry && this.authState.tokenExpiry instanceof Date && !isNaN(this.authState.tokenExpiry)) {
                 localStorage.setItem('auth_token_expiry', this.authState.tokenExpiry.toISOString());
             }
         } catch (error) {
@@ -680,7 +696,21 @@ class AuthManager {
         while (attempt < this.config.retryAttempts) {
             try {
                 const response = await fetch(url, finalOptions);
-                const data = await response.json();
+                
+                let data;
+                // 先获取响应文本，然后尝试解析为JSON
+                const responseText = await response.text();
+                
+                try {
+                    data = JSON.parse(responseText);
+                } catch (jsonError) {
+                    // 如果不是JSON响应，使用文本内容
+                    data = {
+                        success: false,
+                        message: responseText || `HTTP ${response.status}: ${response.statusText}`,
+                        code: 'INVALID_RESPONSE'
+                    };
+                }
 
                 if (response.status === 401 && !options.skipAuth) {
                     // 尝试刷新token
@@ -699,6 +729,10 @@ class AuthManager {
                 }
 
                 if (!response.ok) {
+                    // 对于429错误，提供更友好的提示
+                    if (response.status === 429) {
+                        throw new Error(data.message || '请求过于频繁，请稍后再试');
+                    }
                     throw new Error(data.message || `HTTP ${response.status}`);
                 }
 
@@ -783,6 +817,7 @@ class AuthManager {
     }
 
     emit(event, data) {
+        // 内部事件系统
         if (this.eventListeners.has(event)) {
             this.eventListeners.get(event).forEach(callback => {
                 try {
@@ -791,6 +826,17 @@ class AuthManager {
                     console.error(`❌ 事件处理器错误 (${event}):`, error);
                 }
             });
+        }
+        
+        // 同时触发DOM事件，供页面级别的监听器使用
+        try {
+            const customEvent = new CustomEvent(event, { 
+                detail: data,
+                bubbles: true 
+            });
+            document.dispatchEvent(customEvent);
+        } catch (error) {
+            console.error(`❌ DOM事件触发错误 (${event}):`, error);
         }
     }
 
