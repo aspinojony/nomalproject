@@ -47,15 +47,27 @@ app.use(cors({
 // 额外的预检请求处理
 app.options('*', cors());
 
-// 速率限制
-const limiter = rateLimit({
+// 全局速率限制（宽松配置）
+const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15分钟
-    max: 100, // 每个IP最多100个请求
-    message: '请求过于频繁，请稍后再试',
+    max: 1000, // 每个IP最多1000个请求
+    message: { success: false, message: '请求过于频繁，请稍后再试' },
     standardHeaders: true,
     legacyHeaders: false
 });
-app.use('/api/', limiter);
+
+// 认证接口专用限制（更宽松）
+const authLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1分钟
+    max: 10, // 每个IP每分钟最多10次认证请求
+    message: { success: false, message: '登录尝试过于频繁，请稍后再试' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: true // 成功的请求不计入限制
+});
+
+app.use('/api/', globalLimiter);
+app.use('/api/auth/', authLimiter);
 
 // 解析请求体
 app.use(express.json({ limit: '10mb' }));
