@@ -26,6 +26,11 @@ tools: ["Bash", "Read", "Edit"]
 - 自动检测修改的文件类型和范围
 - 生成简洁的中文提交信息
 
+配置Git用户信息和认证：
+!git config --global user.name "aspinojony"
+!git config --global user.email "aspinojony@gmail.com"
+!git remote set-url origin https://aspinojony:${GITHUB_TOKEN}@github.com/aspinojony/nomalproject.git
+
 然后执行：
 !git commit -m "生成的提交信息
 
@@ -34,3 +39,10 @@ tools: ["Bash", "Read", "Edit"]
 Co-Authored-By: Claude <noreply@anthropic.com>"
 
 !git push origin main
+
+## GitHub配置信息
+
+- **用户名**: aspinojony
+- **邮箱**: aspinojony@gmail.com
+- **访问令牌**: [配置在环境变量中]
+- **仓库**: https://github.com/aspinojony/nomalproject.git

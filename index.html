@@ -417,7 +417,7 @@
             </div>
 
             <!-- 快捷功能区 -->
-            <div class="grid md:grid-cols-3 gap-6">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- 笔记管理 -->
                 <div class="card group cursor-pointer" onclick="location.href='notes-management.html'">
                     <div class="text-center">
@@ -456,6 +456,19 @@
                         <div class="text-2xl font-bold text-green-600 mb-1" 
                              x-text="studyStats?.stats?.dailyStats ? Object.keys(studyStats.stats.dailyStats).length + '天' : '0天'">0天</div>
                         <div class="text-xs text-gray-500">学习记录</div>
+                    </div>
+                </div>
+
+                <!-- 测试管理 -->
+                <div class="card group cursor-pointer" onclick="window.location.href='test/index.html'">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-rounded text-white text-3xl">science</span>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2 text-gray-800 dark:text-white">测试管理</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">开发测试工具中心</p>
+                        <div class="text-2xl font-bold text-red-600 mb-1">15+</div>
+                        <div class="text-xs text-gray-500">测试页面</div>
                     </div>
                 </div>
             </div>

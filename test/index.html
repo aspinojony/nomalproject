@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试管理中心 | 计算机考研学习平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --surface: #ffffff;
+            --background: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 10px 25px rgba(0,0,0,0.1);
+            --gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .dark {
+            --surface: #1e293b;
+            --background: #0f172a;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #475569;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-core { background: #dbeafe; color: #1e40af; }
+        .status-ui { background: #d1fae5; color: #065f46; }
+        .status-feature { background: #fef3c7; color: #92400e; }
+        .status-integration { background: #e0e7ff; color: #3730a3; }
+        .status-performance { background: #fce7f3; color: #be185d; }
+        .status-bug { background: #fee2e2; color: #dc2626; }
+    </style>
+</head>
+
+<body x-data="testManager()">
+    <!-- 主题切换按钮 -->
+    <button @click="toggleTheme()" 
+            class="fixed top-4 right-4 w-12 h-12 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50">
+        <span class="material-symbols-rounded" x-text="darkMode ? 'light_mode' : 'dark_mode'"></span>
+    </button>
+
+    <!-- 头部 -->
+    <header class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-8">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-black mb-2">🧪 测试管理中心</h1>
+                    <p class="text-blue-100">计算机考研学习平台 - 开发测试工具集</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold" x-text="testFiles.length"></div>
+                    <div class="text-blue-100 text-sm">测试页面</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 导航菜单 -->
+    <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex space-x-8 py-4">
+                <button @click="currentView = 'overview'" 
+                        :class="currentView === 'overview' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'"
+                        class="pb-2 font-medium transition-colors">
+                    <span class="material-symbols-rounded mr-2">dashboard</span>
+                    概览
+                </button>
+                <button @click="currentView = 'tests'" 
+                        :class="currentView === 'tests' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'"
+                        class="pb-2 font-medium transition-colors">
+                    <span class="material-symbols-rounded mr-2">science</span>
+                    测试页面
+                </button>
+                <button @click="currentView = 'tools'" 
+                        :class="currentView === 'tools' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'"
+                        class="pb-2 font-medium transition-colors">
+                    <span class="material-symbols-rounded mr-2">build</span>
+                    开发工具
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="max-w-6xl mx-auto px-6 py-8">
+        <!-- 概览视图 -->
+        <div x-show="currentView === 'overview'" class="space-y-8">
+            <!-- 统计卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="card text-center">
+                    <div class="text-3xl font-bold text-blue-600 mb-2" x-text="getTestsByCategory('core').length"></div>
+                    <div class="text-sm text-gray-600">核心功能测试</div>
+                </div>
+                <div class="card text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2" x-text="getTestsByCategory('ui').length"></div>
+                    <div class="text-sm text-gray-600">UI界面测试</div>
+                </div>
+                <div class="card text-center">
+                    <div class="text-3xl font-bold text-orange-600 mb-2" x-text="getTestsByCategory('integration').length"></div>
+                    <div class="text-sm text-gray-600">集成测试</div>
+                </div>
+                <div class="card text-center">
+                    <div class="text-3xl font-bold text-purple-600 mb-2" x-text="getTestsByCategory('performance').length"></div>
+                    <div class="text-sm text-gray-600">性能测试</div>
+                </div>
+            </div>
+
+            <!-- 快速操作 -->
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-6">🚀 快速操作</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button @click="runAllTests()" class="btn btn-primary">
+                        <span class="material-symbols-rounded">play_arrow</span>
+                        运行所有测试
+                    </button>
+                    <button @click="generateTestReport()" class="btn bg-green-500 text-white hover:bg-green-600">
+                        <span class="material-symbols-rounded">assessment</span>
+                        生成测试报告
+                    </button>
+                    <button @click="clearTestData()" class="btn bg-red-500 text-white hover:bg-red-600">
+                        <span class="material-symbols-rounded">delete</span>
+                        清除测试数据
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 测试页面视图 -->
+        <div x-show="currentView === 'tests'" class="space-y-6">
+            <!-- 搜索和筛选 -->
+            <div class="card">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <input type="text" x-model="searchQuery" placeholder="搜索测试页面..." 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <select x-model="filterCategory" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">所有分类</option>
+                            <option value="core">核心功能</option>
+                            <option value="ui">UI界面</option>
+                            <option value="feature">功能特性</option>
+                            <option value="integration">集成</option>
+                            <option value="performance">性能</option>
+                            <option value="bug">Bug修复</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 测试列表 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <template x-for="test in filteredTests" :key="test.name">
+                    <div class="card group cursor-pointer" @click="openTest(test.name)">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold mb-2" x-text="test.title"></h3>
+                                <span class="status-badge" :class="'status-' + test.category" x-text="test.categoryName"></span>
+                            </div>
+                            <span class="material-symbols-rounded text-2xl text-gray-400 group-hover:text-blue-600 transition-colors">launch</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4" x-text="test.description"></p>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span x-text="test.lastModified"></span>
+                            <span x-text="test.size"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- 开发工具视图 -->
+        <div x-show="currentView === 'tools'" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 数据生成工具 -->
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">📊 数据生成工具</h3>
+                    <div class="space-y-3">
+                        <button @click="generateTestData('questions')" class="w-full btn bg-blue-500 text-white hover:bg-blue-600">
+                            生成测试题目数据
+                        </button>
+                        <button @click="generateTestData('users')" class="w-full btn bg-green-500 text-white hover:bg-green-600">
+                            生成用户测试数据
+                        </button>
+                        <button @click="generateTestData('stats')" class="w-full btn bg-purple-500 text-white hover:bg-purple-600">
+                            生成统计测试数据
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 环境控制 -->
+                <div class="card">
+                    <h3 class="text-xl font-bold mb-4">🔧 环境控制</h3>
+                    <div class="space-y-3">
+                        <button @click="toggleDebugMode()" class="w-full btn bg-orange-500 text-white hover:bg-orange-600">
+                            <span x-text="debugMode ? '关闭' : '开启'"></span> 调试模式
+                        </button>
+                        <button @click="resetLocalStorage()" class="w-full btn bg-red-500 text-white hover:bg-red-600">
+                            重置本地存储
+                        </button>
+                        <button @click="exportLogs()" class="w-full btn bg-gray-500 text-white hover:bg-gray-600">
+                            导出日志文件
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 通知组件 -->
+    <div x-show="notification.show" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-x-full"
+         x-transition:enter-end="opacity-100 translate-x-0"
+         class="fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+        <p x-text="notification.message"></p>
+    </div>
+
+    <script>
+        function testManager() {
+            return {
+                darkMode: false,
+                currentView: 'overview',
+                searchQuery: '',
+                filterCategory: '',
+                debugMode: false,
+                notification: {
+                    show: false,
+                    message: ''
+                },
+                testFiles: [
+                    // 核心功能测试
+                    { name: 'ai-test.html', title: 'AI助手测试', category: 'core', categoryName: '核心功能', description: '测试AI助手的各项功能和API调用', lastModified: '2024-07-24', size: '15KB' },
+                    { name: 'chapter-test.html', title: '章节管理测试', category: 'core', categoryName: '核心功能', description: '测试章节选择和进度管理功能', lastModified: '2024-07-23', size: '12KB' },
+                    { name: 'question-manager-test.html', title: '题目管理测试', category: 'core', categoryName: '核心功能', description: '测试题目增删改查和管理功能', lastModified: '2024-07-22', size: '18KB' },
+                    
+                    // UI界面测试
+                    { name: 'navbar-demo.html', title: '导航栏组件测试', category: 'ui', categoryName: 'UI界面', description: '测试导航栏组件的显示和交互', lastModified: '2024-07-21', size: '8KB' },
+                    { name: 'ui-improvements-test.html', title: 'UI改进测试', category: 'ui', categoryName: 'UI界面', description: '测试界面改进和用户体验优化', lastModified: '2024-07-20', size: '10KB' },
+                    
+                    // 功能特性测试
+                    { name: 'ai-notes-demo.html', title: 'AI笔记功能测试', category: 'feature', categoryName: '功能特性', description: '测试AI辅助笔记功能', lastModified: '2024-07-19', size: '14KB' },
+                    { name: 'test-smooth-drag.html', title: '平滑拖拽测试', category: 'feature', categoryName: '功能特性', description: '测试平滑拖拽交互效果', lastModified: '2024-07-18', size: '6KB' },
+                    
+                    // 集成测试
+                    { name: 'integration-test.html', title: '系统集成测试', category: 'integration', categoryName: '集成', description: '测试各模块间的集成和数据流', lastModified: '2024-07-17', size: '20KB' },
+                    { name: 'complete-import-system-test.html', title: '导入系统完整测试', category: 'integration', categoryName: '集成', description: '测试完整的数据导入导出系统', lastModified: '2024-07-16', size: '16KB' },
+                    { name: 'cors-fix-test.html', title: 'CORS修复测试', category: 'integration', categoryName: '集成', description: '测试跨域请求问题的修复', lastModified: '2024-07-15', size: '7KB' },
+                    
+                    // 性能测试
+                    { name: 'test-window-resize.html', title: '窗口缩放性能测试', category: 'performance', categoryName: '性能', description: '测试窗口缩放时的性能表现', lastModified: '2024-07-14', size: '5KB' },
+                    { name: 'resource-test.html', title: '资源加载测试', category: 'performance', categoryName: '性能', description: '测试资源加载性能和优化效果', lastModified: '2024-07-13', size: '9KB' },
+                    
+                    // Bug修复测试
+                    { name: 'test-ai-assistant-fix.html', title: 'AI助手修复测试', category: 'bug', categoryName: 'Bug修复', description: '测试AI助手相关bug的修复', lastModified: '2024-07-12', size: '11KB' },
+                    { name: 'test-import-sync-fix.html', title: '导入同步修复测试', category: 'bug', categoryName: 'Bug修复', description: '测试数据导入同步问题的修复', lastModified: '2024-07-11', size: '13KB' },
+                    { name: 'verify-chapter-progress-fix.html', title: '章节进度修复验证', category: 'bug', categoryName: 'Bug修复', description: '验证章节进度相关bug的修复', lastModified: '2024-07-10', size: '8KB' }
+                ],
+
+                init() {
+                    this.loadTheme();
+                },
+
+                get filteredTests() {
+                    let filtered = this.testFiles;
+                    
+                    if (this.searchQuery) {
+                        filtered = filtered.filter(test => 
+                            test.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                            test.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+                        );
+                    }
+                    
+                    if (this.filterCategory) {
+                        filtered = filtered.filter(test => test.category === this.filterCategory);
+                    }
+                    
+                    return filtered;
+                },
+
+                getTestsByCategory(category) {
+                    return this.testFiles.filter(test => test.category === category);
+                },
+
+                openTest(filename) {
+                    window.open(filename, '_blank');
+                },
+
+                runAllTests() {
+                    this.showNotification('开始运行所有测试...');
+                    // 这里可以添加实际的测试运行逻辑
+                },
+
+                generateTestReport() {
+                    this.showNotification('正在生成测试报告...');
+                    // 生成测试报告的逻辑
+                },
+
+                clearTestData() {
+                    if (confirm('确定要清除所有测试数据吗？此操作不可撤销。')) {
+                        localStorage.clear();
+                        this.showNotification('测试数据已清除');
+                    }
+                },
+
+                generateTestData(type) {
+                    this.showNotification(`正在生成${type}测试数据...`);
+                    // 生成测试数据的逻辑
+                },
+
+                toggleDebugMode() {
+                    this.debugMode = !this.debugMode;
+                    this.showNotification(`调试模式已${this.debugMode ? '开启' : '关闭'}`);
+                },
+
+                resetLocalStorage() {
+                    if (confirm('确定要重置本地存储吗？')) {
+                        localStorage.clear();
+                        this.showNotification('本地存储已重置');
+                    }
+                },
+
+                exportLogs() {
+                    this.showNotification('正在导出日志文件...');
+                    // 导出日志的逻辑
+                },
+
+                loadTheme() {
+                    const storedTheme = localStorage.getItem('theme');
+                    this.darkMode = storedTheme === 'dark';
+                    this.applyTheme();
+                },
+
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                    localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+                    this.applyTheme();
+                },
+
+                applyTheme() {
+                    document.documentElement.classList.toggle('dark', this.darkMode);
+                },
+
+                showNotification(message) {
+                    this.notification.message = message;
+                    this.notification.show = true;
+                    setTimeout(() => {
+                        this.notification.show = false;
+                    }, 3000);
+                }
+            };
+        }
+    </script>
+</body>
+</html>
