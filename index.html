@@ -21,14 +21,21 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <!-- 新的主题管理系统 -->
+    <link href="assets/css/theme-manager.css" rel="stylesheet">
     <link href="assets/css/common.css" rel="stylesheet">
     
     <!-- 预加载重要资源 - 性能优化 -->
+    <link rel="preload" href="assets/js/theme-manager.js" as="script">
     <link rel="preload" href="assets/js/ai-assistant-loader.js" as="script">
     <link rel="preload" href="assets/js/course-data.js" as="script">
     <link rel="preload" href="assets/js/fallback-data.js" as="script">
     <link rel="preload" href="assets/js/resource-loader.js" as="script">
+    <link rel="preload" href="assets/css/theme-manager.css" as="style">
     <link rel="preload" href="assets/css/common.css" as="style">
+    
+    <!-- 主题管理器 - 优先加载 -->
+    <script src="assets/js/theme-manager.js"></script>
     
     <!-- 懒加载脚本 -->
     <script src="assets/js/ai-assistant-loader.js" defer></script>
@@ -36,64 +43,64 @@
     <script src="assets/js/fallback-data.js" defer></script>
     <script src="assets/js/resource-loader.js" defer></script>
     
+    <!-- 页面特定样式 - 最小化内联样式 -->
     <style>
-        :root {
-            /* 现代配色方案 */
-            --primary: #667eea;
-            --primary-dark: #5a6fd8;
-            --secondary: #764ba2;
-            --accent: #f093fb;
-            --surface: #ffffff;
-            --surface-variant: #f8fafc;
-            --background: #f8fafc;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --border: #e2e8f0;
-            --shadow: 0 10px 25px rgba(0,0,0,0.1);
-            --gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        }
-
-        .dark {
-            --surface: #1e293b;
-            --surface-variant: #334155;
-            --background: #0f172a;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border: #475569;
-        }
-
-        /* 全局基础样式 */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        /* 进度条样式 */
+        .progress-bar {
+            width: 100%;
+            height: 3px;
+            background: var(--bg-secondary);
+            overflow: hidden;
         }
         
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--background);
-            color: var(--text-primary);
-            line-height: 1.6;
-            transition: all 0.3s ease;
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--secondary-500) 100%);
+            transition: width 0.3s ease;
         }
-
-        /* 卡片样式 */
-        .card {
-            background: var(--surface);
+        
+        /* 浮动装饰元素 */
+        .floating-decoration {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.6;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .floating-decoration:nth-child(1) {
+            animation-delay: 0s;
+        }
+        
+        .floating-decoration:nth-child(2) {
+            animation-delay: 2s;
+        }
+        
+        .floating-decoration:nth-child(3) {
+            animation-delay: 4s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        /* 兼容性样式 */
+        .legacy-card {
+            background: var(--surface-primary);
             border-radius: 20px;
             padding: 2rem;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-primary);
             transition: all 0.3s ease;
         }
-
-        .card:hover {
+        
+        .legacy-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            box-shadow: var(--shadow-xl);
         }
-
-        /* 按钮样式 */
-        .btn {
+        
+        .legacy-btn {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -105,73 +112,15 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-
-        .btn-primary {
-            background: var(--gradient);
-            color: white;
+        
+        .legacy-btn-primary {
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--secondary-500) 100%);
+            color: var(--text-inverse);
         }
-
-        .btn-primary:hover {
+        
+        .legacy-btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        /* 主题切换按钮 */
-        .theme-toggle {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: var(--shadow);
-        }
-        /* 动画效果 */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-fadeInUp {
-            animation: fadeInUp 0.6s ease forwards;
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .theme-toggle {
-                top: 1rem;
-                right: 1rem;
-                width: 48px;
-                height: 48px;
-            }
-            
-            .card {
-                padding: 1.5rem;
-                border-radius: 16px;
-            }
-            
-            .btn {
-                padding: 0.75rem 1.5rem;
-                font-size: 0.9rem;
-            }
         }
     </style>
 </head>
@@ -187,11 +136,6 @@
         </div>
     </div>
     
-    <!-- 主题切换按钮 -->
-    <button class="theme-toggle" @click="toggleTheme()" :title="darkMode ? '切换到浅色模式' : '切换到暗色模式'">
-        <span class="material-symbols-rounded" x-text="darkMode ? 'light_mode' : 'dark_mode'"></span>
-    </button>
-
     <!-- 导航栏容器 -->
     <div id="navbar-container"></div>
 
@@ -202,7 +146,7 @@
          x-transition:enter-end="opacity-100"
          class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         
-        <div class="md3-card max-w-md w-full p-8 text-center" 
+        <div class="theme-card max-w-md w-full p-8 text-center" 
              x-transition:enter="transition ease-out duration-700 delay-200"
              x-transition:enter-start="opacity-0 scale-75"
              x-transition:enter-end="opacity-100 scale-100">
@@ -213,25 +157,25 @@
                 </div>
             </div>
             
-            <h2 class="text-2xl font-bold mb-2" style="color: var(--text-primary);">
+            <h2 class="theme-heading-3 mb-2">
                 🎉 欢迎来到考研学习平台
             </h2>
-            <p class="text-lg mb-6" style="color: var(--text-secondary);">开启您的高效备考之旅</p>
+            <p class="theme-text-secondary text-lg mb-6">开启您的高效备考之旅</p>
             
             <div class="grid grid-cols-2 gap-3 mb-6 text-sm">
-                    <div class="md3-surface-container p-3">
+                    <div class="theme-card p-3">
                         <span class="material-symbols-rounded text-blue-400 mb-1">play_circle</span>
                         <div class="font-semibold">200+ 视频课程</div>
                     </div>
-                    <div class="md3-surface-container p-3">
+                    <div class="theme-card p-3">
                         <span class="material-symbols-rounded text-green-400 mb-1">task_alt</span>
                         <div class="font-semibold">1280+ 真题</div>
                     </div>
-                    <div class="md3-surface-container p-3">
+                    <div class="theme-card p-3">
                         <span class="material-symbols-rounded text-purple-400 mb-1">smart_toy</span>
                         <div class="font-semibold">AI 智能辅导</div>
                     </div>
-                    <div class="md3-surface-container p-3">
+                    <div class="theme-card p-3">
                         <span class="material-symbols-rounded text-indigo-400 mb-1">cloud_sync</span>
                         <div class="font-semibold">云端同步</div>
                     </div>
@@ -239,11 +183,11 @@
             
             <div class="space-y-3">
                 <button @click="startTour()" 
-                        class="w-full md3-btn-filled py-3 px-6 text-lg font-bold">
+                        class="w-full theme-btn theme-btn-primary py-3 px-6 text-lg font-bold">
                     🚀 开始新手引导
                 </button>
                 <button @click="skipWelcome()" 
-                        class="w-full md3-btn-outlined py-2">
+                        class="w-full theme-btn theme-btn-secondary py-2">
                     直接进入平台 →
                 </button>
             </div>
@@ -256,53 +200,53 @@
         <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900"></div>
         
         <!-- 浮动装饰元素 -->
-        <div class="absolute top-20 left-20 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl animate-pulse"></div>
-        <div class="absolute bottom-20 right-20 w-24 h-24 bg-gradient-to-br from-pink-400/20 to-yellow-400/20 rounded-full blur-xl animate-pulse delay-1000"></div>
-        <div class="absolute top-1/2 left-10 w-16 h-16 bg-gradient-to-br from-green-400/20 to-blue-400/20 rounded-full blur-xl animate-bounce"></div>
+        <div class="floating-decoration top-20 left-20 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20"></div>
+        <div class="floating-decoration bottom-20 right-20 w-24 h-24 bg-gradient-to-br from-pink-400/20 to-yellow-400/20"></div>
+        <div class="floating-decoration top-1/2 left-10 w-16 h-16 bg-gradient-to-br from-green-400/20 to-blue-400/20"></div>
         
         <div class="max-w-6xl mx-auto px-6 relative z-10">
             <div class="text-center">
                 <!-- 主标题 -->
-                <h1 class="text-5xl md:text-7xl font-black mb-8 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
+                <h1 class="theme-heading-1 text-5xl md:text-7xl font-black mb-8 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
                     计算机考研
                     <br>
                     <span class="text-4xl md:text-6xl">学习平台</span>
                 </h1>
                 
                 <!-- 副标题 -->
-                <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+                <p class="theme-text-secondary text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
                     🚀 AI驱动的智能学习体验 · 📊 数据分析驱动进步 · ⚡ 高效备考路径
                 </p>
                 
                 <!-- 统计数据 -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto">
-                    <div class="card text-center">
+                    <div class="theme-card text-center">
                         <div class="text-3xl font-bold text-blue-600 mb-2">1280+</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400">历年真题</div>
+                        <div class="text-sm theme-text-tertiary">历年真题</div>
                     </div>
-                    <div class="card text-center">
+                    <div class="theme-card text-center">
                         <div class="text-3xl font-bold text-green-600 mb-2">200+</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400">精品课程</div>
+                        <div class="text-sm theme-text-tertiary">精品课程</div>
                     </div>
-                    <div class="card text-center">
+                    <div class="theme-card text-center">
                         <div class="text-3xl font-bold text-purple-600 mb-2">10年</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400">题库覆盖</div>
+                        <div class="text-sm theme-text-tertiary">题库覆盖</div>
                     </div>
-                    <div class="card text-center">
+                    <div class="theme-card text-center">
                         <div class="text-3xl font-bold text-orange-600 mb-2">24/7</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400">AI助手</div>
+                        <div class="text-sm theme-text-tertiary">AI助手</div>
                     </div>
                 </div>
                 
                 <!-- CTA按钮 -->
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <button onclick="document.getElementById('courses').scrollIntoView({behavior: 'smooth'})" 
-                            class="btn btn-primary text-lg px-8 py-4">
+                            class="theme-btn theme-btn-primary text-lg px-8 py-4">
                         <span class="material-symbols-rounded">rocket_launch</span>
                         立即开始学习
                     </button>
                     <button onclick="openStatsModal()" 
-                            class="btn bg-white/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-white dark:hover:bg-gray-800 text-lg px-8 py-4">
+                            class="theme-btn theme-btn-secondary text-lg px-8 py-4">
                         <span class="material-symbols-rounded">analytics</span>
                         查看学习统计
                     </button>
@@ -319,14 +263,14 @@
     </section>
 
     <!-- 学习模块区域 -->
-    <section id="courses" class="py-20 bg-white dark:bg-gray-900">
+    <section id="courses" class="py-20" style="background-color: var(--bg-secondary);">
         <div class="max-w-6xl mx-auto px-6">
             <!-- 区域标题 -->
             <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-black mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h2 class="theme-heading-2 text-4xl md:text-5xl font-black mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     📚 核心学习模块
                 </h2>
-                <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                <p class="theme-text-secondary text-xl max-w-3xl mx-auto">
                     全面覆盖考研科目，从公共课到专业课，打造个性化学习路径
                 </p>
             </div>
@@ -334,11 +278,11 @@
             <!-- 学习模块卡片 -->
             <div class="grid md:grid-cols-2 gap-8 mb-16">
                 <!-- 公共课模块 -->
-                <div class="card group cursor-pointer" onclick="location.href='subjects.html?type=public'">
+                <div class="theme-card group cursor-pointer" onclick="location.href='subjects.html?type=public'">
                     <div class="flex items-center justify-between mb-6">
                         <div>
-                            <h3 class="text-2xl font-bold mb-2 text-gray-800 dark:text-white">公共课程</h3>
-                            <p class="text-gray-600 dark:text-gray-400">数学 · 英语 · 政治</p>
+                            <h3 class="theme-heading-4 text-2xl font-bold mb-2">公共课程</h3>
+                            <p class="theme-text-tertiary">数学 · 英语 · 政治</p>
                         </div>
                         <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
                             <span class="material-symbols-rounded text-white text-2xl">menu_book</span>
@@ -348,20 +292,20 @@
                     <div class="grid grid-cols-3 gap-4 mb-6">
                         <div class="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                             <div class="text-lg font-bold text-blue-600">数学</div>
-                            <div class="text-xs text-gray-500">高数/线代/概率</div>
+                            <div class="text-xs theme-text-quaternary">高数/线代/概率</div>
                         </div>
                         <div class="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
                             <div class="text-lg font-bold text-green-600">英语</div>
-                            <div class="text-xs text-gray-500">词汇/阅读/写作</div>
+                            <div class="text-xs theme-text-quaternary">词汇/阅读/写作</div>
                         </div>
                         <div class="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
                             <div class="text-lg font-bold text-purple-600">政治</div>
-                            <div class="text-xs text-gray-500">马原/毛概/史纲</div>
+                            <div class="text-xs theme-text-quaternary">马原/毛概/史纲</div>
                         </div>
                     </div>
                     
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center text-sm text-gray-500">
+                        <div class="flex items-center text-sm theme-text-quaternary">
                             <span class="material-symbols-rounded mr-2">groups</span>
                             <span>85% 学员选择</span>
                         </div>
@@ -373,11 +317,11 @@
                 </div>
 
                 <!-- 专业课模块 -->
-                <div class="card group cursor-pointer" onclick="location.href='subjects.html?type=professional'">
+                <div class="theme-card group cursor-pointer" onclick="location.href='subjects.html?type=professional'">
                     <div class="flex items-center justify-between mb-6">
                         <div>
-                            <h3 class="text-2xl font-bold mb-2 text-gray-800 dark:text-white">专业课程</h3>
-                            <p class="text-gray-600 dark:text-gray-400">计算机核心科目</p>
+                            <h3 class="theme-heading-4 text-2xl font-bold mb-2">专业课程</h3>
+                            <p class="theme-text-tertiary">计算机核心科目</p>
                         </div>
                         <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
                             <span class="material-symbols-rounded text-white text-2xl">computer</span>
@@ -404,7 +348,7 @@
                     </div>
                     
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center text-sm text-gray-500">
+                        <div class="flex items-center text-sm theme-text-quaternary">
                             <span class="material-symbols-rounded mr-2">trending_up</span>
                             <span>高分必备</span>
                         </div>
@@ -419,56 +363,56 @@
             <!-- 快捷功能区 -->
             <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- 笔记管理 -->
-                <div class="card group cursor-pointer" onclick="location.href='notes-management.html'">
+                <div class="theme-card group cursor-pointer" onclick="location.href='notes-management.html'">
                     <div class="text-center">
                         <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                             <span class="material-symbols-rounded text-white text-3xl">sticky_note_2</span>
                         </div>
-                        <h4 class="text-xl font-bold mb-2 text-gray-800 dark:text-white">笔记管理</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">创建、编辑、导入导出</p>
+                        <h4 class="theme-heading-4 text-xl font-bold mb-2">笔记管理</h4>
+                        <p class="theme-text-tertiary text-sm mb-4">创建、编辑、导入导出</p>
                         <div class="text-2xl font-bold text-indigo-600 mb-1" id="notes-count">0</div>
-                        <div class="text-xs text-gray-500">学习笔记</div>
+                        <div class="text-xs theme-text-quaternary">学习笔记</div>
                     </div>
                 </div>
 
                 <!-- 学习统计 -->
-                <div class="card group cursor-pointer" onclick="openStatsModal()">
+                <div class="theme-card group cursor-pointer" onclick="openStatsModal()">
                     <div class="text-center">
                         <div class="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                             <span class="material-symbols-rounded text-white text-3xl">bar_chart</span>
                         </div>
-                        <h4 class="text-xl font-bold mb-2 text-gray-800 dark:text-white">学习统计</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">追踪真实学习进度</p>
+                        <h4 class="theme-heading-4 text-xl font-bold mb-2">学习统计</h4>
+                        <p class="theme-text-tertiary text-sm mb-4">追踪真实学习进度</p>
                         <div class="text-2xl font-bold text-orange-600 mb-1" 
                              x-text="studyStats?.stats?.totalStudyTime > 0 ? Math.round(studyStats.stats.totalStudyTime / 60) + 'h' : '0h'">0h</div>
-                        <div class="text-xs text-gray-500">总学习时长</div>
+                        <div class="text-xs theme-text-quaternary">总学习时长</div>
                     </div>
                 </div>
 
                 <!-- 数据管理 -->
-                <div class="card group cursor-pointer" onclick="window.location.href='study-data-manager.html'">
+                <div class="theme-card group cursor-pointer" onclick="window.location.href='study-data-manager.html'">
                     <div class="text-center">
                         <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                             <span class="material-symbols-rounded text-white text-3xl">database</span>
                         </div>
-                        <h4 class="text-xl font-bold mb-2 text-gray-800 dark:text-white">数据管理</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">导入导出学习记录</p>
+                        <h4 class="theme-heading-4 text-xl font-bold mb-2">数据管理</h4>
+                        <p class="theme-text-tertiary text-sm mb-4">导入导出学习记录</p>
                         <div class="text-2xl font-bold text-green-600 mb-1" 
                              x-text="studyStats?.stats?.dailyStats ? Object.keys(studyStats.stats.dailyStats).length + '天' : '0天'">0天</div>
-                        <div class="text-xs text-gray-500">学习记录</div>
+                        <div class="text-xs theme-text-quaternary">学习记录</div>
                     </div>
                 </div>
 
                 <!-- 测试管理 -->
-                <div class="card group cursor-pointer" onclick="window.location.href='test/index.html'">
+                <div class="theme-card group cursor-pointer" onclick="window.location.href='test/index.html'">
                     <div class="text-center">
                         <div class="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                             <span class="material-symbols-rounded text-white text-3xl">science</span>
                         </div>
-                        <h4 class="text-xl font-bold mb-2 text-gray-800 dark:text-white">测试管理</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">开发测试工具中心</p>
+                        <h4 class="theme-heading-4 text-xl font-bold mb-2">测试管理</h4>
+                        <p class="theme-text-tertiary text-sm mb-4">开发测试工具中心</p>
                         <div class="text-2xl font-bold text-red-600 mb-1">15+</div>
-                        <div class="text-xs text-gray-500">测试页面</div>
+                        <div class="text-xs theme-text-quaternary">测试页面</div>
                     </div>
                 </div>
             </div>
@@ -476,18 +420,18 @@
     </section>
 
     <!-- 页脚 -->
-    <footer class="py-16 bg-gray-50 dark:bg-gray-800">
+    <footer class="py-16" style="background-color: var(--bg-tertiary);">
         <div class="max-w-6xl mx-auto px-6">
             <div class="grid md:grid-cols-4 gap-8 mb-8">
                 <!-- 品牌介绍 -->
-                <div class="card">
+                <div class="theme-card">
                     <div class="flex items-center mb-4">
                         <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-3">
                             <span class="material-symbols-rounded text-white">school</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-800 dark:text-white">考研学习平台</h3>
+                        <h3 class="theme-heading-4 text-xl font-bold">考研学习平台</h3>
                     </div>
-                    <p class="mb-6 text-gray-600 dark:text-gray-400 leading-relaxed">
+                    <p class="mb-6 theme-text-secondary leading-relaxed">
                         专注计算机考研教育，提供高质量的学习资源和智能化的学习体验。
                     </p>
                     <div class="flex space-x-4">
@@ -504,44 +448,44 @@
                 </div>
                 
                 <!-- 学习导航 -->
-                <div class="card">
+                <div class="theme-card">
                     <h4 class="text-lg font-semibold mb-6 text-blue-600">学习导航</h4>
                     <ul class="space-y-3">
-                        <li><a href="subjects.html?type=public" class="flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors">
+                        <li><a href="subjects.html?type=public" class="flex items-center theme-text-secondary hover:text-blue-600 transition-colors">
                             <span class="material-symbols-rounded text-xs mr-2">chevron_right</span>公共课程</a></li>
-                        <li><a href="subjects.html?type=professional" class="flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors">
+                        <li><a href="subjects.html?type=professional" class="flex items-center theme-text-secondary hover:text-blue-600 transition-colors">
                             <span class="material-symbols-rounded text-xs mr-2">chevron_right</span>专业课程</a></li>
-                        <li><a href="practice.html" class="flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors">
+                        <li><a href="practice.html" class="flex items-center theme-text-secondary hover:text-blue-600 transition-colors">
                             <span class="material-symbols-rounded text-xs mr-2">chevron_right</span>真题练习</a></li>
                     </ul>
                 </div>
                 
                 <!-- 学习工具 -->
-                <div class="card">
+                <div class="theme-card">
                     <h4 class="text-lg font-semibold mb-6 text-green-600">学习工具</h4>
                     <ul class="space-y-3">
-                        <li><a href="#" class="flex items-center text-gray-600 dark:text-gray-400 hover:text-green-600 transition-colors">
+                        <li><a href="#" class="flex items-center theme-text-secondary hover:text-green-600 transition-colors">
                             <span class="material-symbols-rounded text-xs mr-2">chevron_right</span>AI智能辅导</a></li>
-                        <li><a href="#" class="flex items-center text-gray-600 dark:text-gray-400 hover:text-green-600 transition-colors">
+                        <li><a href="#" class="flex items-center theme-text-secondary hover:text-green-600 transition-colors">
                             <span class="material-symbols-rounded text-xs mr-2">chevron_right</span>学习计划</a></li>
-                        <li><a href="#" class="flex items-center text-gray-600 dark:text-gray-400 hover:text-green-600 transition-colors">
+                        <li><a href="#" class="flex items-center theme-text-secondary hover:text-green-600 transition-colors">
                             <span class="material-symbols-rounded text-xs mr-2">chevron_right</span>进度跟踪</a></li>
                     </ul>
                 </div>
                 
                 <!-- 联系信息 -->
-                <div class="card">
+                <div class="theme-card">
                     <h4 class="text-lg font-semibold mb-6 text-purple-600">联系我们</h4>
                     <div class="space-y-3">
-                        <div class="flex items-center text-gray-600 dark:text-gray-400">
+                        <div class="flex items-center theme-text-secondary">
                             <span class="material-symbols-rounded mr-3 text-purple-600">mail</span>
                             <span>aspinojony@gmail.com</span>
                         </div>
-                        <div class="flex items-center text-gray-600 dark:text-gray-400">
+                        <div class="flex items-center theme-text-secondary">
                             <span class="material-symbols-rounded mr-3 text-purple-600">phone</span>
                             <span>+86 16623076603</span>
                         </div>
-                        <div class="flex items-center text-gray-600 dark:text-gray-400">
+                        <div class="flex items-center theme-text-secondary">
                             <span class="material-symbols-rounded mr-3 text-purple-600">schedule</span>
                             <span>周一至周日 9:00-21:00</span>
                         </div>
@@ -550,8 +494,8 @@
             </div>
             
             <!-- 版权信息 -->
-            <div class="border-t border-gray-200 dark:border-gray-700 pt-8 text-center">
-                <p class="text-gray-600 dark:text-gray-400">
+            <div class="border-t pt-8 text-center" style="border-color: var(--border-primary);">
+                <p class="theme-text-secondary">
                     &copy; 2026 计算机考研学习平台. All rights reserved by ouyangzhiheng. 
                     <span class="text-blue-600">Made with ❤️ for 考研er</span>
                 </p>
@@ -559,12 +503,11 @@
         </div>
     </footer>
 
-    <!-- 简化的JavaScript -->
+    <!-- 主要应用JavaScript -->
     <script>
         function mainApp() {
             return {
                 showWelcome: false,
-                darkMode: false,
                 studyStats: null,
                 isLoading: true,
                 loadingProgress: 0,
@@ -572,9 +515,17 @@
                 init() {
                     this.simulateLoading();
                     this.checkFirstVisit();
-                    this.loadTheme();
                     this.initStudyStats();
                     this.updateNotesCount();
+                    
+                    // 监听主题变化
+                    if (window.themeManager) {
+                        window.themeManager.addObserver((event, data) => {
+                            if (event === 'themeChanged') {
+                                console.log('主题已切换为:', data);
+                            }
+                        });
+                    }
                     
                     // 定期更新笔记数量
                     setInterval(() => {
@@ -617,36 +568,6 @@
                     this.showWelcome = false;
                     localStorage.setItem('platform_visited', 'true');
                     this.showNotification('欢迎使用考研学习平台！', 'info');
-                },
-                
-                loadTheme() {
-                    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    const storedTheme = localStorage.getItem('theme');
-                    
-                    if (storedTheme) {
-                        this.darkMode = storedTheme === 'dark';
-                    } else {
-                        this.darkMode = systemPrefersDark;
-                        localStorage.setItem('theme', systemPrefersDark ? 'dark' : 'light');
-                    }
-                    
-                    this.applyTheme();
-                },
-                
-                applyTheme() {
-                    document.documentElement.classList.toggle('dark', this.darkMode);
-                },
-                
-                toggleTheme() {
-                    this.darkMode = !this.darkMode;
-                    localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
-                    localStorage.setItem('user-theme-preference', 'true');
-                    
-                    this.applyTheme();
-                    this.showNotification(
-                        this.darkMode ? '🌙 已切换至暗色模式' : '☀️ 已切换至浅色模式', 
-                        'info'
-                    );
                 },
                 
                 initStudyStats() {
@@ -692,33 +613,19 @@
                 },
                 
                 showNotification(message, type = 'info') {
-                    const colors = {
-                        success: 'bg-green-500',
-                        error: 'bg-red-500',
-                        warning: 'bg-yellow-500',
-                        info: 'bg-blue-500'
-                    };
-                    
-                    const notification = document.createElement('div');
-                    notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-all duration-300`;
-                    notification.textContent = message;
-                    
-                    document.body.appendChild(notification);
-                    
-                    setTimeout(() => {
-                        notification.classList.remove('translate-x-full');
-                    }, 100);
-                    
-                    setTimeout(() => {
-                        notification.classList.add('translate-x-full');
-                        setTimeout(() => notification.remove(), 300);
-                    }, 3000);
+                    // 使用主题管理器的通知系统
+                    if (window.themeManager) {
+                        window.themeManager.showNotification(message, type);
+                    } else {
+                        // 降级通知方案
+                        console.log(`[${type.toUpperCase()}] ${message}`);
+                        alert(message);
+                    }
                 }
             };
         }
     
-    <!-- 统计组件脚本 -->
-    <script>
+        // 统计组件脚本
         function statsDashboard() {
             return {
                 showStatsModal: false,
@@ -759,6 +666,15 @@
                 Alpine.evaluate(dashboard, 'openStatsModal()');
             }
         };
+        
+        // 确保主题管理器在DOM加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.themeManager) {
+                console.log('✅ 主题管理器已初始化');
+            } else {
+                console.warn('⚠️ 主题管理器未找到');
+            }
+        });
     </script>
 </body>
 </html>
