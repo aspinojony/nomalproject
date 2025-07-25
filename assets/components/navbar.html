@@ -65,6 +65,10 @@
                                         <span class="material-symbols-outlined text-lg mr-2">person</span>
                                         个人资料
                                     </a>
+                                    <button onclick="showUserDataModal()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                                        <span class="material-symbols-outlined text-lg mr-2">analytics</span>
+                                        我的数据
+                                    </button>
                                     <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
                                         <span class="material-symbols-outlined text-lg mr-2">settings</span>
                                         设置
@@ -252,14 +256,69 @@ class NavbarComponent {
 
     initUserAuthStatus() {
         // 检查用户登录状态并更新UI
-        setTimeout(() => {
-            if (window.authManager && window.authManager.isAuthenticated()) {
-                const user = window.authManager.getCurrentUser();
-                this.updateUserUI(user);
-            } else {
-                this.showNotLoggedInState();
+        this.checkAndUpdateAuthStatus();
+        
+        // 监听DOM完全加载后再次检查
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => this.checkAndUpdateAuthStatus(), 100);
+            });
+        }
+    }
+
+    checkAndUpdateAuthStatus() {
+        // 首先检查localStorage中的认证状态
+        const storedUser = localStorage.getItem('auth_user') || localStorage.getItem('currentUser');
+        const accessToken = localStorage.getItem('auth_access_token') || localStorage.getItem('authToken');
+        const tokenExpiry = localStorage.getItem('auth_token_expiry');
+        
+        if (storedUser && accessToken) {
+            try {
+                const user = JSON.parse(storedUser);
+                
+                // 检查token是否过期
+                if (tokenExpiry) {
+                    const expiryDate = new Date(tokenExpiry);
+                    if (expiryDate > new Date()) {
+                        this.updateUserUI(user);
+                        console.log('✅ 导航栏：从localStorage恢复用户登录状态:', user.username);
+                        return;
+                    } else {
+                        console.log('⚠️ 导航栏：认证token已过期，清除登录状态');
+                        this.clearLocalAuthState();
+                    }
+                } else {
+                    // 没有过期时间，假设仍然有效
+                    this.updateUserUI(user);
+                    console.log('✅ 导航栏：从localStorage恢复用户登录状态:', user.username);
+                    return;
+                }
+            } catch (e) {
+                console.warn('⚠️ 导航栏：解析用户数据失败:', e);
+                this.clearLocalAuthState();
             }
-        }, 100);
+        }
+        
+        // 如果localStorage中没有有效的认证状态，检查authManager
+        if (window.authManager && window.authManager.isAuthenticated()) {
+            const user = window.authManager.getCurrentUser();
+            this.updateUserUI(user);
+        } else {
+            this.showNotLoggedInState();
+        }
+    }
+
+    clearLocalAuthState() {
+        // 清除所有相关的localStorage项
+        localStorage.removeItem('auth_access_token');
+        localStorage.removeItem('auth_refresh_token');
+        localStorage.removeItem('auth_user');
+        localStorage.removeItem('auth_login_time');
+        localStorage.removeItem('auth_token_expiry');
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('authToken');
+        
+        this.showNotLoggedInState();
     }
 
     bindUserAuthEvents() {
@@ -271,6 +330,12 @@ class NavbarComponent {
         // 监听登出事件
         document.addEventListener('userLoggedOut', () => {
             this.showNotLoggedInState();
+        });
+        
+        // 监听认证组件加载完成事件
+        document.addEventListener('authComponentLoaded', () => {
+            console.log('🔄 导航栏：收到认证组件加载完成事件，重新检查认证状态');
+            this.checkAndUpdateAuthStatus();
         });
     }
 
@@ -340,4 +405,32 @@ class NavbarComponent {
 
 // 导出组件类
 window.NavbarComponent = NavbarComponent;
+
+// 全局登出处理函数
+window.handleUserLogout = function() {
+    try {
+        // 清除所有认证相关的localStorage
+        localStorage.removeItem('auth_access_token');
+        localStorage.removeItem('auth_refresh_token');
+        localStorage.removeItem('auth_user');
+        localStorage.removeItem('auth_login_time');
+        localStorage.removeItem('auth_token_expiry');
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('authToken');
+        
+        // 触发登出事件
+        const logoutEvent = new CustomEvent('userLoggedOut', {
+            bubbles: true
+        });
+        document.dispatchEvent(logoutEvent);
+        
+        console.log('✅ 全局登出：用户已登出');
+        
+        // 刷新页面以重置状态
+        window.location.reload();
+    } catch (error) {
+        console.error('❌ 全局登出错误:', error);
+        alert('登出失败，请重试');
+    }
+};
 </script>

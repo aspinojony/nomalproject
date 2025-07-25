@@ -120,9 +120,47 @@ function authModalController() {
                     console.log('🔄 模拟登录模式');
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     
-                    // 模拟成功登录
+                    // 模拟成功登录并保存认证状态
+                    const mockUser = {
+                        id: 'mock_user_' + Date.now(),
+                        username: this.loginForm.identifier,
+                        displayName: this.loginForm.identifier,
+                        email: this.loginForm.identifier.includes('@') ? this.loginForm.identifier : `${this.loginForm.identifier}@example.com`
+                    };
+                    
+                    // 保存模拟认证状态到localStorage
+                    const mockAuthState = {
+                        accessToken: 'mock_token_' + Date.now(),
+                        refreshToken: 'mock_refresh_' + Date.now(),
+                        user: mockUser,
+                        loginTime: new Date(),
+                        tokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24小时后过期
+                    };
+                    
+                    // 统一保存认证状态到localStorage
+                    localStorage.setItem('auth_access_token', mockAuthState.accessToken);
+                    localStorage.setItem('auth_refresh_token', mockAuthState.refreshToken);
+                    localStorage.setItem('auth_user', JSON.stringify(mockAuthState.user));
+                    localStorage.setItem('auth_login_time', mockAuthState.loginTime.toISOString());
+                    localStorage.setItem('auth_token_expiry', mockAuthState.tokenExpiry.toISOString());
+                    // 为了兼容性，也保存到currentUser
+                    localStorage.setItem('currentUser', JSON.stringify(mockAuthState.user));
+                    localStorage.setItem('authToken', mockAuthState.accessToken);
+                    
+                    // 如果有authManager，也更新其状态
+                    if (window.authManager) {
+                        window.authManager.authState = mockAuthState;
+                    }
+                    
+                    // 触发用户登录事件，更新导航栏UI
+                    const loginEvent = new CustomEvent('userLoggedIn', {
+                        detail: { user: mockUser },
+                        bubbles: true
+                    });
+                    document.dispatchEvent(loginEvent);
+                    
                     this.closeModal();
-                    console.log('✅ 模拟登录成功');
+                    console.log('✅ 模拟登录成功，状态已保存');
                 }
             } catch (error) {
                 console.error('❌ 登录错误:', error);
@@ -216,18 +254,52 @@ function userMenuController() {
                 this.user = window.authManager.getCurrentUser();
             } else {
                 // 检查本地存储的登录状态
-                const storedUser = localStorage.getItem('currentUser');
-                if (storedUser) {
+                const storedUser = localStorage.getItem('auth_user') || localStorage.getItem('currentUser');
+                const accessToken = localStorage.getItem('auth_access_token') || localStorage.getItem('authToken');
+                const tokenExpiry = localStorage.getItem('auth_token_expiry');
+                
+                if (storedUser && accessToken) {
                     try {
                         this.user = JSON.parse(storedUser);
-                        this.isAuthenticated = true;
+                        
+                        // 检查token是否过期
+                        if (tokenExpiry) {
+                            const expiryDate = new Date(tokenExpiry);
+                            if (expiryDate > new Date()) {
+                                this.isAuthenticated = true;
+                                console.log('✅ 从localStorage恢复用户登录状态:', this.user.username);
+                            } else {
+                                console.log('⚠️ 认证token已过期，清除登录状态');
+                                this.clearAuthState();
+                            }
+                        } else {
+                            // 没有过期时间，假设仍然有效
+                            this.isAuthenticated = true;
+                            console.log('✅ 从localStorage恢复用户登录状态:', this.user.username);
+                        }
                     } catch (e) {
                         console.warn('解析用户数据失败:', e);
-                        this.isAuthenticated = false;
-                        this.user = null;
+                        this.clearAuthState();
                     }
+                } else {
+                    this.clearAuthState();
                 }
             }
+        },
+        
+        // 清除认证状态
+        clearAuthState() {
+            this.isAuthenticated = false;
+            this.user = null;
+            
+            // 清除所有相关的localStorage项
+            localStorage.removeItem('auth_access_token');
+            localStorage.removeItem('auth_refresh_token');
+            localStorage.removeItem('auth_user');
+            localStorage.removeItem('auth_login_time');
+            localStorage.removeItem('auth_token_expiry');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('authToken');
         },
         
         // 设置认证监听器
@@ -298,13 +370,16 @@ function userMenuController() {
                     await window.authManager.logout();
                 } else {
                     // 清除本地存储
-                    localStorage.removeItem('currentUser');
-                    localStorage.removeItem('authToken');
+                    this.clearAuthState();
                 }
                 
-                this.isAuthenticated = false;
-                this.user = null;
                 this.showDropdown = false;
+                
+                // 触发用户登出事件
+                const logoutEvent = new CustomEvent('userLoggedOut', {
+                    bubbles: true
+                });
+                document.dispatchEvent(logoutEvent);
                 
                 console.log('✅ 用户已登出');
                 
