@@ -277,21 +277,33 @@ class AuthManager {
             console.error('❌ 注册失败:', error);
             
             // 检查是否是网络连接问题
-            if (error.message.includes('Failed to fetch') || error.message.includes('ERR_NAME_NOT_RESOLVED')) {
-                console.log('🔄 服务器不可用，切换到本地模式进行注册');
+            if (error.message.includes('无法连接到服务器') ||
+                error.message.includes('Failed to fetch') ||
+                error.message.includes('CORS') ||
+                error.name === 'TypeError') {
                 
-                // 启用本地模式
-                this.config.localOnlyMode = true;
+                console.log('🔄 服务器不可用，注册功能需要网络连接');
                 
-                // 在本地模式下处理注册
-                return this.handleLocalRegistration(userData);
+                this.emit('registerError', {
+                    message: '注册功能需要连接到服务器，请检查网络连接后重试',
+                    code: 'NETWORK_ERROR'
+                });
+                
+                return {
+                    success: false,
+                    message: '注册功能需要连接到服务器，请检查网络连接后重试'
+                };
             }
             
             this.emit('registerError', {
-                message: '注册失败，请检查网络连接',
+                message: error.message || '注册失败，请重试',
                 error: error.message
             });
-            return { success: false, message: '注册失败，请检查网络连接' };
+            
+            return { 
+                success: false, 
+                message: error.message || '注册失败，请重试'
+            };
         }
     }
 
@@ -738,8 +750,28 @@ class AuthManager {
 
                 return data;
             } catch (error) {
+                console.warn(`API调用失败 (${attempt + 1}/${this.config.retryAttempts}):`, error.message);
+                
+                // 检查是否为CORS或网络连接错误
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    console.warn('检测到网络连接错误，可能是服务器未启动或CORS问题');
+                    
+                    // 如果是第一次尝试失败，记录详细信息
+                    if (attempt === 0) {
+                        console.error(`网络请求失败: ${url}`, {
+                            error: error.message,
+                            endpoint,
+                            options: finalOptions
+                        });
+                    }
+                }
+                
                 attempt++;
                 if (attempt >= this.config.retryAttempts) {
+                    // 最后一次尝试失败，提供更友好的错误信息
+                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                        throw new Error('无法连接到服务器，请检查网络连接或联系管理员');
+                    }
                     throw error;
                 }
                 

@@ -39,6 +39,7 @@
     
     <!-- 用户管理系统 - 在其他脚本之前加载 -->
     <script src="assets/js/auth-manager.js" defer></script>
+    <script src="assets/js/user-data-manager.js" defer></script>
     <script src="assets/js/user-settings-manager.js" defer></script>
     <script src="assets/js/data-backup-manager.js" defer></script>
     <script src="assets/js/realtime-sync-manager.js" defer></script>
@@ -899,7 +900,285 @@
     <!-- 包含用户认证组件 -->
     <div id="user-auth-component"></div>
     
+    <!-- 用户数据模态框 -->
+    <div id="userDataModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <!-- 模态框头部 -->
+            <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">我的学习数据</h2>
+                <button onclick="closeUserDataModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <!-- 模态框内容 -->
+            <div class="p-6">
+                <!-- 用户信息 -->
+                <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">用户信息</h3>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-600 dark:text-gray-400">用户名：</span>
+                            <span id="userData-username" class="text-gray-900 dark:text-white font-medium">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600 dark:text-gray-400">邮箱：</span>
+                            <span id="userData-email" class="text-gray-900 dark:text-white font-medium">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600 dark:text-gray-400">注册时间：</span>
+                            <span id="userData-created" class="text-gray-900 dark:text-white font-medium">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600 dark:text-gray-400">最后更新：</span>
+                            <span id="userData-updated" class="text-gray-900 dark:text-white font-medium">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 学习统计 -->
+                <div class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">学习统计</h3>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-600 dark:text-gray-400">总学习时间：</span>
+                            <span id="userData-totalTime" class="text-gray-900 dark:text-white font-medium">0 分钟</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600 dark:text-gray-400">学习天数：</span>
+                            <span id="userData-streakDays" class="text-gray-900 dark:text-white font-medium">0 天</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600 dark:text-gray-400">总题目数：</span>
+                            <span id="userData-totalQuestions" class="text-gray-900 dark:text-white font-medium">0 题</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600 dark:text-gray-400">正确率：</span>
+                            <span id="userData-accuracy" class="text-gray-900 dark:text-white font-medium">0%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 进度信息 -->
+                <div class="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">学习进度</h3>
+                    <div id="userData-progress" class="text-sm text-gray-600 dark:text-gray-400">
+                        加载中...
+                    </div>
+                </div>
+                
+                <!-- 实时同步状态 -->
+                <div class="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">实时同步状态</h3>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-600 dark:text-gray-400">连接状态：</span>
+                            <span id="sync-status" class="text-gray-900 dark:text-white font-medium">检查中...</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600 dark:text-gray-400">最后同步：</span>
+                            <span id="last-sync" class="text-gray-900 dark:text-white font-medium">从未</span>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <button id="manual-sync-btn" onclick="manualSync()" class="px-3 py-1 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 transition">
+                            手动同步
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 数据管理 -->
+                <div class="flex gap-3">
+                    <button onclick="exportUserData()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm">
+                        导出数据
+                    </button>
+                    <button onclick="clearUserData()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm">
+                        清除数据
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script>
+        // 显示用户数据模态框
+        function showUserDataModal() {
+            const modal = document.getElementById('userDataModal');
+            if (modal && window.userDataManager) {
+                // 显示模态框
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                
+                // 加载用户数据
+                loadUserDataIntoModal();
+            }
+        }
+        
+        // 关闭用户数据模态框
+        function closeUserDataModal() {
+            const modal = document.getElementById('userDataModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+        
+        // 加载用户数据到模态框
+        async function loadUserDataIntoModal() {
+            if (!window.userDataManager || !window.userDataManager.currentUserId) {
+                return;
+            }
+            
+            try {
+                const userData = window.userDataManager.getCurrentUserData();
+                const authManager = window.authManager;
+                
+                // 更新用户信息
+                const currentUser = authManager ? authManager.getCurrentUser() : null;
+                if (currentUser) {
+                    document.getElementById('userData-username').textContent = currentUser.displayName || currentUser.username || '-';
+                    document.getElementById('userData-email').textContent = currentUser.email || '-';
+                }
+                
+                if (userData) {
+                    document.getElementById('userData-created').textContent = userData.createdAt ? 
+                        new Date(userData.createdAt).toLocaleDateString() : '-';
+                    document.getElementById('userData-updated').textContent = userData.lastSaved ? 
+                        new Date(userData.lastSaved).toLocaleDateString() + ' ' + new Date(userData.lastSaved).toLocaleTimeString() : '-';
+                    
+                    // 更新学习统计
+                    const stats = userData.statistics || {};
+                    document.getElementById('userData-totalTime').textContent = Math.round((stats.totalStudyTime || 0) / 60) + ' 分钟';
+                    document.getElementById('userData-streakDays').textContent = (stats.streakDays || 0) + ' 天';
+                    document.getElementById('userData-totalQuestions').textContent = (stats.totalQuestionsAnswered || 0) + ' 题';
+                    
+                    const accuracy = stats.totalQuestionsAnswered > 0 ? 
+                        Math.round((stats.correctAnswers / stats.totalQuestionsAnswered) * 100) : 0;
+                    document.getElementById('userData-accuracy').textContent = accuracy + '%';
+                    
+                    // 更新进度信息
+                    const progress = userData.progress || {};
+                    const progressKeys = Object.keys(progress);
+                    const progressText = progressKeys.length > 0 ? 
+                        `已完成 ${progressKeys.length} 个章节的学习` : '暂无学习进度';
+                    document.getElementById('userData-progress').textContent = progressText;
+                }
+                
+                // 更新同步状态
+                updateSyncStatus();
+                
+            } catch (error) {
+                console.error('❌ 加载用户数据失败:', error);
+            }
+        }
+        
+        // 更新同步状态
+        function updateSyncStatus() {
+            const syncStatusEl = document.getElementById('sync-status');
+            const lastSyncEl = document.getElementById('last-sync');
+            
+            if (window.realtimeSyncManager) {
+                const syncManager = window.realtimeSyncManager;
+                const isConnected = syncManager.isConnected();
+                
+                syncStatusEl.textContent = isConnected ? '🟢 已连接' : '🔴 未连接';
+                syncStatusEl.className = isConnected ? 
+                    'text-green-600 dark:text-green-400 font-medium' : 
+                    'text-red-600 dark:text-red-400 font-medium';
+                
+                // 获取最后同步时间
+                const lastSyncTime = localStorage.getItem('last_sync_time');
+                if (lastSyncTime) {
+                    const time = new Date(lastSyncTime);
+                    lastSyncEl.textContent = time.toLocaleString();
+                } else {
+                    lastSyncEl.textContent = '从未';
+                }
+            } else {
+                syncStatusEl.textContent = '🟡 同步服务未启用';
+                syncStatusEl.className = 'text-yellow-600 dark:text-yellow-400 font-medium';
+            }
+        }
+        
+        // 手动同步
+        async function manualSync() {
+            const syncBtn = document.getElementById('manual-sync-btn');
+            const originalText = syncBtn.textContent;
+            
+            try {
+                syncBtn.textContent = '同步中...';
+                syncBtn.disabled = true;
+                
+                if (window.userDataManager && window.userDataManager.currentUserId) {
+                    await window.userDataManager.syncAllDataToRemote();
+                    localStorage.setItem('last_sync_time', new Date().toISOString());
+                    updateSyncStatus();
+                    alert('同步完成！');
+                } else {
+                    alert('请先登录！');
+                }
+            } catch (error) {
+                console.error('❌ 手动同步失败:', error);
+                alert('同步失败，请重试');
+            } finally {
+                syncBtn.textContent = originalText;
+                syncBtn.disabled = false;
+            }
+        }
+        
+        // 导出用户数据
+        function exportUserData() {
+            if (!window.userDataManager || !window.userDataManager.currentUserId) {
+                alert('没有用户数据可导出');
+                return;
+            }
+            
+            const userData = window.userDataManager.getCurrentUserData();
+            if (userData) {
+                const dataStr = JSON.stringify(userData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `user_data_${window.userDataManager.currentUserId}_${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                URL.revokeObjectURL(url);
+                alert('用户数据已导出');
+            }
+        }
+        
+        // 清除用户数据
+        function clearUserData() {
+            if (!window.userDataManager || !window.userDataManager.currentUserId) {
+                alert('没有用户数据可清除');
+                return;
+            }
+            
+            if (confirm('确定要清除所有学习数据吗？此操作不可恢复！')) {
+                try {
+                    // 重置用户数据为默认值
+                    const defaultData = window.userDataManager.getDefaultUserData();
+                    window.userDataManager.userData.set(window.userDataManager.currentUserId, defaultData);
+                    
+                    // 应用到系统
+                    window.userDataManager.applyUserDataToSystem();
+                    
+                    // 保存更改
+                    window.userDataManager.saveCurrentUserData();
+                    
+                    // 刷新模态框显示
+                    loadUserDataIntoModal();
+                    
+                    alert('用户数据已清除');
+                } catch (error) {
+                    console.error('❌ 清除用户数据失败:', error);
+                    alert('清除数据失败，请重试');
+                }
+            }
+        }
+        
         // 加载用户认证组件
         document.addEventListener('DOMContentLoaded', function() {
             fetch('assets/components/user-auth.html')
@@ -907,6 +1186,56 @@
                 .then(html => {
                     document.getElementById('user-auth-component').innerHTML = html;
                     console.log('✅ 用户认证组件已加载');
+                    
+                    // 用户认证组件加载后，触发导航栏的认证状态检查
+                    setTimeout(() => {
+                        // 发送一个自定义事件来通知所有需要检查认证状态的组件
+                        const authCheckEvent = new CustomEvent('authComponentLoaded', {
+                            bubbles: true,
+                            detail: { timestamp: Date.now() }
+                        });
+                        document.dispatchEvent(authCheckEvent);
+                        
+                        // 如果有存储的用户信息，触发用户登录事件
+                        const storedUser = localStorage.getItem('auth_user') || localStorage.getItem('currentUser');
+                        const accessToken = localStorage.getItem('auth_access_token') || localStorage.getItem('authToken');
+                        const tokenExpiry = localStorage.getItem('auth_token_expiry');
+                        
+                        if (storedUser && accessToken) {
+                            try {
+                                const user = JSON.parse(storedUser);
+                                
+                                // 检查token是否过期
+                                let isValid = true;
+                                if (tokenExpiry) {
+                                    const expiryDate = new Date(tokenExpiry);
+                                    isValid = expiryDate > new Date();
+                                }
+                                
+                                if (isValid) {
+                                    // 触发用户登录事件，让所有组件同步状态
+                                    const loginEvent = new CustomEvent('userLoggedIn', {
+                                        detail: { user: user },
+                                        bubbles: true
+                                    });
+                                    document.dispatchEvent(loginEvent);
+                                    console.log('✅ 页面加载时恢复用户登录状态:', user.username);
+                                } else {
+                                    console.log('⚠️ 页面加载时发现token已过期，清除认证状态');
+                                    // 清除过期的认证状态
+                                    localStorage.removeItem('auth_access_token');
+                                    localStorage.removeItem('auth_refresh_token');
+                                    localStorage.removeItem('auth_user');
+                                    localStorage.removeItem('auth_login_time'); 
+                                    localStorage.removeItem('auth_token_expiry');
+                                    localStorage.removeItem('currentUser');
+                                    localStorage.removeItem('authToken');
+                                }
+                            } catch (e) {
+                                console.warn('⚠️ 页面加载时解析用户数据失败:', e);
+                            }
+                        }
+                    }, 200); // 给组件一些时间完成初始化
                 })
                 .catch(error => console.error('Error loading user auth component:', error));
         });

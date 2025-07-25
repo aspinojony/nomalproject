@@ -76,3 +76,64 @@ async function mergeProgressIntoCoursesIndexed(courses) {
   }
   return courses;
 }
+
+// 加载所有进度数据（用于用户数据管理）
+async function loadAllProgressFromDB() {
+  const db = await initDB();
+  const tx = db.transaction(STORE_NAME, "readonly");
+  const store = tx.objectStore(STORE_NAME);
+
+  return new Promise((resolve) => {
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const allProgress = {};
+      request.result.forEach(item => {
+        allProgress[item.key] = item;
+      });
+      resolve(allProgress);
+    };
+    request.onerror = () => resolve({});
+  });
+}
+
+// 清除所有进度数据（用于用户切换）
+async function clearAllProgressFromDB() {
+  const db = await initDB();
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  const store = tx.objectStore(STORE_NAME);
+
+  return new Promise((resolve) => {
+    const request = store.clear();
+    request.onsuccess = () => {
+      console.log('🗑️ 已清除所有进度数据');
+      resolve(true);
+    };
+    request.onerror = () => {
+      console.error('❌ 清除进度数据失败');
+      resolve(false);
+    };
+  });
+}
+
+// 批量恢复进度数据（用于用户数据恢复）
+async function restoreProgressToDB(progressData) {
+  if (!progressData || typeof progressData !== 'object') return;
+
+  const db = await initDB();
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  const store = tx.objectStore(STORE_NAME);
+
+  const promises = Object.entries(progressData).map(([key, data]) => {
+    return new Promise((resolve) => {
+      const request = store.put(data);
+      request.onsuccess = () => resolve(true);
+      request.onerror = () => {
+        console.error(`❌ 恢复进度数据失败: ${key}`);
+        resolve(false);
+      };
+    });
+  });
+
+  await Promise.all(promises);
+  console.log('✅ 进度数据已批量恢复');
+}
