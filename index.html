@@ -7,56 +7,404 @@
     <meta name="description" content="专业的计算机考研学习平台，提供数学、英语、政治、专业课等全科目学习资源，AI智能辅导，真题练习，助您高效备考">
     <meta name="keywords" content="计算机考研,考研学习,真题练习,AI辅导,数据结构,操作系统,计算机网络">
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <!-- 性能优化：DNS预解析 -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="//unpkg.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     
-    <!-- Google Fonts - 优化的 Roboto 字体族 -->
+    <!-- 关键CSS内联 - 优化首屏渲染 -->
+    <style>
+        /* 关键路径CSS - 内联到HTML中以加快首屏渲染 */
+
+        /* 基础重置和变量 */
+        :root {
+            --primary-50: #eff6ff;
+            --primary-500: #3b82f6;
+            --primary-600: #2563eb;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1f2937;
+            --bg-secondary: #111827;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --border-color: #374151;
+        }
+
+        /* 关键布局样式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 导航栏关键样式 */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(8px);
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 4rem;
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            min-height: calc(100vh - 4rem);
+            background-color: var(--bg-primary);
+        }
+
+        /* 加载指示器 */
+        .loading-spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--primary-500);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 骨架屏样式 */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        [data-theme="dark"] .skeleton {
+            background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+            background-size: 200% 100%;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-text {
+            height: 1rem;
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .skeleton-title {
+            height: 1.5rem;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+            width: 60%;
+        }
+
+        .skeleton-button {
+            height: 2.5rem;
+            border-radius: 0.375rem;
+            width: 8rem;
+        }
+
+        /* 响应式基础 */
+        @media (max-width: 768px) {
+            .navbar-container {
+                padding: 0 0.5rem;
+            }
+            
+            .main-content {
+                padding: 0.5rem;
+            }
+        }
+
+        /* 隐藏非关键内容直到完全加载 */
+        .lazy-content {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .lazy-content.loaded {
+            opacity: 1;
+        }
+
+        /* 首屏优化 */
+        .above-fold {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .below-fold {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .below-fold.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+
+    <!-- 高优先级：立即加载性能优化器 -->
+    <script>
+        // 内联关键性能代码
+        (function() {
+            window.PERFORMANCE_START = performance.now();
+            
+            // 创建性能监控对象
+            window.performanceMetrics = {
+                startTime: window.PERFORMANCE_START,
+                resourceLoadTimes: {},
+                criticalPathComplete: false
+            };
+            
+            // 预加载关键资源
+            function preloadCritical() {
+                const critical = [
+                    { href: 'assets/js/performance-loader.js', as: 'script' },
+                    { href: 'assets/js/theme-manager.js', as: 'script' },
+                    { href: 'assets/css/theme-manager.css', as: 'style' },
+                    { href: 'assets/css/common.css', as: 'style' }
+                ];
+                
+                critical.forEach(resource => {
+                    const link = document.createElement('link');
+                    link.rel = 'preload';
+                    link.href = resource.href;
+                    link.as = resource.as;
+                    if (resource.as === 'script') {
+                        link.crossOrigin = 'anonymous';
+                    }
+                    document.head.appendChild(link);
+                });
+            }
+            
+            // 立即执行
+            preloadCritical();
+        })();
+    </script>
+
+    <!-- 性能加载器 - 最高优先级 -->
+    <script src="assets/js/performance-loader.js" async></script>
+    
+    <!-- 主题管理器 - 关键路径 -->
+    <script src="assets/js/theme-manager.js"></script>
+
+    <!-- 外部资源 - 延迟加载 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- 精确引入需要的字重，优化加载性能 -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Condensed:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     
-    <!-- Material Symbols - 替代 Font Awesome -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+    <!-- 字体 - 使用font-display优化 -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Condensed:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <!-- 新的主题管理系统 -->
+    <!-- Material Symbols - 延迟加载 -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" media="print" onload="this.media='all'">
+
+    <!-- 外部库 - 条件加载 -->
+    <script>
+        // 条件加载外部依赖
+        window.addEventListener('load', function() {
+            // 延迟加载TailwindCSS
+            if (!window.tailwindLoaded) {
+                const tailwind = document.createElement('script');
+                tailwind.src = 'https://cdn.tailwindcss.com';
+                tailwind.async = true;
+                document.head.appendChild(tailwind);
+                window.tailwindLoaded = true;
+            }
+            
+            // 延迟加载Alpine.js
+            if (!window.alpineLoaded) {
+                const alpine = document.createElement('script');
+                alpine.src = 'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js';
+                alpine.defer = true;
+                document.head.appendChild(alpine);
+                window.alpineLoaded = true;
+            }
+            
+            // 条件加载crypto-js（仅在需要时）
+            if (localStorage.getItem('auth_user') && !window.cryptoLoaded) {
+                const crypto = document.createElement('script');
+                crypto.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
+                crypto.async = true;
+                document.head.appendChild(crypto);
+                window.cryptoLoaded = true;
+            }
+        });
+    </script>
+
+    <!-- 关键CSS - 立即加载 -->
     <link href="assets/css/theme-manager.css" rel="stylesheet">
     <link href="assets/css/common.css" rel="stylesheet">
-    <link href="assets/css/mobile-optimization.css" rel="stylesheet">
     
-    <!-- 预加载重要资源 - 性能优化 -->
-    <link rel="preload" href="assets/js/theme-manager.js" as="script">
-    <link rel="preload" href="assets/js/ai-assistant-loader.js" as="script">
-    <link rel="preload" href="assets/js/course-data.js" as="script">
-    <link rel="preload" href="assets/js/fallback-data.js" as="script">
-    <link rel="preload" href="assets/js/resource-loader.js" as="script">
-    <link rel="preload" href="assets/css/theme-manager.css" as="style">
-    <link rel="preload" href="assets/css/common.css" as="style">
+    <!-- 非关键CSS - 延迟加载 -->
+    <link href="assets/css/mobile-optimization.css" rel="stylesheet" media="print" onload="this.media='all'">
     
-    <!-- 主题管理器 - 优先加载 -->
-    <script src="assets/js/theme-manager.js"></script>
-    
-    <!-- 用户管理系统 - 在其他脚本之前加载 -->
-    <script src="assets/js/auth-manager.js" defer></script>
-    <script src="assets/js/user-data-manager.js" defer></script>
-    <script src="assets/js/progress-db.js" defer></script>
-    <script src="assets/js/user-settings-manager.js" defer></script>
-    <script src="assets/js/data-backup-manager.js" defer></script>
-    <script src="assets/js/realtime-sync-manager.js" defer></script>
-    <script src="assets/js/user-auth-controllers.js" defer></script>
-    
-    <!-- 页面管理和组件系统 -->
-    <script src="assets/js/utils.js" defer></script>
-    <script src="assets/js/core/module-system.js" defer></script>
-    <script src="assets/js/core/state-manager.js" defer></script>
-    
-    <!-- 懒加载脚本 -->
-    <script src="assets/js/ai-assistant-loader.js" defer></script>
-    <script src="assets/js/course-data.js" defer></script>
-    <script src="assets/js/fallback-data.js" defer></script>
-    <script src="assets/js/resource-loader.js" defer></script>
+    <!-- 智能脚本加载 - 根据优先级和依赖关系 -->
+    <script>
+        // 智能模块加载器
+        (function() {
+            const moduleLoader = {
+                loaded: new Set(),
+                loading: new Set(),
+                queue: [],
+                
+                // 定义模块加载顺序和依赖
+                modules: {
+                    // 第一优先级：核心系统
+                    core: [
+                        'assets/js/utils.js',
+                        'assets/js/core/module-system.js',
+                        'assets/js/core/state-manager.js'
+                    ],
+                    
+                    // 第二优先级：用户系统（条件加载）
+                    user: [
+                        'assets/js/auth-manager.js',
+                        'assets/js/user-data-manager.js',
+                        'assets/js/progress-db.js',
+                        'assets/js/user-auth-controllers.js'
+                    ],
+                    
+                    // 第三优先级：功能模块（懒加载）
+                    features: [
+                        'assets/js/resource-loader.js',
+                        'assets/js/course-data.js',
+                        'assets/js/fallback-data.js'
+                    ],
+                    
+                    // 第四优先级：扩展功能（最低优先级）
+                    extensions: [
+                        'assets/js/user-settings-manager.js',
+                        'assets/js/data-backup-manager.js',
+                        'assets/js/realtime-sync-manager.js',
+                        'assets/js/ai-assistant-loader.js',
+                        'assets/js/image-optimizer.js',
+                        'assets/js/web-vitals-monitor.js'
+                    ]
+                },
+                
+                loadScript(url) {
+                    return new Promise((resolve, reject) => {
+                        if (this.loaded.has(url)) {
+                            resolve();
+                            return;
+                        }
+                        
+                        if (this.loading.has(url)) {
+                            // 等待已在加载的脚本
+                            const checkLoaded = () => {
+                                if (this.loaded.has(url)) {
+                                    resolve();
+                                } else {
+                                    setTimeout(checkLoaded, 50);
+                                }
+                            };
+                            checkLoaded();
+                            return;
+                        }
+                        
+                        this.loading.add(url);
+                        
+                        const script = document.createElement('script');
+                        script.src = url;
+                        script.async = true;
+                        
+                        script.onload = () => {
+                            this.loading.delete(url);
+                            this.loaded.add(url);
+                            console.log(`✅ 已加载: ${url}`);
+                            resolve();
+                        };
+                        
+                        script.onerror = () => {
+                            this.loading.delete(url);
+                            console.error(`❌ 加载失败: ${url}`);
+                            reject(new Error(`Failed to load ${url}`));
+                        };
+                        
+                        document.head.appendChild(script);
+                    });
+                },
+                
+                async loadModuleGroup(groupName) {
+                    const modules = this.modules[groupName];
+                    if (!modules) return;
+                    
+                    // 并行加载组内模块
+                    const promises = modules.map(url => this.loadScript(url));
+                    await Promise.all(promises);
+                    console.log(`📦 ${groupName} 模块组加载完成`);
+                },
+                
+                async init() {
+                    // 立即加载核心模块
+                    await this.loadModuleGroup('core');
+                    
+                    // 检查是否需要用户系统
+                    const needsUserSystem = this.checkUserSystemNeeded();
+                    if (needsUserSystem) {
+                        await this.loadModuleGroup('user');
+                    }
+                    
+                    // 使用requestIdleCallback延迟加载功能模块
+                    if (window.requestIdleCallback) {
+                        requestIdleCallback(() => {
+                            this.loadModuleGroup('features');
+                            
+                            // 进一步延迟扩展功能
+                            setTimeout(() => {
+                                this.loadModuleGroup('extensions');
+                            }, 2000);
+                        });
+                    } else {
+                        // 降级方案
+                        setTimeout(() => this.loadModuleGroup('features'), 100);
+                        setTimeout(() => this.loadModuleGroup('extensions'), 2000);
+                    }
+                },
+                
+                checkUserSystemNeeded() {
+                    return localStorage.getItem('auth_user') || 
+                           localStorage.getItem('currentUser') ||
+                           window.location.search.includes('login') ||
+                           window.location.hash.includes('auth');
+                }
+            };
+            
+            // DOM加载完成后开始模块加载
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => moduleLoader.init());
+            } else {
+                moduleLoader.init();
+            }
+            
+            // 导出到全局以供其他脚本使用
+            window.moduleLoader = moduleLoader;
+        })();
+    </script>
     
     <!-- 页面特定样式 - 最小化内联样式 -->
     <style>
@@ -1183,6 +1531,27 @@
         
         // 系统初始化
         document.addEventListener('DOMContentLoaded', function() {
+            // 注册Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker 注册成功:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.warn('⚠️ Service Worker 注册失败:', error);
+                    });
+            }
+            
+            // 初始化性能监控
+            if (typeof WebVitalsMonitor !== 'undefined') {
+                window.webVitalsMonitor = new WebVitalsMonitor();
+            }
+            
+            // 初始化图片优化器
+            if (typeof ImageOptimizer !== 'undefined') {
+                window.imageOptimizer = new ImageOptimizer();
+            }
+            
             // 初始化用户数据管理器
             if (typeof UserDataManager !== 'undefined') {
                 window.userDataManager = new UserDataManager();
