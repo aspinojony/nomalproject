@@ -24,6 +24,7 @@
     <!-- 新的主题管理系统 -->
     <link href="assets/css/theme-manager.css" rel="stylesheet">
     <link href="assets/css/common.css" rel="stylesheet">
+    <link href="assets/css/mobile-optimization.css" rel="stylesheet">
     
     <!-- 预加载重要资源 - 性能优化 -->
     <link rel="preload" href="assets/js/theme-manager.js" as="script">
@@ -40,6 +41,7 @@
     <!-- 用户管理系统 - 在其他脚本之前加载 -->
     <script src="assets/js/auth-manager.js" defer></script>
     <script src="assets/js/user-data-manager.js" defer></script>
+    <script src="assets/js/progress-db.js" defer></script>
     <script src="assets/js/user-settings-manager.js" defer></script>
     <script src="assets/js/data-backup-manager.js" defer></script>
     <script src="assets/js/realtime-sync-manager.js" defer></script>
@@ -1179,8 +1181,24 @@
             }
         }
         
-        // 加载用户认证组件
+        // 系统初始化
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化用户数据管理器
+            if (typeof UserDataManager !== 'undefined') {
+                window.userDataManager = new UserDataManager();
+                console.log('✅ 用户数据管理器已初始化');
+            } else {
+                console.warn('⚠️ UserDataManager 类未找到，将在脚本加载后重试');
+                // 如果类还没加载，等一下再试
+                setTimeout(() => {
+                    if (typeof UserDataManager !== 'undefined') {
+                        window.userDataManager = new UserDataManager();
+                        console.log('✅ 用户数据管理器已初始化（延迟）');
+                    }
+                }, 1000);
+            }
+            
+            // 加载用户认证组件
             fetch('assets/components/user-auth.html')
                 .then(response => response.text())
                 .then(html => {
