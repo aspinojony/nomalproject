@@ -1,5 +1,10 @@
 # 计算机考研学习平台
 
+<p align="center">
+  <img src="assets/showcase/overview.svg" alt="Project Overview" width="100%" />
+</p>
+
+
 一个专为计算机考研学生设计的综合性学习工具，集成了 AI 智能辅导、题目练习、笔记管理、学习统计等多项功能。
 
 > 面向求职展示：这是一个偏 Web 产品化的学习平台项目，覆盖 **静态前端页面、题库管理、学习数据管理、AI 问答接入、用户认证、Node/Express 可选后端、部署配置**，适合作为前端/全栈能力补充项目。

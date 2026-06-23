@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8fafc"/><stop offset="1" stop-color="#e2e8f0"/></linearGradient></defs>
+  <rect width="1200" height="630" rx="0" fill="url(#bg)"/>
+  <circle cx="1080" cy="90" r="180" fill="#7c3aed" opacity="0.12"/>
+  <circle cx="90" cy="580" r="150" fill="#7c3aed" opacity="0.10"/>
+  <text x="70" y="90" fill="#111827" font-family="Arial, PingFang SC, sans-serif" font-size="46" font-weight="800">CS Exam Learning Platform</text>
+  <text x="72" y="130" fill="#7c3aed" font-family="Arial, PingFang SC, sans-serif" font-size="24" font-weight="700">HTML · JavaScript · AI Assistant · Express</text>
+  <rect x="300" y="140" width="600" height="270" rx="18" fill="#ffffff" stroke="#ddd6fe"/><rect x="330" y="170" width="540" height="58" rx="14" fill="#7c3aed" opacity="0.86"/><rect x="330" y="255" width="155" height="105" rx="14" fill="#ede9fe"/><rect x="520" y="255" width="155" height="105" rx="14" fill="#ede9fe"/><rect x="710" y="255" width="155" height="105" rx="14" fill="#ede9fe"/>
+  <rect x="70" y="440" width="180" height="70" rx="14" fill="#ffffff" opacity="0.94"/><text x="90" y="470" fill="#111827" font-size="18" font-weight="700">Subject</text><text x="90" y="494" fill="#4b5563" font-size="13">learning path</text><rect x="275" y="440" width="180" height="70" rx="14" fill="#ffffff" opacity="0.94"/><text x="295" y="470" fill="#111827" font-size="18" font-weight="700">Question</text><text x="295" y="494" fill="#4b5563" font-size="13">bank practice</text><rect x="480" y="440" width="180" height="70" rx="14" fill="#ffffff" opacity="0.94"/><text x="500" y="470" fill="#111827" font-size="18" font-weight="700">Notes</text><text x="500" y="494" fill="#4b5563" font-size="13">and statistics</text><rect x="685" y="440" width="180" height="70" rx="14" fill="#ffffff" opacity="0.94"/><text x="705" y="470" fill="#111827" font-size="18" font-weight="700">Optional</text><text x="705" y="494" fill="#4b5563" font-size="13">sync backend</text>
+  <text x="70" y="585" fill="#64748b" font-family="Arial, PingFang SC, sans-serif" font-size="18">github.com/aspinojony · project showcase</text>
+</svg>
