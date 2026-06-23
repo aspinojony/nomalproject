@@ -6,6 +6,18 @@
 
 > 面向求职展示：这是一个偏 Web 产品化的学习平台项目，覆盖 **静态前端页面、题库管理、学习数据管理、AI 问答接入、用户认证、Node/Express 可选后端、部署配置**，适合作为前端/全栈能力补充项目。
 
+## 运行截图
+
+> 本地通过 `python3 -m http.server 18080` 启动后截取，截图来自真实页面渲染。
+
+<p align="center">
+  <img src="docs/images/home.png" alt="平台首页" width="100%" />
+</p>
+<p align="center">
+  <img src="docs/images/practice.png" alt="练习页面" width="48%" />
+  <img src="docs/images/notes.png" alt="笔记管理" width="48%" />
+</p>
+
 ## 项目亮点
 
 - **学习业务完整**：覆盖科目导航、章节学习、题目练习、笔记管理、学习统计、资源管理等核心学习流程。
