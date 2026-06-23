@@ -59,3 +59,8 @@ dist/
 build/
 .next/
 out/
+# Local IDE/agent/Windows metadata
+.claude/
+.idea/
+CLAUDE.md
+*Zone.Identifier
