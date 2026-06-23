@@ -1,8 +1,5 @@
 # 计算机考研学习平台
 
-<p align="center">
-  <img src="assets/showcase/overview.svg" alt="Project Overview" width="100%" />
-</p>
 
 
 一个专为计算机考研学生设计的综合性学习工具，集成了 AI 智能辅导、题目练习、笔记管理、学习统计等多项功能。
